@@ -15,10 +15,15 @@ from datetime import datetime, timezone, timedelta
 from functools import wraps
 from flask import Flask, jsonify, send_from_directory, abort, request, session
 
-BASE_DIR   = os.path.dirname(os.path.abspath(__file__))
-DATA_DIR   = os.path.join(BASE_DIR, 'data')
-UPLOAD_DIR      = os.path.join(BASE_DIR, 'assets', 'images', 'announcements')
-PROJ_UPLOAD_DIR = os.path.join(BASE_DIR, 'assets', 'images', 'initiatives')
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# ── Persistent storage root ───────────────────────────────────────────────────
+# On Render (or any ephemeral host): set DATA_ROOT env var to a mounted
+# persistent disk path (e.g. /var/data).  Locally: defaults to data/ in repo.
+_DATA_ROOT = os.environ.get('DATA_ROOT', '').strip()
+DATA_DIR        = _DATA_ROOT if _DATA_ROOT else os.path.join(BASE_DIR, 'data')
+UPLOAD_DIR      = os.path.join(DATA_DIR, 'images', 'announcements')
+PROJ_UPLOAD_DIR = os.path.join(DATA_DIR, 'images', 'initiatives')
 ANN_FILE    = os.path.join(DATA_DIR, 'announcements.json')
 PROJ_FILE   = os.path.join(DATA_DIR, 'community-initiatives.json')
 USERS_FILE  = os.path.join(DATA_DIR, 'users.json')
@@ -996,6 +1001,14 @@ def static_files(filename):
     # Block direct filesystem access to admin and data directories
     if filename.startswith('admin') or filename.startswith('data/'):
         abort(404)
+    # When DATA_ROOT is set, check DATA_DIR/images/ first for uploaded images
+    # so that uploads survive redeploys (images are stored on the persistent disk).
+    if _DATA_ROOT and filename.startswith('assets/images/'):
+        rel = filename[len('assets/'):]          # e.g. 'images/announcements/abc.jpg'
+        data_img = os.path.join(DATA_DIR, rel)
+        if os.path.isfile(data_img):
+            return send_from_directory(os.path.dirname(data_img),
+                                       os.path.basename(data_img))
     full = os.path.join(BASE_DIR, filename)
     if not os.path.exists(full):
         abort(404)
@@ -1003,6 +1016,30 @@ def static_files(filename):
 
 
 # ── Bootstrap ─────────────────────────────────────────────────────────────────
+def _ensure_seed_data():
+    """
+    When DATA_ROOT is set (persistent disk), copy seed JSON files from the
+    repo's data/ folder to DATA_DIR on the very first run — but NEVER
+    overwrite an existing file so runtime-created content is never lost.
+    """
+    import shutil
+    os.makedirs(DATA_DIR, exist_ok=True)
+    seed_dir = os.path.join(BASE_DIR, 'data')
+    for fname in ('announcements.json', 'community-initiatives.json'):
+        dest = os.path.join(DATA_DIR, fname)
+        if not os.path.exists(dest):
+            src = os.path.join(seed_dir, fname)
+            if os.path.exists(src):
+                shutil.copy2(src, dest)
+                print(f'[BHOB] Seeded {fname} → {dest}')
+    if _DATA_ROOT:
+        print(f'[BHOB] Persistent storage: {DATA_DIR}')
+    else:
+        print(f'[BHOB] Local storage (ephemeral on Render): {DATA_DIR}')
+        print('[BHOB] Set DATA_ROOT env var to a Render persistent disk path to keep data across deploys.')
+
+
+_ensure_seed_data()
 _ensure_initial_user()
 
 if __name__ == '__main__':
