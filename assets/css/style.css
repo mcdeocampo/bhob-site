@@ -18266,8 +18266,9 @@ body[data-page="services.html"] .accordion-item:hover {
 }
 
 .proj-card-banner {
-  height: 150px !important;
-  min-height: 150px !important;
+  aspect-ratio: 16 / 9 !important;
+  height: auto !important;
+  min-height: unset !important;
   flex-shrink: 0 !important;
   display: flex !important;
   flex-direction: row !important;
@@ -18287,7 +18288,7 @@ body[data-page="services.html"] .accordion-item:hover {
   width: 100% !important;
   height: 100% !important;
   object-fit: cover !important;
-  object-position: center bottom !important;
+  object-position: center center !important;
   display: block !important;
 }
 
@@ -18327,6 +18328,12 @@ body[data-page="services.html"] .accordion-item:hover {
   margin: 0 !important;
 }
 
+.proj-read-more {
+  margin-top: auto !important;
+  padding-top: 14px !important;
+  align-self: flex-start !important;
+}
+
 /* Blue road banner */
 .prog-banner--blue {
   background: linear-gradient(135deg, #1565c0 0%, #1e88e5 60%, #42a5f5 100%);
@@ -18363,10 +18370,6 @@ body[data-page="services.html"] .accordion-item:hover {
   .proj-card-grid {
     grid-template-columns: 1fr !important;
     gap: 20px !important;
-  }
-  .proj-card-banner {
-    height: 120px !important;
-    min-height: 120px !important;
   }
 }
 
@@ -19628,15 +19631,10 @@ body[data-page="index.html"] .opc-features {
     grid-template-columns: 1fr !important;
     gap: 20px !important;
   }
-  body[data-page="index.html"] .proj-card-banner,
-  body[data-page="projects.html"] .proj-card-banner {
-    height: 160px !important;
-    min-height: 160px !important;
-  }
-  /* Anchor photo-based banners to bottom so embedded badges stay visible */
+  /* Anchor photo-based banners — keep subject centered */
   body[data-page="index.html"] .proj-card-banner-img img,
   body[data-page="projects.html"] .proj-card-banner-img img {
-    object-position: center bottom !important;
+    object-position: center center !important;
   }
   /* Push label right so icon circle doesn't overlap text */
   body[data-page="index.html"] .proj-card-banner .ict-banner-label,
@@ -19859,4 +19857,17 @@ body[data-page="index.html"] .emergency-action-strip{flex-direction:row!importan
 }
 @media(max-width:430px){
   .aqi-pollutants{grid-template-columns:repeat(2,1fr)}
+}
+
+/* ─── Announcements page: 16:9 image ratio, full quality ─── */
+body[data-page="announcements.html"] .image-card img {
+  aspect-ratio: 16 / 9 !important;
+  height: auto !important;
+  width: 100% !important;
+  object-fit: cover !important;
+  object-position: center center !important;
+  border-radius: 0 !important;
+  display: block !important;
+  filter: none !important;
+  image-rendering: auto !important;
 }

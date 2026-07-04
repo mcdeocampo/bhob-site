@@ -59,16 +59,17 @@ a{text-decoration:none;color:inherit}
 }
 
 /* ─── FIELDS ─────────────────────────────────────────────── */
-.field{margin-bottom:16px}
-.field label{display:block;font-size:.72rem;font-weight:600;color:#4a6580;
-  margin-bottom:6px;text-transform:uppercase;letter-spacing:.07em}
-.field input,.field select,.field textarea{width:100%;padding:12px 14px;
-  border:1px solid #c8d8e8;border-radius:12px;font-size:.9rem;
-  outline:none;transition:border-color .2s,box-shadow .2s;background:#fff;
-  min-height:46px}
+.field{margin-bottom:0}
+.field label{display:block;font-size:.7rem;font-weight:600;color:#475569;
+  margin-bottom:5px;letter-spacing:.01em}
+.field input,.field select,.field textarea{width:100%;padding:10px 13px;
+  border:1.5px solid #dde3ec;border-radius:10px;font-size:.875rem;color:var(--text);
+  outline:none;transition:border-color .15s,box-shadow .15s;background:#fff;
+  min-height:42px}
 .field input:focus,.field select:focus,.field textarea:focus{
-  border-color:#0ea5e9;box-shadow:0 0 0 4px rgba(14,165,233,.12)}
-.field textarea{resize:vertical;min-height:80px;border-radius:var(--radius)}
+  border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+.field textarea{resize:vertical;min-height:76px;border-radius:10px}
+.field select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px}
 
 /* ─── PASSWORD FIELD WITH EYE TOGGLE ────────────────────── */
 .pw-wrap{position:relative;display:flex;align-items:center}
@@ -186,8 +187,8 @@ a{text-decoration:none;color:inherit}
 .ann-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
   padding:12px 14px;display:flex;align-items:flex-start;gap:12px;transition:box-shadow .2s}
 .ann-card:hover{box-shadow:0 2px 8px rgba(0,0,0,.07)}
-.ann-thumb{width:70px;height:56px;object-fit:cover;border-radius:6px;flex-shrink:0;background:var(--bg)}
-.ann-thumb-ph{width:70px;height:56px;border-radius:6px;flex-shrink:0;
+.ann-thumb{width:80px;height:45px;object-fit:cover;object-position:center center;border-radius:6px;flex-shrink:0;background:var(--bg)}
+.ann-thumb-ph{width:80px;height:45px;border-radius:6px;flex-shrink:0;
   background:var(--bg);display:flex;align-items:center;justify-content:center;
   font-size:1.4rem;color:#cbd5e1}
 .ann-body{flex:1;min-width:0}
@@ -225,20 +226,30 @@ a{text-decoration:none;color:inherit}
 .settings-acts{display:flex;gap:8px;margin-top:20px;flex-wrap:wrap}
 
 /* ─── OVERLAYS ───────────────────────────────────────────── */
-.overlay{position:fixed;inset:0;background:rgba(0,0,0,.52);z-index:100;
-  display:none;align-items:center;justify-content:center;padding:16px}
+.overlay{position:fixed;inset:0;background:rgba(15,30,60,.58);z-index:100;
+  display:none;align-items:center;justify-content:center;padding:16px;
+  backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px)}
 .overlay.open{display:flex}
-.modal{background:var(--card);border-radius:12px;width:100%;max-width:680px;
-  max-height:94vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.25);display:flex;flex-direction:column}
-.modal-head{padding:20px 24px 16px;display:flex;align-items:center;justify-content:space-between;
-  border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--card);z-index:1}
-.modal-head h3{font-size:1.05rem;font-weight:700}
-.btn-close{background:none;border:none;font-size:1.25rem;color:var(--gray);
-  padding:4px 8px;border-radius:4px;line-height:1}
-.btn-close:hover{background:var(--bg)}
-.modal-body{padding:20px 24px;flex:1}
-.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.modal{background:var(--card);border-radius:16px;width:100%;max-width:700px;
+  max-height:94vh;overflow-y:auto;
+  box-shadow:0 32px 80px rgba(0,0,0,.26),0 2px 8px rgba(0,0,0,.10);
+  display:flex;flex-direction:column;border:1px solid rgba(226,232,240,.8)}
+.modal-head{
+  padding:20px 24px 16px;display:flex;align-items:center;justify-content:space-between;
+  border-bottom:1px solid var(--border);position:sticky;top:0;background:#fff;z-index:1;
+  border-radius:16px 16px 0 0;position:relative}
+.modal-head::after{content:'';position:absolute;left:0;top:0;right:0;height:3px;
+  background:linear-gradient(90deg,#1e3a5f,#2563eb,#06b6d4);border-radius:16px 16px 0 0;pointer-events:none}
+.modal-head h3{font-size:1rem;font-weight:700;color:var(--navy);letter-spacing:-.015em}
+.btn-close{background:#f1f5f9;border:1px solid var(--border);font-size:.85rem;color:#64748b;
+  padding:5px 10px;border-radius:8px;line-height:1.4;transition:all .15s}
+.btn-close:hover{background:#e2e8f0;border-color:#94a3b8;color:var(--text)}
+.modal-body{padding:22px 24px;flex:1}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 .field-full{grid-column:1/-1}
+.form-section-label{grid-column:1/-1;font-size:.68rem;font-weight:700;color:#94a3b8;
+  text-transform:uppercase;letter-spacing:.1em;padding-top:4px;
+  border-top:1px solid var(--border);margin-top:2px}
 .img-area{border:2px dashed var(--border);border-radius:var(--radius);padding:18px;
   text-align:center;background:var(--bg);transition:border-color .2s}
 .img-area:hover,.img-area.drag-over{border-color:var(--blue);background:rgba(37,99,235,.03)}
@@ -264,18 +275,20 @@ a{text-decoration:none;color:inherit}
   border:1px solid var(--border);border-radius:var(--radius);cursor:pointer;
   font-size:.8rem;font-weight:500;transition:all .15s}
 .rc input:checked+label{border-color:var(--blue);background:rgba(37,99,235,.07);color:var(--blue)}
-.modal-foot{padding:14px 24px;border-top:1px solid var(--border);
-  display:flex;justify-content:flex-end;gap:8px;position:sticky;bottom:0;background:var(--card)}
-.btn-cancel{padding:8px 18px;background:#fff;border:1px solid var(--border);
-  border-radius:var(--radius);font-size:.83rem;font-weight:500;color:var(--text);transition:all .15s}
-.btn-cancel:hover{border-color:var(--blue);color:var(--blue)}
-.btn-draft{padding:8px 18px;background:#fffbeb;border:1px solid #fcd34d;
-  border-radius:var(--radius);font-size:.83rem;font-weight:600;color:var(--amber);transition:all .15s}
-.btn-draft:hover{background:#fef3c7}
-.btn-publish{padding:8px 18px;background:var(--green);border:none;
-  border-radius:var(--radius);font-size:.83rem;font-weight:600;color:#fff;transition:background .15s}
-.btn-publish:hover{background:#15803d}
-.btn-publish:disabled{opacity:.6;cursor:not-allowed}
+.modal-foot{padding:14px 24px 16px;border-top:1px solid var(--border);
+  display:flex;justify-content:flex-end;gap:8px;position:sticky;bottom:0;
+  background:linear-gradient(0deg,#f8faff,#fff);border-radius:0 0 16px 16px}
+.btn-cancel{padding:8px 20px;background:#fff;border:1px solid var(--border);
+  border-radius:10px;font-size:.82rem;font-weight:500;color:#64748b;transition:all .15s}
+.btn-cancel:hover{border-color:#94a3b8;color:var(--text);background:#f8faff}
+.btn-draft{padding:8px 20px;background:#fefce8;border:1px solid #fde047;
+  border-radius:10px;font-size:.82rem;font-weight:600;color:#854d0e;transition:all .15s}
+.btn-draft:hover{background:#fef9c3;border-color:#facc15}
+.btn-publish{padding:8px 22px;background:linear-gradient(135deg,#16a34a,#15803d);border:none;
+  border-radius:10px;font-size:.82rem;font-weight:600;color:#fff;transition:all .15s;
+  box-shadow:0 2px 8px rgba(22,163,74,.28)}
+.btn-publish:hover{background:linear-gradient(135deg,#15803d,#166534);box-shadow:0 4px 12px rgba(22,163,74,.35)}
+.btn-publish:disabled{opacity:.6;cursor:not-allowed;box-shadow:none}
 
 /* ─── FORCE PW OVERLAY ───────────────────────────────────── */
 #force-pw-overlay{position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:500;
@@ -309,8 +322,17 @@ a{text-decoration:none;color:inherit}
 .detail-modal{max-width:680px}
 .detail-img{width:100%;max-height:260px;object-fit:cover;border-radius:8px;
   display:block;margin-bottom:18px}
-.detail-meta{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:center}
+.detail-meta{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:center}
 .detail-body{font-size:.88rem;color:var(--text);line-height:1.7;white-space:pre-wrap}
+.det-section-label{font-size:.68rem;font-weight:700;color:#94a3b8;text-transform:uppercase;
+  letter-spacing:.1em;margin:16px 0 6px;padding-top:14px;border-top:1px solid var(--border)}
+.det-section-text{font-size:.88rem;color:var(--text);line-height:1.65}
+.det-extra-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px 16px;
+  margin-top:16px;padding-top:14px;border-top:1px solid var(--border)}
+.det-extra-row{display:flex;flex-direction:column;gap:2px;
+  background:var(--bg);border-radius:8px;padding:8px 12px}
+.det-extra-key{font-size:.68rem;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.08em}
+.det-extra-val{font-size:.85rem;font-weight:500;color:var(--text)}
 
 /* ─── TOAST ──────────────────────────────────────────────── */
 #toast-wrap{position:fixed;bottom:22px;right:22px;z-index:600;
@@ -669,9 +691,10 @@ a{text-decoration:none;color:inherit}
     </div>
     <div class="modal-body">
       <div class="form-grid">
+        <div class="form-section-label">Content</div>
         <div class="field field-full">
-          <label>Title <span style="color:var(--red)">*</span></label>
-          <input type="text" id="f-title" maxlength="200" placeholder="Announcement title…">
+          <label>Title <span style="color:#ef4444">*</span></label>
+          <input type="text" id="f-title" maxlength="200">
         </div>
         <div class="field">
           <label>Date</label>
@@ -691,12 +714,13 @@ a{text-decoration:none;color:inherit}
         </div>
         <div class="field field-full">
           <label>Short Description <span style="color:#94a3b8;font-size:.7rem">(shown on cards)</span></label>
-          <textarea id="f-short" rows="2" maxlength="500" placeholder="Brief summary shown on the announcement card…"></textarea>
+          <textarea id="f-short" rows="2" maxlength="500"></textarea>
         </div>
         <div class="field field-full">
           <label>Full Details <span style="color:#94a3b8;font-size:.7rem">(shown when Read More is clicked)</span></label>
-          <textarea id="f-details" rows="5" placeholder="Full announcement text, details, instructions…"></textarea>
+          <textarea id="f-details" rows="5"></textarea>
         </div>
+        <div class="form-section-label">Media</div>
         <div class="field field-full">
           <label>Image</label>
           <div class="img-area" id="img-drop-area">
@@ -718,6 +742,7 @@ a{text-decoration:none;color:inherit}
             </div>
           </div>
         </div>
+        <div class="form-section-label">Settings</div>
         <div class="field">
           <label>Status</label>
           <div class="radio-row">
@@ -747,13 +772,27 @@ a{text-decoration:none;color:inherit}
 <div class="overlay" id="detail-overlay">
   <div class="modal detail-modal">
     <div class="modal-head">
-      <h3 id="det-title">Announcement</h3>
+      <h3 id="det-title">Details</h3>
       <button class="btn-close" id="btn-close-detail">✕</button>
     </div>
     <div class="modal-body">
       <img class="detail-img" id="det-img" src="" alt="" style="display:none">
       <div class="detail-meta" id="det-meta"></div>
-      <div class="detail-body" id="det-body"></div>
+      <div id="det-short-wrap" style="display:none">
+        <div class="det-section-label">Short Description</div>
+        <div class="det-section-text" id="det-short"></div>
+      </div>
+      <div id="det-full-wrap">
+        <div class="det-section-label" id="det-full-label" style="display:none">Full Details</div>
+        <div class="detail-body" id="det-body"></div>
+      </div>
+      <div id="det-extra" style="display:none">
+        <div class="det-extra-grid" id="det-extra-grid"></div>
+      </div>
+    </div>
+    <div class="modal-foot" id="det-foot" style="display:none">
+      <button class="btn-cancel" id="det-close-btn">Close</button>
+      <button class="btn-publish" id="det-edit-btn">Edit Initiative</button>
     </div>
   </div>
 </div>
@@ -767,9 +806,10 @@ a{text-decoration:none;color:inherit}
     </div>
     <div class="modal-body">
       <div class="form-grid">
+        <div class="form-section-label">Content</div>
         <div class="field field-full">
-          <label>Title <span style="color:var(--red)">*</span></label>
-          <input type="text" id="if-title" maxlength="200" placeholder="Initiative title…">
+          <label>Title <span style="color:#ef4444">*</span></label>
+          <input type="text" id="if-title" maxlength="200">
         </div>
         <div class="field">
           <label>Category</label>
@@ -786,21 +826,18 @@ a{text-decoration:none;color:inherit}
           </select>
         </div>
         <div class="field">
-          <label>Display Order <span style="color:#94a3b8;font-size:.7rem">(lower = first)</span></label>
-          <input type="number" id="if-order" min="0" value="0">
+          <label>Subtitle <span style="color:#94a3b8;font-size:.68rem">(shown in banner)</span></label>
+          <input type="text" id="if-subtitle" maxlength="300">
         </div>
         <div class="field field-full">
-          <label>Subtitle <span style="color:#94a3b8;font-size:.7rem">(shown in banner)</span></label>
-          <input type="text" id="if-subtitle" maxlength="300" placeholder="e.g. Cisco Wi-Fi, Secure Guest Access & Captive Portal">
+          <label>Short Description <span style="color:#94a3b8;font-size:.68rem">(shown on cards)</span></label>
+          <textarea id="if-short" rows="2" maxlength="500"></textarea>
         </div>
         <div class="field field-full">
-          <label>Short Description <span style="color:#94a3b8;font-size:.7rem">(shown on cards)</span></label>
-          <textarea id="if-short" rows="2" maxlength="500" placeholder="Brief summary shown on the card…"></textarea>
+          <label>Full Details <span style="color:#94a3b8;font-size:.68rem">(shown when Read More is clicked)</span></label>
+          <textarea id="if-details" rows="5"></textarea>
         </div>
-        <div class="field field-full">
-          <label>Full Details <span style="color:#94a3b8;font-size:.7rem">(shown when Read More is clicked)</span></label>
-          <textarea id="if-details" rows="5" placeholder="Full initiative text and details…"></textarea>
-        </div>
+        <div class="form-section-label">Media</div>
         <div class="field field-full">
           <label>Image</label>
           <div class="img-area" id="init-drop-area">
@@ -813,6 +850,7 @@ a{text-decoration:none;color:inherit}
             <div class="img-hint">JPG, PNG, WebP — max 5 MB. Leave empty to use a colored banner.</div>
           </div>
         </div>
+        <div class="form-section-label">Settings</div>
         <div class="field">
           <label>Status</label>
           <div class="radio-row">
@@ -1148,18 +1186,20 @@ function goAnnouncements(filter) {
 async function loadAll() {
   try {
     const r = await adminFetch('/admin/api/announcements');
-    if (!r.ok) return;
-    const d = await r.json();
-    S.announcements = d.announcements || [];
-    updateStats();
-    if ($('sec-announcements').style.display !== 'none') renderList();
+    if (r.ok) {
+      const d = await r.json();
+      S.announcements = d.announcements || [];
+      updateStats();
+      if ($('sec-announcements').style.display !== 'none') renderList();
+    }
   } catch {}
   try {
     const r2 = await adminFetch('/admin/api/community-initiatives');
-    if (!r2.ok) return;
-    const d2 = await r2.json();
-    SI.initiatives = d2.initiatives || [];
-    if ($('sec-initiatives').style.display !== 'none') renderInitList();
+    if (r2.ok) {
+      const d2 = await r2.json();
+      SI.initiatives = d2.initiatives || [];
+      if ($('sec-initiatives').style.display !== 'none') renderInitList();
+    }
   } catch {}
 }
 
@@ -1180,12 +1220,17 @@ function showAnnSaveBar(show) {
 }
 
 function enableAnnDrag(listEl) {
+  // Allow drop over the container gaps between cards
+  listEl.addEventListener('dragover', e => e.preventDefault());
+  listEl.addEventListener('drop', e => e.preventDefault());
+
   listEl.querySelectorAll('.ann-card[data-id]').forEach(card => {
     card.setAttribute('draggable', 'true');
     card.addEventListener('dragstart', e => {
       annDragSrc = card;
-      setTimeout(() => card.classList.add('dragging'), 0);
       e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', card.dataset.id);
+      setTimeout(() => card.classList.add('dragging'), 0);
     });
     card.addEventListener('dragend', () => {
       card.classList.remove('dragging');
@@ -1194,18 +1239,23 @@ function enableAnnDrag(listEl) {
     });
     card.addEventListener('dragover', e => {
       e.preventDefault();
+      e.stopPropagation();
       if (!annDragSrc || annDragSrc === card) return;
       listEl.querySelectorAll('.ann-card').forEach(c => c.classList.remove('drag-over-card'));
       card.classList.add('drag-over-card');
     });
-    card.addEventListener('dragleave', () => card.classList.remove('drag-over-card'));
+    // Only remove highlight when truly leaving the card, not when moving to a child element
+    card.addEventListener('dragleave', e => {
+      if (!card.contains(e.relatedTarget)) card.classList.remove('drag-over-card');
+    });
     card.addEventListener('drop', e => {
       e.preventDefault();
-      card.classList.remove('drag-over-card');
+      e.stopPropagation();
+      listEl.querySelectorAll('.ann-card').forEach(c => c.classList.remove('drag-over-card'));
       if (!annDragSrc || annDragSrc === card) return;
-      const cards = [...listEl.children];
-      const srcIdx = cards.indexOf(annDragSrc);
-      const dstIdx = cards.indexOf(card);
+      const allCards = [...listEl.querySelectorAll('.ann-card[data-id]')];
+      const srcIdx = allCards.indexOf(annDragSrc);
+      const dstIdx = allCards.indexOf(card);
       if (srcIdx < dstIdx) listEl.insertBefore(annDragSrc, card.nextSibling);
       else listEl.insertBefore(annDragSrc, card);
       annOrderDirty = true;
@@ -1253,7 +1303,7 @@ function renderList() {
   }
   el.innerHTML = items.map((a, i) => {
     const img = a.imageUrl
-      ? `<img class="ann-thumb" src="/${a.imageUrl}" alt="" onerror="this.style.display='none'">`
+      ? `<img class="ann-thumb" draggable="false" src="/${a.imageUrl}" alt="" onerror="this.style.display='none'">`
       : `<div class="ann-thumb-ph">📋</div>`;
     return `<div class="ann-card" data-id="${a.id}">
       <span class="drag-handle" title="Drag to reorder">⠿</span>
@@ -1408,11 +1458,49 @@ function openDetail(id){
   const img=$('det-img');
   if(a.imageUrl){img.src='/'+a.imageUrl;img.style.display='block';}else img.style.display='none';
   $('det-meta').innerHTML=`<span class="badge badge-${a.status}">${a.status}</span><span class="ann-date">${esc(fmtDate(a.date))}</span><span class="cat-tag">${esc(a.category)}</span>${a.featured?'<span class="feat-tag">★ Featured</span>':''}`;
+  $('det-short-wrap').style.display='none';
+  $('det-full-label').style.display='none';
   $('det-body').textContent=a.fullDetails||a.shortDescription||'(No details)';
+  $('det-extra').style.display='none';
+  $('det-foot').style.display='none';
   $('detail-overlay').classList.add('open');
 }
 $('btn-close-detail').onclick=()=>$('detail-overlay').classList.remove('open');
+
+function openInitDetail(id){
+  const p=SI.initiatives.find(x=>x.id===id); if(!p) return;
+  $('det-title').textContent=p.title||'Initiative';
+  const img=$('det-img');
+  if(p.imageUrl){img.src='/'+p.imageUrl;img.style.display='block';}else img.style.display='none';
+  $('det-meta').innerHTML=`<span class="badge badge-${p.status}">${p.status}</span><span class="cat-tag">${esc(p.category)}</span>${p.subtitle?'<span class="ann-date">'+esc(p.subtitle)+'</span>':''}${p.featured?'<span class="feat-tag">★ Featured</span>':''}`;
+  if(p.shortDescription){
+    $('det-short').textContent=p.shortDescription;
+    $('det-short-wrap').style.display='block';
+  } else {
+    $('det-short-wrap').style.display='none';
+  }
+  if(p.fullDetails&&p.fullDetails.trim()){
+    $('det-full-label').style.display='block';
+    $('det-body').textContent=p.fullDetails;
+  } else {
+    $('det-full-label').style.display='none';
+    $('det-body').textContent='';
+  }
+  const rows=[
+    ['Display Order', p.displayOrder!=null?p.displayOrder:'—'],
+    ['Status', p.status||'—'],
+    ['Featured', p.featured?'Yes':'No'],
+    ['Created', p.createdAt?fmtDate(p.createdAt.slice(0,10)):'—'],
+    ['Updated', p.updatedAt?fmtDate(p.updatedAt.slice(0,10)):'—'],
+  ];
+  $('det-extra-grid').innerHTML=rows.map(([k,v])=>`<div class="det-extra-row"><span class="det-extra-key">${esc(k)}</span><span class="det-extra-val">${esc(String(v))}</span></div>`).join('');
+  $('det-extra').style.display='block';
+  $('det-foot').style.display='';
+  $('det-edit-btn').onclick=()=>{ $('detail-overlay').classList.remove('open'); openInitEdit(id); };
+  $('detail-overlay').classList.add('open');
+}
 $('detail-overlay').onclick=e=>{if(e.target===$('detail-overlay'))$('detail-overlay').classList.remove('open');};
+$('det-close-btn').onclick=()=>$('detail-overlay').classList.remove('open');
 
 document.addEventListener('keydown', e => {
   if (e.key==='Escape') {
@@ -1447,12 +1535,17 @@ function showInitSaveBar(show) {
 }
 
 function enableInitDrag(listEl) {
+  // Allow drop over the container gaps between cards
+  listEl.addEventListener('dragover', e => e.preventDefault());
+  listEl.addEventListener('drop', e => e.preventDefault());
+
   listEl.querySelectorAll('.ann-card[data-id]').forEach(card => {
     card.setAttribute('draggable', 'true');
     card.addEventListener('dragstart', e => {
       initDragSrc = card;
-      setTimeout(() => card.classList.add('dragging'), 0);
       e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', card.dataset.id);
+      setTimeout(() => card.classList.add('dragging'), 0);
     });
     card.addEventListener('dragend', () => {
       card.classList.remove('dragging');
@@ -1461,18 +1554,23 @@ function enableInitDrag(listEl) {
     });
     card.addEventListener('dragover', e => {
       e.preventDefault();
+      e.stopPropagation();
       if (!initDragSrc || initDragSrc === card) return;
       listEl.querySelectorAll('.ann-card').forEach(c => c.classList.remove('drag-over-card'));
       card.classList.add('drag-over-card');
     });
-    card.addEventListener('dragleave', () => card.classList.remove('drag-over-card'));
+    // Only remove highlight when truly leaving the card, not when moving to a child element
+    card.addEventListener('dragleave', e => {
+      if (!card.contains(e.relatedTarget)) card.classList.remove('drag-over-card');
+    });
     card.addEventListener('drop', e => {
       e.preventDefault();
-      card.classList.remove('drag-over-card');
+      e.stopPropagation();
+      listEl.querySelectorAll('.ann-card').forEach(c => c.classList.remove('drag-over-card'));
       if (!initDragSrc || initDragSrc === card) return;
-      const cards = [...listEl.children];
-      const srcIdx = cards.indexOf(initDragSrc);
-      const dstIdx = cards.indexOf(card);
+      const allCards = [...listEl.querySelectorAll('.ann-card[data-id]')];
+      const srcIdx = allCards.indexOf(initDragSrc);
+      const dstIdx = allCards.indexOf(card);
       if (srcIdx < dstIdx) listEl.insertBefore(initDragSrc, card.nextSibling);
       else listEl.insertBefore(initDragSrc, card);
       initOrderDirty = true;
@@ -1522,7 +1620,7 @@ function renderInitList() {
   }
   el.innerHTML = items.map((p, i) => {
     const thumb = p.imageUrl
-      ? `<img class="ann-thumb" src="/${p.imageUrl}" alt="" onerror="this.style.display='none'">`
+      ? `<img class="ann-thumb" draggable="false" src="/${p.imageUrl}" alt="" onerror="this.style.display='none'">`
       : `<div class="ann-thumb-ph">🌟</div>`;
     return `<div class="ann-card" data-id="${p.id}">
       <span class="drag-handle" title="Drag to reorder">⠿</span>
@@ -1538,6 +1636,7 @@ function renderInitList() {
         <div class="ann-desc">${esc(p.subtitle||p.shortDescription||'')}</div>
       </div>
       <div class="ann-actions">
+        <button class="btn-act" onclick="openInitDetail('${p.id}')">View</button>
         <button class="btn-act" onclick="openInitEdit('${p.id}')">Edit</button>
         <button class="btn-act" onclick="toggleInitHide('${p.id}','${p.status}')">${p.status==='hidden'?'Show':'Hide'}</button>
         <button class="btn-act danger" onclick="confirmInitDel('${p.id}','${esc(p.title||'')}')">Delete</button>
@@ -1560,7 +1659,6 @@ function resetInitForm() {
   SI.editingId=null; SI.imageUrl='';
   $('if-title').value=''; $('if-cat').value='Technology';
   $('if-subtitle').value=''; $('if-short').value=''; $('if-details').value='';
-  $('if-order').value='0';
   $('is-draft').checked=true; $('if-feat-no').checked=true;
   $('init-img-preview').style.display='none'; $('init-img-preview').src='';
   $('init-img-url-note').style.display='none'; $('init-img-url-note').textContent='';
@@ -1582,7 +1680,6 @@ function openInitEdit(id) {
   $('if-subtitle').value=p.subtitle||'';
   $('if-short').value=p.shortDescription||'';
   $('if-details').value=p.fullDetails||'';
-  $('if-order').value=p.displayOrder||0;
   const sEl = document.getElementById('is-'+p.status);
   if(sEl) sEl.checked=true; else $('is-draft').checked=true;
   if(p.featured) $('if-feat-yes').checked=true; else $('if-feat-no').checked=true;
@@ -1643,7 +1740,6 @@ async function saveInitForm(forceStatus) {
     shortDescription:$('if-short').value.trim(),
     fullDetails:$('if-details').value.trim(),
     imageUrl:SI.imageUrl,
-    displayOrder:parseInt($('if-order').value)||0,
     status,
     featured:$('if-feat-yes').checked
   };
@@ -1653,7 +1749,7 @@ async function saveInitForm(forceStatus) {
     const r=await adminFetch(url,{method,headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
     const d=await r.json();
     if(!r.ok){toast(d.error||'Save failed','err');return;}
-    closeInitForm(); await loadInitiatives();
+    closeInitForm(); await loadAll();
     toast(SI.editingId?'Initiative updated':`Initiative ${status==='published'?'published':'saved as draft'}`,'ok');
   } catch(e){ if(e.message!=='unauthorized'&&e.message!=='password_change_required') toast('Save error','err'); }
 }

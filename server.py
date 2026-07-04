@@ -206,18 +206,38 @@ def _update_user(updated_user):
 
 def _ensure_initial_user():
     """
-    On first startup, create the initial admin account from environment variables.
-    The password is hashed immediately; the plain-text value is only printed once.
-    Forces a password change on first login.
+    On first startup (or after a redeploy wipes ephemeral storage), create the
+    initial admin account.
+
+    Priority order for the password source:
+      1. ADMIN_PWHASH env var — a saved hash from a previous password change.
+         Set this in your deployment dashboard (e.g. Render) after changing the
+         admin password so the change survives future redeploys.
+      2. ADMIN_PASSWORD env var — plain-text initial password (force-change required).
+      3. Auto-generated fallback (force-change required).
     """
     users = _load_users()
     if users:
         return
-    username = os.environ.get('ADMIN_USERNAME', 'admin')
-    plain_pw = os.environ.get('ADMIN_PASSWORD', '')
-    if not plain_pw:
-        plain_pw = f'Barangay@{datetime.now().year}'
-    pw_hash = _hash_pw(plain_pw)
+    username   = os.environ.get('ADMIN_USERNAME', 'admin')
+    saved_hash = os.environ.get('ADMIN_PWHASH', '').strip()
+    force_pw   = False
+
+    # Validate ADMIN_PWHASH format: must be "iterations:salt_hex:hash_hex"
+    if saved_hash and len(saved_hash.split(':')) != 3:
+        print('[BHOB] WARNING: ADMIN_PWHASH format invalid — falling back to ADMIN_PASSWORD.')
+        saved_hash = ''
+
+    if saved_hash:
+        pw_hash  = saved_hash
+        force_pw = False   # Already a user-chosen password; no forced change needed
+    else:
+        plain_pw = os.environ.get('ADMIN_PASSWORD', '')
+        if not plain_pw:
+            plain_pw = f'Barangay@{datetime.now().year}'
+        pw_hash  = _hash_pw(plain_pw)
+        force_pw = True    # Plain-text credential — force change on first login
+
     now = datetime.now(timezone.utc).isoformat()
     user = {
         'id':                 uuid.uuid4().hex,
@@ -227,7 +247,7 @@ def _ensure_initial_user():
         'passwordHash':       pw_hash,
         'role':               'admin',
         'status':             'active',
-        'forcePasswordChange': True,
+        'forcePasswordChange': force_pw,
         'failedLoginCount':   0,
         'lockedUntil':        None,
         'lastLoginAt':        None,
@@ -236,9 +256,13 @@ def _ensure_initial_user():
     }
     _save_users([user])
     print('[BHOB] ─────────────────────────────────────────────────')
-    print(f'[BHOB] Initial admin account created.')
-    print(f'[BHOB] Username : {username}')
-    print(f'[BHOB] Password : {plain_pw}  ← change immediately on first login')
+    if saved_hash:
+        print(f'[BHOB] Admin account restored from ADMIN_PWHASH env var.')
+        print(f'[BHOB] Username : {username}')
+    else:
+        print(f'[BHOB] Initial admin account created.')
+        print(f'[BHOB] Username : {username}')
+        print(f'[BHOB] Login with the ADMIN_PASSWORD env var value, then change it.')
     print('[BHOB] ─────────────────────────────────────────────────')
 
 
@@ -640,15 +664,32 @@ def admin_change_password():
         return jsonify({'error': 'New password must be different from your current password.'}), 400
 
     # --- Update password hash ---
+    new_hash = _hash_pw(new_pw)
     for i, u in enumerate(users):
         if u.get('id') == user_id:
-            users[i]['passwordHash']       = _hash_pw(new_pw)
+            users[i]['passwordHash']       = new_hash
             users[i]['forcePasswordChange'] = False
             users[i]['updatedAt']          = datetime.now(timezone.utc).isoformat()
             break
     _save_users(users)
 
+    # Verify the save actually took effect before telling the client it succeeded
+    verify_users = _load_users()
+    verify_user  = next((u for u in verify_users if u.get('id') == user_id), None)
+    if not verify_user or not _check_pw(new_pw, verify_user.get('passwordHash', '')):
+        _audit('password_change_failed', 'Post-save verification failed', user_id, False)
+        return jsonify({'error': 'Password update could not be saved. Please try again.'}), 500
+
     _audit('password_changed', 'Password changed successfully', user_id, True)
+
+    # Log the new hash so it can be set as ADMIN_PWHASH in deployment env vars,
+    # ensuring the change survives future redeploys on ephemeral hosting (e.g. Render).
+    print('[BHOB] ─────────────────────────────────────────────────')
+    print('[BHOB] Admin password changed successfully.')
+    print('[BHOB] To persist this password across redeploys, set the')
+    print('[BHOB] following environment variable in your hosting dashboard:')
+    print(f'[BHOB] ADMIN_PWHASH={new_hash}')
+    print('[BHOB] ─────────────────────────────────────────────────')
 
     # Invalidate session — require re-login with new password
     session.clear()
@@ -677,7 +718,7 @@ def admin_create():
     status  = d.get('status', 'draft')
     if status not in ('draft', 'published', 'hidden'):
         status = 'draft'
-    max_order = max((a.get('displayOrder', 0) for a in all_ann), default=0)
+    min_order = min((a.get('displayOrder', 1) for a in all_ann), default=1)
     ann = {
         'id':               uuid.uuid4().hex,
         'title':            _clean(d.get('title'), 200),
@@ -688,7 +729,7 @@ def admin_create():
         'imageUrl':         _clean(d.get('imageUrl'), 300),
         'status':           status,
         'featured':         bool(d.get('featured', False)),
-        'displayOrder':     max_order + 1,
+        'displayOrder':     min_order - 1,
         'createdAt':        now,
         'updatedAt':        now,
     }
@@ -773,10 +814,8 @@ def admin_proj_create():
     status = d.get('status', 'draft')
     if status not in ('draft', 'published', 'hidden'):
         status = 'draft'
-    try:
-        display_order = int(d.get('displayOrder', 0))
-    except (ValueError, TypeError):
-        display_order = 0
+    all_proj = _load_proj()
+    min_order = min((p.get('displayOrder', 1) for p in all_proj), default=1)
     proj = {
         'id':               uuid.uuid4().hex,
         'title':            _clean(d.get('title'), 200),
@@ -787,13 +826,12 @@ def admin_proj_create():
         'imageUrl':         _clean(d.get('imageUrl'), 300),
         'status':           status,
         'featured':         bool(d.get('featured', False)),
-        'displayOrder':     display_order,
+        'displayOrder':     min_order - 1,
         'buttonLabel':      _clean(d.get('buttonLabel'), 100),
         'buttonLink':       _clean(d.get('buttonLink'), 300),
         'createdAt':        now,
         'updatedAt':        now,
     }
-    all_proj = _load_proj()
     all_proj.append(proj)
     _save_proj(all_proj)
     return jsonify({'status': 'ok', 'initiative': proj}), 201
@@ -863,6 +901,39 @@ def admin_proj_delete(proj_id):
 ALLOWED_EXT = {'jpg', 'jpeg', 'png', 'webp'}
 MAX_BYTES   = 5 * 1024 * 1024
 
+try:
+    from PIL import Image as _PILImage
+    import io as _io
+    _HAS_PIL = True
+except ImportError:
+    _HAS_PIL = False
+
+def _optimize_image(data, ext):
+    """Resize to max 1200px wide and save as JPEG 85%. Falls back to raw if PIL unavailable."""
+    if not _HAS_PIL:
+        return data, ext
+    try:
+        img = _PILImage.open(_io.BytesIO(data))
+        # Flatten transparency onto white background
+        if img.mode in ('RGBA', 'LA', 'P'):
+            if img.mode == 'P':
+                img = img.convert('RGBA')
+            bg = _PILImage.new('RGB', img.size, (255, 255, 255))
+            bg.paste(img, mask=img.split()[-1] if img.mode in ('RGBA', 'LA') else None)
+            img = bg
+        elif img.mode != 'RGB':
+            img = img.convert('RGB')
+        # Downscale only — never upscale
+        max_w = 1200
+        if img.width > max_w:
+            new_h = int(img.height * max_w / img.width)
+            img = img.resize((max_w, new_h), _PILImage.LANCZOS)
+        out = _io.BytesIO()
+        img.save(out, format='JPEG', quality=85, optimize=True)
+        return out.getvalue(), 'jpg'
+    except Exception:
+        return data, ext
+
 
 @app.route('/admin/api/upload', methods=['POST'])
 @admin_required
@@ -876,6 +947,7 @@ def admin_upload():
     data = f.read(MAX_BYTES + 1)
     if len(data) > MAX_BYTES:
         return jsonify({'error': 'File too large (max 5 MB)'}), 400
+    data, ext = _optimize_image(data, ext)
     fname = uuid.uuid4().hex + '.' + ext
     os.makedirs(UPLOAD_DIR, exist_ok=True)
     with open(os.path.join(UPLOAD_DIR, fname), 'wb') as out:
@@ -895,6 +967,7 @@ def admin_upload_initiative():
     data = f.read(MAX_BYTES + 1)
     if len(data) > MAX_BYTES:
         return jsonify({'error': 'File too large (max 5 MB)'}), 400
+    data, ext = _optimize_image(data, ext)
     fname = uuid.uuid4().hex + '.' + ext
     os.makedirs(PROJ_UPLOAD_DIR, exist_ok=True)
     with open(os.path.join(PROJ_UPLOAD_DIR, fname), 'wb') as out:
