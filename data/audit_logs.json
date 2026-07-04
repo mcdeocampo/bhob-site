@@ -58,5 +58,85 @@
     "ipAddress": "127.0.0.1",
     "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Claude/1.18286.0 Chrome/148.0.7778.271 Electron/42.5.1 Safari/537.36 MSIX",
     "createdAt": "2026-07-04T22:04:21.009526+00:00"
+  },
+  {
+    "id": "53e95497d1e840e6b0b331840fc75c77",
+    "userId": "71a5a938bd1f4703a63e907a564e8331",
+    "eventType": "login_failed",
+    "description": "Failed login attempt: admin",
+    "success": false,
+    "ipAddress": "127.0.0.1",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Claude/1.18286.0 Chrome/148.0.7778.271 Electron/42.5.1 Safari/537.36 MSIX",
+    "createdAt": "2026-07-04T22:46:09.744285+00:00"
+  },
+  {
+    "id": "16273546460749c7b41e2054b3fb7a8c",
+    "userId": "8100594970e5441585b218033f563237",
+    "eventType": "login_failed",
+    "description": "Failed login attempt: admin",
+    "success": false,
+    "ipAddress": "127.0.0.1",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Claude/1.18286.0 Chrome/148.0.7778.271 Electron/42.5.1 Safari/537.36 MSIX",
+    "createdAt": "2026-07-04T22:47:12.497078+00:00"
+  },
+  {
+    "id": "1a24d9f708a14d669ba03d000fd5a5e2",
+    "userId": "8100594970e5441585b218033f563237",
+    "eventType": "login_failed",
+    "description": "Failed login attempt: admin",
+    "success": false,
+    "ipAddress": "127.0.0.1",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Claude/1.18286.0 Chrome/148.0.7778.271 Electron/42.5.1 Safari/537.36 MSIX",
+    "createdAt": "2026-07-04T22:48:15.415730+00:00"
+  },
+  {
+    "id": "6e0e79fcd03d46be981124825d8b2117",
+    "userId": "6c88c71b0bc5426e88ec9f5e5b450734",
+    "eventType": "login_success",
+    "description": "Successful login: admin",
+    "success": true,
+    "ipAddress": "127.0.0.1",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Claude/1.18286.0 Chrome/148.0.7778.271 Electron/42.5.1 Safari/537.36 MSIX",
+    "createdAt": "2026-07-04T22:49:12.663827+00:00"
+  },
+  {
+    "id": "636721791c1f4f05ba88463c149a5289",
+    "userId": "6c88c71b0bc5426e88ec9f5e5b450734",
+    "eventType": "password_changed",
+    "description": "Password changed successfully",
+    "success": true,
+    "ipAddress": "127.0.0.1",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Claude/1.18286.0 Chrome/148.0.7778.271 Electron/42.5.1 Safari/537.36 MSIX",
+    "createdAt": "2026-07-04T22:49:41.818079+00:00"
+  },
+  {
+    "id": "12a272c1a1c2461d9fbd4f07134b2f06",
+    "userId": "6c88c71b0bc5426e88ec9f5e5b450734",
+    "eventType": "login_failed",
+    "description": "Failed login attempt: admin",
+    "success": false,
+    "ipAddress": "127.0.0.1",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Claude/1.18286.0 Chrome/148.0.7778.271 Electron/42.5.1 Safari/537.36 MSIX",
+    "createdAt": "2026-07-04T22:50:41.404117+00:00"
+  },
+  {
+    "id": "13248fc429474dacaee9f1dfd6bda45c",
+    "userId": "6c88c71b0bc5426e88ec9f5e5b450734",
+    "eventType": "login_failed",
+    "description": "Failed login attempt: admin",
+    "success": false,
+    "ipAddress": "127.0.0.1",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Claude/1.18286.0 Chrome/148.0.7778.271 Electron/42.5.1 Safari/537.36 MSIX",
+    "createdAt": "2026-07-04T22:51:06.580704+00:00"
+  },
+  {
+    "id": "07a150fed39e4ab38f1b3a76e7c8bbfc",
+    "userId": "6c88c71b0bc5426e88ec9f5e5b450734",
+    "eventType": "login_success",
+    "description": "Successful login: admin",
+    "success": true,
+    "ipAddress": "127.0.0.1",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Claude/1.18286.0 Chrome/148.0.7778.271 Electron/42.5.1 Safari/537.36 MSIX",
+    "createdAt": "2026-07-04T22:51:34.544357+00:00"
   }
 ]

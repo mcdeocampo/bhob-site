@@ -1,0 +1,80 @@
+[
+  {
+    "id": "form_seed_001",
+    "title": "Barangay Clearance Form",
+    "description": "Download and complete this form before visiting the Barangay Hall.",
+    "fileUrl": "",
+    "fileName": "",
+    "fileType": "",
+    "fileSize": 0,
+    "status": "published",
+    "displayOrder": 1,
+    "createdAt": "2026-06-01T00:00:00+00:00",
+    "updatedAt": "2026-06-01T00:00:00+00:00"
+  },
+  {
+    "id": "form_seed_002",
+    "title": "Certificate Request Form",
+    "description": "Download and complete this form before visiting the Barangay Hall.",
+    "fileUrl": "",
+    "fileName": "",
+    "fileType": "",
+    "fileSize": 0,
+    "status": "published",
+    "displayOrder": 2,
+    "createdAt": "2026-06-01T00:00:00+00:00",
+    "updatedAt": "2026-06-01T00:00:00+00:00"
+  },
+  {
+    "id": "form_seed_003",
+    "title": "Complaint Form",
+    "description": "Download and complete this form before visiting the Barangay Hall.",
+    "fileUrl": "",
+    "fileName": "",
+    "fileType": "",
+    "fileSize": 0,
+    "status": "published",
+    "displayOrder": 3,
+    "createdAt": "2026-06-01T00:00:00+00:00",
+    "updatedAt": "2026-06-01T00:00:00+00:00"
+  },
+  {
+    "id": "form_seed_004",
+    "title": "Business Clearance Form",
+    "description": "Download and complete this form before visiting the Barangay Hall.",
+    "fileUrl": "",
+    "fileName": "",
+    "fileType": "",
+    "fileSize": 0,
+    "status": "published",
+    "displayOrder": 4,
+    "createdAt": "2026-06-01T00:00:00+00:00",
+    "updatedAt": "2026-06-01T00:00:00+00:00"
+  },
+  {
+    "id": "form_seed_005",
+    "title": "Certificate of Indigency Form",
+    "description": "Download and complete this form before visiting the Barangay Hall.",
+    "fileUrl": "",
+    "fileName": "",
+    "fileType": "",
+    "fileSize": 0,
+    "status": "published",
+    "displayOrder": 5,
+    "createdAt": "2026-06-01T00:00:00+00:00",
+    "updatedAt": "2026-06-01T00:00:00+00:00"
+  },
+  {
+    "id": "form_seed_006",
+    "title": "Certificate of Residency Form",
+    "description": "Download and complete this form before visiting the Barangay Hall.",
+    "fileUrl": "",
+    "fileName": "",
+    "fileType": "",
+    "fileSize": 0,
+    "status": "published",
+    "displayOrder": 6,
+    "createdAt": "2026-06-01T00:00:00+00:00",
+    "updatedAt": "2026-06-01T00:00:00+00:00"
+  }
+]

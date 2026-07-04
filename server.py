@@ -24,8 +24,12 @@ _DATA_ROOT = os.environ.get('DATA_ROOT', '').strip()
 DATA_DIR        = _DATA_ROOT if _DATA_ROOT else os.path.join(BASE_DIR, 'data')
 UPLOAD_DIR      = os.path.join(DATA_DIR, 'images', 'announcements')
 PROJ_UPLOAD_DIR = os.path.join(DATA_DIR, 'images', 'initiatives')
+# Form files: local dev → assets/ (Flask serves directly); Render → DATA_DIR (persistent disk)
+FORMS_UPLOAD_DIR = (os.path.join(DATA_DIR, 'documents', 'forms') if _DATA_ROOT
+                    else os.path.join(BASE_DIR, 'assets', 'documents', 'forms'))
 ANN_FILE    = os.path.join(DATA_DIR, 'announcements.json')
 PROJ_FILE   = os.path.join(DATA_DIR, 'community-initiatives.json')
+FORMS_FILE  = os.path.join(DATA_DIR, 'forms.json')
 USERS_FILE  = os.path.join(DATA_DIR, 'users.json')
 AUDIT_FILE  = os.path.join(DATA_DIR, 'audit_logs.json')
 
@@ -268,7 +272,7 @@ def _ensure_initial_user():
         'updatedAt':          now,
     }
     _save_users([user])
-    print('[BHOB] ─────────────────────────────────────────────────')
+    print('[BHOB] -------------------------------------------------')
     if saved_hash:
         print(f'[BHOB] Admin account restored from ADMIN_PWHASH env var.')
         print(f'[BHOB] Username : {username}')
@@ -279,7 +283,7 @@ def _ensure_initial_user():
         print(f'[BHOB] Log in and change your password immediately.')
         if not os.environ.get('ADMIN_PASSWORD'):
             print(f'[BHOB] TIP: Set ADMIN_PASSWORD env var to control the initial password.')
-    print('[BHOB] ─────────────────────────────────────────────────')
+    print('[BHOB] -------------------------------------------------')
 
 
 # ── Audit logging ─────────────────────────────────────────────────────────────
@@ -407,6 +411,38 @@ def _save_proj(data):
         json.dump(data, f, ensure_ascii=False, indent=2)
 
 
+def _load_forms():
+    os.makedirs(DATA_DIR, exist_ok=True)
+    if not os.path.exists(FORMS_FILE):
+        return []
+    try:
+        with open(FORMS_FILE, encoding='utf-8') as f:
+            return json.load(f)
+    except Exception:
+        return []
+
+
+def _save_forms(data):
+    os.makedirs(DATA_DIR, exist_ok=True)
+    with open(FORMS_FILE, 'w', encoding='utf-8') as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+
+def _form_file_path(file_url):
+    """Return absolute filesystem path for a stored form file URL."""
+    if not file_url:
+        return None
+    if _DATA_ROOT and file_url.startswith('assets/documents/forms/'):
+        rel = file_url[len('assets/'):]
+        return os.path.join(DATA_DIR, rel)
+    return os.path.join(BASE_DIR, file_url)
+
+
+def _form_file_available(file_url):
+    path = _form_file_path(file_url)
+    return bool(path and os.path.isfile(path))
+
+
 def _clean(val, maxlen=500):
     return str(val or '').strip()[:maxlen]
 
@@ -510,6 +546,18 @@ def api_community_initiatives():
     return jsonify({'status': 'ok', 'initiatives': published})
 
 
+# ── Public forms API ─────────────────────────────────────────────────────────
+@app.route('/api/forms')
+def api_forms():
+    all_forms = _load_forms()
+    published = [f for f in all_forms if f.get('status') == 'published']
+    published.sort(key=lambda x: x.get('updatedAt', ''), reverse=True)
+    published.sort(key=_order_key)
+    for f in published:
+        f['fileAvailable'] = _form_file_available(f.get('fileUrl', ''))
+    return jsonify({'status': 'ok', 'forms': published})
+
+
 # ── Public page clean URLs (no .html required) ───────────────────────────────
 _PUBLIC_PAGES = [
     'about', 'officials', 'services', 'citizens-charter',
@@ -531,6 +579,7 @@ def public_page(page_name):
 @app.route('/admin/')
 @app.route('/admin/settings')
 @app.route('/admin/community-initiatives')
+@app.route('/admin/download-forms')
 def admin_page():
     f = os.path.join(BASE_DIR, 'admin', 'index.html')
     if not os.path.exists(f):
@@ -706,12 +755,12 @@ def admin_change_password():
 
     # Log the new hash so it can be set as ADMIN_PWHASH in deployment env vars,
     # ensuring the change survives future redeploys on ephemeral hosting (e.g. Render).
-    print('[BHOB] ─────────────────────────────────────────────────')
+    print('[BHOB] -------------------------------------------------')
     print('[BHOB] Admin password changed successfully.')
     print('[BHOB] To persist this password across redeploys, set the')
     print('[BHOB] following environment variable in your hosting dashboard:')
     print(f'[BHOB] ADMIN_PWHASH={new_hash}')
-    print('[BHOB] ─────────────────────────────────────────────────')
+    print('[BHOB] -------------------------------------------------')
 
     # Invalidate session — require re-login with new password
     session.clear()
@@ -923,6 +972,116 @@ def admin_proj_delete(proj_id):
     return jsonify({'status': 'ok'})
 
 
+# ── Admin — download forms CRUD ──────────────────────────────────────────────
+@app.route('/admin/api/forms')
+@admin_required
+def admin_forms_list():
+    all_forms = _load_forms()
+    all_forms.sort(key=lambda x: x.get('updatedAt', ''), reverse=True)
+    all_forms.sort(key=_order_key)
+    for f in all_forms:
+        f['fileAvailable'] = _form_file_available(f.get('fileUrl', ''))
+    return jsonify({'status': 'ok', 'forms': all_forms})
+
+
+@app.route('/admin/api/forms', methods=['POST'])
+@admin_required
+def admin_forms_create():
+    d         = request.get_json(silent=True) or {}
+    all_forms = _load_forms()
+    now       = datetime.now(timezone.utc).isoformat()
+    status    = d.get('status', 'draft')
+    if status not in ('draft', 'published', 'hidden'):
+        status = 'draft'
+    min_order = min((f.get('displayOrder', 1) for f in all_forms), default=1)
+    form = {
+        'id':           uuid.uuid4().hex,
+        'title':        _clean(d.get('title'), 200),
+        'description':  _clean(d.get('description'), 500),
+        'fileUrl':      _clean(d.get('fileUrl'), 300),
+        'fileName':     _clean(d.get('fileName'), 200),
+        'fileType':     _clean(d.get('fileType'), 10),
+        'fileSize':     int(d.get('fileSize', 0)),
+        'status':       status,
+        'displayOrder': min_order - 1,
+        'createdAt':    now,
+        'updatedAt':    now,
+    }
+    all_forms.append(form)
+    _save_forms(all_forms)
+    return jsonify({'status': 'ok', 'form': form}), 201
+
+
+@app.route('/admin/api/forms/reorder', methods=['PUT'])
+@admin_required
+def admin_forms_reorder():
+    items = request.get_json(silent=True) or []
+    if not isinstance(items, list):
+        return jsonify({'error': 'Invalid payload'}), 400
+    order_map = {}
+    for item in items:
+        if isinstance(item, dict) and 'id' in item:
+            try:
+                order_map[str(item['id'])] = int(item['displayOrder'])
+            except (ValueError, TypeError, KeyError):
+                pass
+    all_forms = _load_forms()
+    for f in all_forms:
+        if f.get('id') in order_map:
+            f['displayOrder'] = order_map[f['id']]
+    _save_forms(all_forms)
+    return jsonify({'status': 'ok'})
+
+
+@app.route('/admin/api/forms/<form_id>', methods=['PUT'])
+@admin_required
+def admin_forms_update(form_id):
+    d         = request.get_json(silent=True) or {}
+    all_forms = _load_forms()
+    idx       = next((i for i, f in enumerate(all_forms) if f.get('id') == form_id), None)
+    if idx is None:
+        return jsonify({'error': 'Not found'}), 404
+    f = all_forms[idx]
+    for field, maxlen in [('title', 200), ('description', 500), ('fileUrl', 300),
+                          ('fileName', 200), ('fileType', 10)]:
+        if field in d:
+            f[field] = _clean(d[field], maxlen)
+    if 'fileSize' in d:
+        try:
+            f['fileSize'] = int(d['fileSize'])
+        except (ValueError, TypeError):
+            pass
+    if 'status' in d and d['status'] in ('draft', 'published', 'hidden'):
+        f['status'] = d['status']
+    if 'displayOrder' in d:
+        try:
+            f['displayOrder'] = int(d['displayOrder'])
+        except (ValueError, TypeError):
+            pass
+    f['updatedAt'] = datetime.now(timezone.utc).isoformat()
+    _save_forms(all_forms)
+    return jsonify({'status': 'ok', 'form': f})
+
+
+@app.route('/admin/api/forms/<form_id>', methods=['DELETE'])
+@admin_required
+def admin_forms_delete(form_id):
+    all_forms = _load_forms()
+    target    = next((f for f in all_forms if f.get('id') == form_id), None)
+    if not target:
+        return jsonify({'error': 'Not found'}), 404
+    # Delete the physical file if it exists
+    file_path = _form_file_path(target.get('fileUrl', ''))
+    if file_path and os.path.isfile(file_path):
+        try:
+            os.remove(file_path)
+        except Exception:
+            pass
+    filtered = [f for f in all_forms if f.get('id') != form_id]
+    _save_forms(filtered)
+    return jsonify({'status': 'ok'})
+
+
 # ── Image upload ──────────────────────────────────────────────────────────────
 ALLOWED_EXT = {'jpg', 'jpeg', 'png', 'webp'}
 MAX_BYTES   = 5 * 1024 * 1024
@@ -981,6 +1140,36 @@ def admin_upload():
     return jsonify({'status': 'ok', 'url': 'assets/images/announcements/' + fname})
 
 
+@app.route('/admin/api/upload-form-file', methods=['POST'])
+@admin_required
+def admin_upload_form_file():
+    """Upload a downloadable form file (PDF, DOC, DOCX). Max 10 MB."""
+    f = request.files.get('file')
+    if not f or not f.filename:
+        return jsonify({'error': 'No file selected'}), 400
+    ext = f.filename.rsplit('.', 1)[-1].lower() if '.' in f.filename else ''
+    allowed = {'pdf', 'doc', 'docx'}
+    if ext not in allowed:
+        return jsonify({'error': 'Invalid file type. Only PDF, DOC, and DOCX are allowed.'}), 400
+    max_bytes = 10 * 1024 * 1024
+    data = f.read(max_bytes + 1)
+    if len(data) > max_bytes:
+        return jsonify({'error': 'File too large (max 10 MB)'}), 400
+    fname = uuid.uuid4().hex + '.' + ext
+    os.makedirs(FORMS_UPLOAD_DIR, exist_ok=True)
+    with open(os.path.join(FORMS_UPLOAD_DIR, fname), 'wb') as out:
+        out.write(data)
+    # Sanitize the original filename for display (strip path components)
+    original_name = os.path.basename(f.filename)
+    return jsonify({
+        'status':   'ok',
+        'url':      'assets/documents/forms/' + fname,
+        'fileName': original_name,
+        'fileType': ext,
+        'fileSize': len(data),
+    })
+
+
 @app.route('/admin/api/upload-initiative', methods=['POST'])
 @admin_required
 def admin_upload_initiative():
@@ -1012,14 +1201,14 @@ def static_files(filename):
     # Block direct filesystem access to admin and data directories
     if filename.startswith('admin') or filename.startswith('data/'):
         abort(404)
-    # When DATA_ROOT is set, check DATA_DIR/images/ first for uploaded images
-    # so that uploads survive redeploys (images are stored on the persistent disk).
-    if _DATA_ROOT and filename.startswith('assets/images/'):
+    # When DATA_ROOT is set, check DATA_DIR first for uploaded images and form files.
+    if _DATA_ROOT and (filename.startswith('assets/images/') or
+                       filename.startswith('assets/documents/forms/')):
         rel = filename[len('assets/'):]          # e.g. 'images/announcements/abc.jpg'
-        data_img = os.path.join(DATA_DIR, rel)
-        if os.path.isfile(data_img):
-            return send_from_directory(os.path.dirname(data_img),
-                                       os.path.basename(data_img))
+        data_file = os.path.join(DATA_DIR, rel)
+        if os.path.isfile(data_file):
+            return send_from_directory(os.path.dirname(data_file),
+                                       os.path.basename(data_file))
     full = os.path.join(BASE_DIR, filename)
     if not os.path.exists(full):
         abort(404)
@@ -1036,7 +1225,7 @@ def _ensure_seed_data():
     import shutil
     os.makedirs(DATA_DIR, exist_ok=True)
     seed_dir = os.path.join(BASE_DIR, 'data')
-    for fname in ('announcements.json', 'community-initiatives.json'):
+    for fname in ('announcements.json', 'community-initiatives.json', 'forms.json'):
         dest = os.path.join(DATA_DIR, fname)
         if not os.path.exists(dest):
             src = os.path.join(seed_dir, fname)

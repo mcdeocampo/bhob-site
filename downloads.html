@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -46,13 +46,25 @@
       </div>
     </nav>
   </header>
-  <main><section class="page-hero section-pad-sm">
+  <main>
+    <section class="page-hero section-pad-sm">
       <div class="container reveal">
         <span class="eyebrow">Forms and Files</span>
         <h1>Downloads</h1>
         <p>Download commonly requested public service forms and documents.</p>
       </div>
-    </section><section class="section-pad"><div class="container downloads-grid"><div class="download-card reveal"><span class="icon">📥</span><div><h3>Barangay Clearance Form</h3><p>Download and complete this form before visiting the Barangay Hall.</p></div><a class="btn btn-primary btn-small" href="assets/documents/barangay-clearance-form.pdf" download>Download</a></div><div class="download-card reveal"><span class="icon">📥</span><div><h3>Certificate Request Form</h3><p>Download and complete this form before visiting the Barangay Hall.</p></div><a class="btn btn-primary btn-small" href="assets/documents/certificate-request-form.pdf" download>Download</a></div><div class="download-card reveal"><span class="icon">📥</span><div><h3>Complaint Form</h3><p>Download and complete this form before visiting the Barangay Hall.</p></div><a class="btn btn-primary btn-small" href="assets/documents/complaint-form.pdf" download>Download</a></div><div class="download-card reveal"><span class="icon">📥</span><div><h3>Business Clearance Form</h3><p>Download and complete this form before visiting the Barangay Hall.</p></div><a class="btn btn-primary btn-small" href="assets/documents/business-clearance-form.pdf" download>Download</a></div><div class="download-card reveal"><span class="icon">📥</span><div><h3>Certificate of Indigency Form</h3><p>Download and complete this form before visiting the Barangay Hall.</p></div><a class="btn btn-primary btn-small" href="assets/documents/certificate-indigency-form.pdf" download>Download</a></div><div class="download-card reveal"><span class="icon">📥</span><div><h3>Certificate of Residency Form</h3><p>Download and complete this form before visiting the Barangay Hall.</p></div><a class="btn btn-primary btn-small" href="assets/documents/certificate-residency-form.pdf" download>Download</a></div><div class="download-card reveal"><span class="icon">📥</span><div><h3>Assistance Request Form</h3><p>Download and complete this form before visiting the Barangay Hall.</p></div><a class="btn btn-primary btn-small" href="assets/documents/assistance-request-form.pdf" download>Download</a></div></div></section>  </main>
+    </section>
+
+    <section class="section-pad">
+      <div class="container">
+        <div class="downloads-grid" id="forms-grid">
+          <div class="download-card reveal" style="justify-content:center;color:#94a3b8;font-size:.9rem">
+            Loading forms…
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
   <footer class="site-footer">
     <div class="container footer-grid">
       <div>
@@ -66,10 +78,49 @@
       <div>
         <h3>Quick Links</h3>
         <ul class="footer-links"><li><a href="/">Home</a></li><li><a href="about">About Us</a></li><li><a href="officials">Officials</a></li><li><a href="services">Public Services</a></li><li><a href="citizens-charter">Service Standards</a></li><li><a href="announcements">Announcements</a></li></ul>
-      </div></div>
+      </div>
+    </div>
     <div class="footer-bottom">© 2026 Barangay Hulo, Obando, Bulacan. All Rights Reserved.</div>
   </footer>
   <button class="back-to-top" aria-label="Back to top">↑</button>
   <script src="assets/js/main.js"></script>
+  <script>
+  (function() {
+    var grid = document.getElementById('forms-grid');
+
+    function renderForms(forms) {
+      if (!forms || !forms.length) {
+        grid.innerHTML = '<div class="download-card reveal" style="justify-content:center;color:#94a3b8;font-size:.9rem">No downloadable forms available at this time.</div>';
+        return;
+      }
+      grid.innerHTML = forms.map(function(f) {
+        var safeTitle = (f.title || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        var safeDesc  = (f.description || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        var ext       = (f.fileType || 'pdf').toLowerCase();
+        var dlName    = safeTitle + '.' + ext;
+        var btn;
+        if (f.fileAvailable && f.fileUrl) {
+          btn = '<a class="btn btn-primary btn-small" href="/' + f.fileUrl + '" download="' + dlName + '">Download</a>';
+        } else {
+          btn = '<span style="font-size:.8rem;color:#94a3b8;font-style:italic">File not available.</span>';
+        }
+        return '<div class="download-card reveal"><span class="icon">📥</span><div><h3>' + safeTitle + '</h3><p>' + safeDesc + '</p></div>' + btn + '</div>';
+      }).join('');
+
+      if (window.revealObserver) {
+        document.querySelectorAll('#forms-grid .reveal').forEach(function(el) {
+          window.revealObserver.observe(el);
+        });
+      }
+    }
+
+    fetch('/api/forms')
+      .then(function(r) { return r.json(); })
+      .then(function(d) { renderForms(d.forms || []); })
+      .catch(function() {
+        grid.innerHTML = '<div class="download-card reveal" style="justify-content:center;color:#94a3b8;font-size:.9rem">No downloadable forms available at this time.</div>';
+      });
+  })();
+  </script>
 </body>
 </html>

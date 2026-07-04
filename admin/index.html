@@ -365,6 +365,28 @@ a{text-decoration:none;color:inherit}
   transition:background .15s}
 .btn-save-order:hover{background:var(--blue-hover)}
 
+/* ─── DOWNLOAD FORMS ─────────────────────────────────────── */
+.file-type-badge{display:inline-flex;align-items:center;justify-content:center;
+  width:36px;height:44px;border-radius:6px;font-size:.55rem;font-weight:700;
+  letter-spacing:.04em;text-transform:uppercase;flex-shrink:0;
+  background:#dbeafe;color:#1d4ed8;border:1px solid #bfdbfe}
+.file-type-badge.pdf{background:#fee2e2;color:#b91c1c;border-color:#fecaca}
+.file-type-badge.doc,.file-type-badge.docx{background:#dbeafe;color:#1d4ed8;border-color:#bfdbfe}
+.file-meta-row{display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-top:2px}
+.file-meta-chip{font-size:.68rem;color:#64748b;background:#f1f5f9;
+  padding:1px 7px;border-radius:10px;white-space:nowrap}
+.file-missing{font-size:.72rem;color:#94a3b8;font-style:italic}
+.file-upload-area{border:2px dashed var(--border);border-radius:var(--radius);padding:16px;
+  text-align:center;background:var(--bg);transition:border-color .2s;cursor:pointer}
+.file-upload-area:hover,.file-upload-area.drag-over{border-color:var(--blue);background:rgba(37,99,235,.03)}
+.file-current{background:#f8fafc;border:1px solid var(--border);border-radius:var(--radius);
+  padding:10px 12px;display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.file-current-icon{font-size:1.4rem;flex-shrink:0}
+.file-current-info{flex:1;min-width:0}
+.file-current-name{font-size:.8rem;font-weight:600;color:var(--text);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.file-current-meta{font-size:.7rem;color:var(--gray)}
+
 /* ─── RESPONSIVE ─────────────────────────────────────────── */
 @media(max-width:900px){.sidebar{width:200px}.form-grid{grid-template-columns:1fr}}
 @media(max-width:640px){
@@ -504,6 +526,10 @@ a{text-decoration:none;color:inherit}
         Officials
         <span class="soon-badge">Soon</span>
       </button>
+      <button class="nav-item" data-sec="forms">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Download Forms
+      </button>
       <button class="nav-item" disabled>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
         Public Services
@@ -616,6 +642,37 @@ a{text-decoration:none;color:inherit}
         <button class="btn-save-order" onclick="saveInitOrder()">Save Order</button>
       </div>
       <div class="ann-list" id="init-list"><div class="loading">Loading…</div></div>
+    </section>
+
+    <!-- Download Forms -->
+    <section id="sec-forms" style="display:none">
+      <div class="page-hdr">
+        <div>
+          <h2>Download Forms Management</h2>
+          <p>Manage downloadable forms shown under Home &gt; Public Services &gt; Download Forms.</p>
+        </div>
+        <button class="btn-new" id="btn-new-form">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          New Form
+        </button>
+      </div>
+      <div class="toolbar">
+        <div class="search-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input class="search-input" id="form-search" type="search" placeholder="Search forms…">
+        </div>
+        <div class="tabs" id="form-tabs">
+          <button class="tab active" data-ff="all">All</button>
+          <button class="tab" data-ff="published">Published</button>
+          <button class="tab" data-ff="draft">Draft</button>
+          <button class="tab" data-ff="hidden">Hidden</button>
+        </div>
+      </div>
+      <div class="save-order-bar" id="form-save-order-bar">
+        <p>⠿ Drag items to reorder, then save.</p>
+        <button class="btn-save-order" onclick="saveFormOrder()">Save Order</button>
+      </div>
+      <div class="ann-list" id="form-list"><div class="loading">Loading…</div></div>
     </section>
 
     <!-- Settings -->
@@ -872,6 +929,64 @@ a{text-decoration:none;color:inherit}
       <button class="btn-cancel" id="btn-cancel-init">Cancel</button>
       <button class="btn-draft" id="btn-init-draft">Save Draft</button>
       <button class="btn-publish" id="btn-init-pub">Publish</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ DOWNLOAD FORM MODAL ══════════════════ -->
+<div class="overlay" id="form-modal-overlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="form-modal-title">New Form</h3>
+      <button class="btn-close" id="btn-close-form-modal">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-section-label">Content</div>
+        <div class="field field-full">
+          <label>Form Title <span style="color:#ef4444">*</span></label>
+          <input type="text" id="fm-title" maxlength="200">
+        </div>
+        <div class="field field-full">
+          <label>Description <span style="color:#94a3b8;font-size:.7rem">(shown on the download card)</span></label>
+          <textarea id="fm-desc" rows="2" maxlength="500"></textarea>
+        </div>
+        <div class="form-section-label">File</div>
+        <div class="field field-full">
+          <label>Upload File <span style="color:#94a3b8;font-size:.7rem">PDF, DOC, DOCX — max 10 MB</span></label>
+          <div id="fm-current-file" style="display:none" class="file-current">
+            <span class="file-current-icon">📄</span>
+            <div class="file-current-info">
+              <div class="file-current-name" id="fm-current-name">—</div>
+              <div class="file-current-meta" id="fm-current-meta">—</div>
+            </div>
+            <button type="button" class="btn-act" style="font-size:.7rem" onclick="clearFormFile()">Remove</button>
+          </div>
+          <div class="file-upload-area" id="fm-drop-area">
+            <div style="font-size:1.8rem;margin-bottom:8px">📂</div>
+            <div class="img-upload-row">
+              <label class="btn-upload-file" for="fm-file-input">Choose File</label>
+              <input type="file" id="fm-file-input" accept=".pdf,.doc,.docx" style="display:none">
+            </div>
+            <div class="img-hint" style="margin-top:8px">Drag and drop or click to upload · PDF, DOC, DOCX · Max 10 MB</div>
+            <div id="fm-upload-progress" style="font-size:.78rem;color:var(--blue);margin-top:6px;display:none">Uploading…</div>
+          </div>
+        </div>
+        <div class="form-section-label">Settings</div>
+        <div class="field">
+          <label>Status</label>
+          <div class="radio-row">
+            <div class="rc"><input type="radio" name="form-status" id="fs-draft" value="draft" checked><label for="fs-draft">Draft</label></div>
+            <div class="rc"><input type="radio" name="form-status" id="fs-pub" value="published"><label for="fs-pub">Published</label></div>
+            <div class="rc"><input type="radio" name="form-status" id="fs-hidden" value="hidden"><label for="fs-hidden">Hidden</label></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-cancel" id="btn-cancel-form-modal">Cancel</button>
+      <button class="btn-draft" id="btn-form-draft">Save Draft</button>
+      <button class="btn-publish" id="btn-form-pub">Publish</button>
     </div>
   </div>
 </div>
@@ -1161,7 +1276,7 @@ async function adminFetch(url, opts) {
 
 // ── Nav ────────────────────────────────────────────────────────────────────
 function showSection(name) {
-  ['dashboard','announcements','initiatives','settings'].forEach(s => {
+  ['dashboard','announcements','initiatives','forms','settings'].forEach(s => {
     $('sec-'+s).style.display = s===name ? 'block' : 'none';
   });
   document.querySelectorAll('.nav-item[data-sec]').forEach(b => {
@@ -1169,6 +1284,7 @@ function showSection(name) {
   });
   if (name==='announcements') renderList();
   if (name==='initiatives') renderInitList();
+  if (name==='forms') renderFormList();
   if (name==='settings') resetSettingsForm();
 }
 
@@ -1199,6 +1315,14 @@ async function loadAll() {
       const d2 = await r2.json();
       SI.initiatives = d2.initiatives || [];
       if ($('sec-initiatives').style.display !== 'none') renderInitList();
+    }
+  } catch {}
+  try {
+    const r3 = await adminFetch('/admin/api/forms');
+    if (r3.ok) {
+      const d3 = await r3.json();
+      SF.forms = d3.forms || [];
+      if ($('sec-forms').style.display !== 'none') renderFormList();
     }
   } catch {}
 }
@@ -1794,8 +1918,304 @@ function confirmInitDel(id,title){
 }
 
 document.addEventListener('keydown', e => {
-  if (e.key==='Escape') $('init-form-overlay').classList.remove('open');
+  if (e.key==='Escape') {
+    $('init-form-overlay').classList.remove('open');
+    $('form-modal-overlay').classList.remove('open');
+  }
 });
+
+// ══════════════════ DOWNLOAD FORMS ══════════════════
+
+const SF = { forms:[], filter:'all', search:'', editingId:null,
+             fileUrl:'', fileName:'', fileType:'', fileSize:0 };
+
+async function loadForms() {
+  try {
+    const r = await adminFetch('/admin/api/forms');
+    if (!r.ok) return;
+    const d = await r.json();
+    SF.forms = d.forms || [];
+    renderFormList();
+  } catch {}
+}
+
+let formOrderDirty = false;
+let formDragSrc = null;
+
+function showFormSaveBar(show) {
+  $('form-save-order-bar').classList.toggle('visible', show);
+  if (!show) formOrderDirty = false;
+}
+
+function fmtFileSize(bytes) {
+  if (!bytes) return '';
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+}
+
+function enableFormDrag(listEl) {
+  listEl.addEventListener('dragover', e => e.preventDefault());
+  listEl.addEventListener('drop', e => e.preventDefault());
+  listEl.querySelectorAll('.ann-card[data-id]').forEach(card => {
+    card.setAttribute('draggable', 'true');
+    card.addEventListener('dragstart', e => {
+      formDragSrc = card;
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', card.dataset.id);
+      setTimeout(() => card.classList.add('dragging'), 0);
+    });
+    card.addEventListener('dragend', () => {
+      card.classList.remove('dragging');
+      listEl.querySelectorAll('.ann-card').forEach(c => c.classList.remove('drag-over-card'));
+      formDragSrc = null;
+    });
+    card.addEventListener('dragover', e => {
+      e.preventDefault(); e.stopPropagation();
+      if (!formDragSrc || formDragSrc === card) return;
+      listEl.querySelectorAll('.ann-card').forEach(c => c.classList.remove('drag-over-card'));
+      card.classList.add('drag-over-card');
+    });
+    card.addEventListener('dragleave', e => {
+      if (!card.contains(e.relatedTarget)) card.classList.remove('drag-over-card');
+    });
+    card.addEventListener('drop', e => {
+      e.preventDefault(); e.stopPropagation();
+      listEl.querySelectorAll('.ann-card').forEach(c => c.classList.remove('drag-over-card'));
+      if (!formDragSrc || formDragSrc === card) return;
+      const allCards = [...listEl.querySelectorAll('.ann-card[data-id]')];
+      const srcIdx = allCards.indexOf(formDragSrc);
+      const dstIdx = allCards.indexOf(card);
+      if (srcIdx < dstIdx) listEl.insertBefore(formDragSrc, card.nextSibling);
+      else listEl.insertBefore(formDragSrc, card);
+      [...listEl.querySelectorAll('.ann-card[data-id]')].forEach((c, idx) => {
+        const f = SF.forms.find(x => x.id === c.dataset.id);
+        if (f) f.displayOrder = idx + 1;
+      });
+      formOrderDirty = true;
+      renderFormList();
+      showFormSaveBar(true);
+    });
+  });
+}
+
+async function saveFormOrder() {
+  const payload = SF.forms.map(f => ({ id: f.id, displayOrder: f.displayOrder }));
+  try {
+    const r = await adminFetch('/admin/api/forms/reorder', {
+      method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)
+    });
+    if (!r.ok) { toast('Failed to save order', 'err'); return; }
+    formOrderDirty = false;
+    showFormSaveBar(false);
+    toast('Display order saved', 'ok');
+  } catch(e) { if(e.message !== 'unauthorized') toast('Save error', 'err'); }
+}
+
+function renderFormList() {
+  let items = [...SF.forms];
+  items.sort((a, b) => (a.displayOrder ?? 9999) - (b.displayOrder ?? 9999));
+  if (SF.filter !== 'all') items = items.filter(f => f.status === SF.filter);
+  if (SF.search) {
+    const q = SF.search.toLowerCase();
+    items = items.filter(f =>
+      (f.title||'').toLowerCase().includes(q) ||
+      (f.description||'').toLowerCase().includes(q) ||
+      (f.fileName||'').toLowerCase().includes(q)
+    );
+  }
+  const el = $('form-list');
+  showFormSaveBar(false);
+  if (!items.length) {
+    el.innerHTML = `<div class="empty-state"><div class="es-icon">📄</div><h3>No forms found</h3><p>${SF.filter==='all'?'Click "+ New Form" to add your first downloadable form.':'No '+SF.filter+' forms.'}</p></div>`;
+    return;
+  }
+  el.innerHTML = items.map((f, i) => {
+    const ext = (f.fileType||'').toLowerCase();
+    const iconClass = 'file-type-badge ' + (ext || 'pdf');
+    const iconLabel = ext ? ext.toUpperCase() : 'PDF';
+    let fileInfo = '';
+    if (f.fileAvailable && f.fileName) {
+      fileInfo = `<div class="file-meta-row">
+        <span class="file-meta-chip">${esc(f.fileName)}</span>
+        ${ext ? '<span class="file-meta-chip">'+esc(ext.toUpperCase())+'</span>' : ''}
+        ${f.fileSize ? '<span class="file-meta-chip">'+esc(fmtFileSize(f.fileSize))+'</span>' : ''}
+      </div>`;
+    } else if (f.fileUrl && !f.fileAvailable) {
+      fileInfo = '<div class="file-missing">File missing on server</div>';
+    } else {
+      fileInfo = '<div class="file-missing">No file uploaded</div>';
+    }
+    const viewBtn = (f.fileAvailable && f.fileUrl)
+      ? `<a class="btn-act" href="/${esc(f.fileUrl)}" target="_blank" rel="noopener">View</a>`
+      : `<button class="btn-act" disabled title="No file uploaded" style="opacity:.4;cursor:not-allowed">View</button>`;
+    return `<div class="ann-card" data-id="${f.id}">
+      <span class="drag-handle" title="Drag to reorder">⠿</span>
+      <span class="order-badge">${i+1}</span>
+      <div class="${iconClass}" title="${esc(iconLabel)}">${esc(iconLabel)}</div>
+      <div class="ann-body">
+        <div class="ann-meta">
+          <span class="badge badge-${f.status}">${f.status}</span>
+        </div>
+        <div class="ann-title">${esc(f.title||'(no title)')}</div>
+        <div class="ann-desc">${esc(f.description||'')}</div>
+        ${fileInfo}
+      </div>
+      <div class="ann-actions">
+        ${viewBtn}
+        <button class="btn-act" onclick="openFormEdit('${f.id}')">Edit</button>
+        <button class="btn-act" onclick="toggleFormHide('${f.id}','${f.status}')">${f.status==='hidden'?'Show':'Hide'}</button>
+        <button class="btn-act danger" onclick="confirmFormDel('${f.id}','${esc(f.title||'')}')">Delete</button>
+      </div>
+    </div>`;
+  }).join('');
+  enableFormDrag(el);
+}
+
+$('form-search').addEventListener('input', e => { SF.search=e.target.value; renderFormList(); });
+document.querySelectorAll('#form-tabs .tab').forEach(t => {
+  t.onclick = () => {
+    document.querySelectorAll('#form-tabs .tab').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active'); SF.filter=t.dataset.ff; renderFormList();
+  };
+});
+$('btn-new-form').onclick = openFormNew;
+
+function resetFormModal() {
+  SF.editingId=null; SF.fileUrl=''; SF.fileName=''; SF.fileType=''; SF.fileSize=0;
+  $('fm-title').value=''; $('fm-desc').value='';
+  $('fs-draft').checked=true;
+  $('fm-current-file').style.display='none';
+  $('fm-current-name').textContent='—';
+  $('fm-current-meta').textContent='—';
+  $('fm-upload-progress').style.display='none';
+  $('fm-file-input').value='';
+}
+
+function showFormFile(fileName, fileType, fileSize) {
+  SF.fileName=fileName; SF.fileType=fileType; SF.fileSize=fileSize;
+  $('fm-current-name').textContent=fileName||'—';
+  $('fm-current-meta').textContent=[(fileType||'').toUpperCase(), fmtFileSize(fileSize)].filter(Boolean).join(' · ');
+  $('fm-current-file').style.display='flex';
+}
+
+function clearFormFile() {
+  SF.fileUrl=''; SF.fileName=''; SF.fileType=''; SF.fileSize=0;
+  $('fm-current-file').style.display='none';
+  $('fm-file-input').value='';
+}
+
+function openFormNew() {
+  resetFormModal();
+  $('form-modal-title').textContent='New Form';
+  $('form-modal-overlay').classList.add('open');
+  $('fm-title').focus();
+}
+
+function openFormEdit(id) {
+  const f = SF.forms.find(x=>x.id===id); if(!f) return;
+  resetFormModal();
+  SF.editingId=id; SF.fileUrl=f.fileUrl||''; SF.fileName=f.fileName||'';
+  SF.fileType=f.fileType||''; SF.fileSize=f.fileSize||0;
+  $('form-modal-title').textContent='Edit Form';
+  $('fm-title').value=f.title||'';
+  $('fm-desc').value=f.description||'';
+  const sEl=document.getElementById('fs-'+f.status);
+  if(sEl) sEl.checked=true; else $('fs-draft').checked=true;
+  if(f.fileAvailable && f.fileName) {
+    showFormFile(f.fileName, f.fileType, f.fileSize);
+  } else if(f.fileName) {
+    showFormFile(f.fileName + ' (missing on server)', f.fileType, f.fileSize);
+  }
+  $('form-modal-overlay').classList.add('open');
+  $('fm-title').focus();
+}
+
+function closeFormModal() { $('form-modal-overlay').classList.remove('open'); }
+$('btn-close-form-modal').onclick=closeFormModal;
+$('btn-cancel-form-modal').onclick=closeFormModal;
+$('form-modal-overlay').onclick=e=>{ if(e.target===$('form-modal-overlay')) closeFormModal(); };
+
+async function doFormFileUpload(file) {
+  const prog=$('fm-upload-progress');
+  prog.style.display='block'; prog.textContent='Uploading…';
+  const fd=new FormData(); fd.append('file',file);
+  try {
+    const r=await adminFetch('/admin/api/upload-form-file',{method:'POST',body:fd});
+    const d=await r.json();
+    if(!r.ok){toast(d.error||'Upload failed','err');prog.style.display='none';return;}
+    SF.fileUrl=d.url;
+    showFormFile(d.fileName, d.fileType, d.fileSize);
+    prog.style.display='none';
+    toast('File uploaded','ok');
+  } catch(e){ prog.style.display='none'; if(e.message!=='unauthorized') toast('Upload error','err'); }
+}
+
+$('fm-file-input').onchange=async e=>{ const f=e.target.files[0]; if(!f) return; await doFormFileUpload(f); e.target.value=''; };
+
+const fmDropArea=$('fm-drop-area');
+fmDropArea.addEventListener('dragover',e=>{e.preventDefault();fmDropArea.classList.add('drag-over');});
+fmDropArea.addEventListener('dragleave',()=>fmDropArea.classList.remove('drag-over'));
+fmDropArea.addEventListener('drop',async e=>{
+  e.preventDefault();fmDropArea.classList.remove('drag-over');
+  const f=e.dataTransfer.files[0]; if(!f) return;
+  await doFormFileUpload(f);
+});
+
+async function saveFormRecord(forceStatus) {
+  const title=$('fm-title').value.trim();
+  if(!title){toast('Form title is required','err');$('fm-title').focus();return;}
+  const status=forceStatus||document.querySelector('input[name="form-status"]:checked')?.value||'draft';
+  const body={
+    title,
+    description:$('fm-desc').value.trim(),
+    fileUrl:SF.fileUrl,
+    fileName:SF.fileName,
+    fileType:SF.fileType,
+    fileSize:SF.fileSize,
+    status,
+  };
+  const url=SF.editingId?`/admin/api/forms/${SF.editingId}`:'/admin/api/forms';
+  const method=SF.editingId?'PUT':'POST';
+  try {
+    const r=await adminFetch(url,{method,headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const d=await r.json();
+    if(!r.ok){toast(d.error||'Save failed','err');return;}
+    closeFormModal(); await loadForms();
+    toast(SF.editingId?'Form updated':`Form ${status==='published'?'published':'saved as draft'}`,'ok');
+  } catch(e){ if(e.message!=='unauthorized'&&e.message!=='password_change_required') toast('Save error','err'); }
+}
+
+$('btn-form-draft').onclick=()=>saveFormRecord('draft');
+$('btn-form-pub').onclick=()=>saveFormRecord('published');
+
+async function toggleFormHide(id, cur) {
+  const nxt=cur==='hidden'?'published':'hidden';
+  try {
+    const r=await adminFetch(`/admin/api/forms/${id}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:nxt})});
+    if(!r.ok){toast('Update failed','err');return;}
+    await loadForms();
+    toast(nxt==='hidden'?'Form hidden from public':'Form is now visible','ok');
+  } catch(e){ if(e.message!=='unauthorized') toast('Update error','err'); }
+}
+
+let pendingFormDelId=null;
+function confirmFormDel(id, title) {
+  pendingFormDelId=id;
+  $('confirm-title').textContent='Delete form?';
+  $('confirm-msg').textContent=`"${title}" and its uploaded file will be permanently deleted. This cannot be undone.`;
+  $('confirm-overlay').classList.add('open');
+  $('confirm-yes').onclick=async()=>{
+    if(!pendingFormDelId) return;
+    $('confirm-overlay').classList.remove('open');
+    try {
+      const r=await adminFetch(`/admin/api/forms/${pendingFormDelId}`,{method:'DELETE'});
+      if(!r.ok){toast('Delete failed','err');return;}
+      await loadForms(); toast('Form deleted','ok');
+    } catch(e){ if(e.message!=='unauthorized') toast('Delete error','err'); }
+    pendingFormDelId=null;
+  };
+}
 
 // ── Boot ───────────────────────────────────────────────────────────────────
 initSessionMonitor();
