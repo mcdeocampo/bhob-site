@@ -144,13 +144,13 @@
             + '</div>';
         }
         var hasDetails = p.fullDetails && p.fullDetails.trim();
-        return '<article class="image-card proj-card reveal' + delay + '">'
+        return '<article class="image-card proj-card reveal' + delay + '" style="display:flex;flex-direction:column;">'
           + bannerHtml
-          + '<div class="proj-card-body">'
+          + '<div class="proj-card-body" style="flex:1;display:flex;flex-direction:column;padding:20px 20px 22px;">'
           + '<span class="status implemented">' + safeCat + '</span>'
           + '<h3>' + safeTitle + '</h3>'
-          + '<p>' + safeDesc + '</p>'
-          + (hasDetails ? '<button class="text-link proj-read-more" onclick="window.__openProjModal(' + i + ')" style="background:none;border:none;padding:0;cursor:pointer;font-family:inherit">Read More →</button>' : '')
+          + '<p style="margin:0;flex:1;">' + safeDesc + '</p>'
+          + (hasDetails ? '<button class="text-link proj-read-more" onclick="window.__openProjModal(' + i + ')" style="margin-top:14px;background:none;border:none;padding:0;cursor:pointer;font-family:inherit;flex-shrink:0;">Read More →</button>' : '')
           + '</div></article>';
       }).join('');
 
