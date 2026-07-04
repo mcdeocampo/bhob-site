@@ -48,5 +48,15 @@
     "ipAddress": "127.0.0.1",
     "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Claude/1.18286.0 Chrome/148.0.7778.271 Electron/42.5.1 Safari/537.36 MSIX",
     "createdAt": "2026-07-04T12:30:12.502642+00:00"
+  },
+  {
+    "id": "e47ce8932a4741fdb90e40b00f6a2177",
+    "userId": "71a5a938bd1f4703a63e907a564e8331",
+    "eventType": "login_failed",
+    "description": "Failed login attempt: admin",
+    "success": false,
+    "ipAddress": "127.0.0.1",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Claude/1.18286.0 Chrome/148.0.7778.271 Electron/42.5.1 Safari/537.36 MSIX",
+    "createdAt": "2026-07-04T22:04:21.009526+00:00"
   }
 ]
