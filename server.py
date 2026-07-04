@@ -22,9 +22,11 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 # persistent disk path (e.g. /var/data).  Locally: defaults to data/ in repo.
 _DATA_ROOT = os.environ.get('DATA_ROOT', '').strip()
 DATA_DIR        = _DATA_ROOT if _DATA_ROOT else os.path.join(BASE_DIR, 'data')
-UPLOAD_DIR      = os.path.join(DATA_DIR, 'images', 'announcements')
-PROJ_UPLOAD_DIR = os.path.join(DATA_DIR, 'images', 'initiatives')
-# Form files: local dev → assets/ (Flask serves directly); Render → DATA_DIR (persistent disk)
+# Local dev → assets/ (Flask serves directly); Render → DATA_DIR (persistent disk)
+UPLOAD_DIR      = (os.path.join(DATA_DIR, 'images', 'announcements') if _DATA_ROOT
+                   else os.path.join(BASE_DIR, 'assets', 'images', 'announcements'))
+PROJ_UPLOAD_DIR = (os.path.join(DATA_DIR, 'images', 'initiatives') if _DATA_ROOT
+                   else os.path.join(BASE_DIR, 'assets', 'images', 'initiatives'))
 FORMS_UPLOAD_DIR = (os.path.join(DATA_DIR, 'documents', 'forms') if _DATA_ROOT
                     else os.path.join(BASE_DIR, 'assets', 'documents', 'forms'))
 ANN_FILE    = os.path.join(DATA_DIR, 'announcements.json')

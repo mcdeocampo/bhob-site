@@ -138,5 +138,15 @@
     "ipAddress": "127.0.0.1",
     "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Claude/1.18286.0 Chrome/148.0.7778.271 Electron/42.5.1 Safari/537.36 MSIX",
     "createdAt": "2026-07-04T22:51:34.544357+00:00"
+  },
+  {
+    "id": "a1b7e6fa32a441f9a0e0e457286a9310",
+    "userId": "6c88c71b0bc5426e88ec9f5e5b450734",
+    "eventType": "login_success",
+    "description": "Successful login: admin",
+    "success": true,
+    "ipAddress": "127.0.0.1",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Claude/1.18286.0 Chrome/148.0.7778.271 Electron/42.5.1 Safari/537.36 MSIX",
+    "createdAt": "2026-07-04T22:55:25.924940+00:00"
   }
 ]
