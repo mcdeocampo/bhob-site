@@ -19892,8 +19892,42 @@ body[data-page="announcements.html"] .image-card img {
   margin: 12px 12px 0 !important;
 }
 /* Initiative: banner and its image both fully rounded */
-.proj-card-banner,
-.proj-card-banner.proj-card-banner-img,
-.proj-card-banner.proj-card-banner-img img {
+/* ── Announcement card image wrapper — unique class, no cascade conflicts ── */
+.ann-img-wrap {
+  border-radius: 18px;
+  overflow: hidden;
+  margin: 12px 12px 0;
+  line-height: 0;
+}
+.ann-img-wrap img {
+  width: 100%;
+  height: 190px;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+  border-radius: 18px;
+}
+@media (max-width: 768px) {
+  .ann-img-wrap img { height: 160px; }
+}
+@media (max-width: 480px) {
+  .ann-img-wrap img { height: 140px; }
+}
+
+/* ── Initiative banner — .bhob-banner unique class, no cascade conflicts ── */
+.bhob-banner {
+  border-radius: 18px !important;
+  overflow: hidden !important;
+  margin: 12px 12px 0 !important;
+  width: calc(100% - 24px) !important;
+  box-sizing: border-box !important;
+  flex-shrink: 0 !important;
+}
+.bhob-banner img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  object-position: center !important;
+  display: block !important;
   border-radius: 18px !important;
 }

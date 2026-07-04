@@ -20,7 +20,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="assets/images/logo.png">
   <link rel="icon" type="image/png" sizes="16x16" href="assets/images/logo.png">
   <link rel="apple-touch-icon" href="assets/images/logo.png">
-  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/style.css?v=2">
 </head>
 <body data-page="announcements.html">
   <header class="site-header" id="top">
@@ -124,7 +124,7 @@
         var safeTitle = (a.title||'').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
         var safeDesc  = (a.shortDescription||'').replace(/</g,'&lt;').replace(/>/g,'&gt;');
         return '<article class="image-card reveal">'
-          + '<img src="' + imgSrc + '" alt="' + safeTitle + '" onerror="this.src=\'assets/images/announcements/announcement-1.jpg\'">'
+          + '<div class="ann-img-wrap"><img src="' + imgSrc + '" alt="' + safeTitle + '" onerror="this.src=\'assets/images/announcements/announcement-1.jpg\'"></div>'
           + '<div>'
           + '<span class="date">' + fmtDate(a.date) + '</span>'
           + '<h3>' + safeTitle + '</h3>'

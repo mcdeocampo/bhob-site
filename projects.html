@@ -20,7 +20,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="assets/images/logo.png">
   <link rel="icon" type="image/png" sizes="16x16" href="assets/images/logo.png">
   <link rel="apple-touch-icon" href="assets/images/logo.png">
-  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/style.css?v=2">
 </head>
 <body data-page="projects.html">
   <header class="site-header" id="top">
@@ -137,9 +137,9 @@
         var safeDesc     = (p.shortDescription || '').replace(/</g,'&lt;').replace(/>/g,'&gt;');
         var bannerHtml;
         if (p.imageUrl) {
-          bannerHtml = '<div class="proj-card-banner proj-card-banner-img"><img src="/' + p.imageUrl + '" alt="' + safeTitle + '" onerror="this.parentElement.innerHTML=\'<div style=&quot;height:100%;background:linear-gradient(135deg,#1e3a5f,#2563eb)&quot;></div>\'"></div>';
+          bannerHtml = '<div class="proj-card-banner proj-card-banner-img bhob-banner"><img src="/' + p.imageUrl + '" alt="' + safeTitle + '" onerror="this.parentElement.innerHTML=\'<div style=&quot;height:100%;background:linear-gradient(135deg,#1e3a5f,#2563eb)&quot;></div>\'"></div>';
         } else {
-          bannerHtml = '<div class="prog-banner ' + bannerClass(p.category) + ' proj-card-banner" aria-hidden="true">'
+          bannerHtml = '<div class="prog-banner ' + bannerClass(p.category) + ' proj-card-banner bhob-banner" aria-hidden="true">'
             + '<div class="ict-banner-label"><strong>' + safeCat + '</strong><span>' + safeSub + '</span></div>'
             + '</div>';
         }

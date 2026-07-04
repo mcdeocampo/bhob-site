@@ -20,7 +20,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="assets/images/logo.png">
   <link rel="icon" type="image/png" sizes="16x16" href="assets/images/logo.png">
   <link rel="apple-touch-icon" href="assets/images/logo.png">
-  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/style.css?v=2">
 </head>
 <body data-page="index.html">
   <header class="site-header" id="top">
@@ -249,8 +249,8 @@
             var safeT   = (p.title||'').replace(/</g,'&lt;').replace(/>/g,'&gt;');
             var safeD   = (p.shortDescription||'').replace(/</g,'&lt;').replace(/>/g,'&gt;');
             var bannerHtml = p.imageUrl
-              ? '<div class="proj-card-banner proj-card-banner-img"><img src="/'+p.imageUrl+'" alt="'+safeT+'" onerror="this.parentElement.innerHTML=\'\'"></div>'
-              : '<div class="prog-banner '+(bc[p.category]||'prog-banner--blue')+' proj-card-banner" aria-hidden="true"><div class="ict-banner-label"><strong>'+safeCat+'</strong><span>'+safeSub+'</span></div></div>';
+              ? '<div class="proj-card-banner proj-card-banner-img bhob-banner"><img src="/'+p.imageUrl+'" alt="'+safeT+'" onerror="this.parentElement.innerHTML=\'\'"></div>'
+              : '<div class="prog-banner '+(bc[p.category]||'prog-banner--blue')+' proj-card-banner bhob-banner" aria-hidden="true"><div class="ict-banner-label"><strong>'+safeCat+'</strong><span>'+safeSub+'</span></div></div>';
             return '<article class="image-card proj-card reveal'+( delay?' '+delay:'')+'">'
               +bannerHtml
               +'<div class="proj-card-body"><span class="status implemented">'+safeCat+'</span><h3>'+safeT+'</h3><p>'+safeD+'</p></div></article>';
