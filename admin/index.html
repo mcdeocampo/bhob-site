@@ -1258,33 +1258,30 @@ function enableAnnDrag(listEl) {
       const dstIdx = allCards.indexOf(card);
       if (srcIdx < dstIdx) listEl.insertBefore(annDragSrc, card.nextSibling);
       else listEl.insertBefore(annDragSrc, card);
-      // Immediately renumber all badge labels top-to-bottom
-      listEl.querySelectorAll('.ann-card[data-id] .order-badge').forEach((badge, i) => {
-        badge.textContent = i + 1;
+      // Write new displayOrder into memory so renderList() re-sorts correctly
+      [...listEl.querySelectorAll('.ann-card[data-id]')].forEach((c, idx) => {
+        const a = S.announcements.find(x => x.id === c.dataset.id);
+        if (a) a.displayOrder = idx + 1;
       });
       annOrderDirty = true;
+      // Re-render immediately — badges come from ${i+1} in the template, always correct
+      renderList();
       showAnnSaveBar(true);
     });
   });
 }
 
 async function saveAnnOrder() {
-  const cards = [...$('ann-list').querySelectorAll('.ann-card[data-id]')];
-  const payload = cards.map((c, i) => ({ id: c.dataset.id, displayOrder: i + 1 }));
+  // Build payload from current in-memory order (already updated by drag handler)
+  const payload = S.announcements.map(a => ({ id: a.id, displayOrder: a.displayOrder }));
   try {
     const r = await adminFetch('/admin/api/announcements/reorder', {
       method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)
     });
     if (!r.ok) { toast('Failed to save order', 'err'); return; }
-    // Update in-memory displayOrder values
-    payload.forEach(p => {
-      const a = S.announcements.find(x => x.id === p.id);
-      if (a) a.displayOrder = p.displayOrder;
-    });
+    annOrderDirty = false;
     showAnnSaveBar(false);
     toast('Display order saved', 'ok');
-    // Re-render from updated in-memory data to confirm saved state
-    renderList();
   } catch(e) { if(e.message !== 'unauthorized') toast('Save error', 'err'); }
 }
 
@@ -1580,33 +1577,30 @@ function enableInitDrag(listEl) {
       const dstIdx = allCards.indexOf(card);
       if (srcIdx < dstIdx) listEl.insertBefore(initDragSrc, card.nextSibling);
       else listEl.insertBefore(initDragSrc, card);
-      // Immediately renumber all badge labels top-to-bottom
-      listEl.querySelectorAll('.ann-card[data-id] .order-badge').forEach((badge, i) => {
-        badge.textContent = i + 1;
+      // Write new displayOrder into memory so renderInitList() re-sorts correctly
+      [...listEl.querySelectorAll('.ann-card[data-id]')].forEach((c, idx) => {
+        const proj = SI.initiatives.find(x => x.id === c.dataset.id);
+        if (proj) proj.displayOrder = idx + 1;
       });
       initOrderDirty = true;
+      // Re-render immediately — badges come from ${i+1} in the template, always correct
+      renderInitList();
       showInitSaveBar(true);
     });
   });
 }
 
 async function saveInitOrder() {
-  const cards = [...$('init-list').querySelectorAll('.ann-card[data-id]')];
-  const payload = cards.map((c, i) => ({ id: c.dataset.id, displayOrder: i + 1 }));
+  // Build payload from current in-memory order (already updated by drag handler)
+  const payload = SI.initiatives.map(p => ({ id: p.id, displayOrder: p.displayOrder }));
   try {
     const r = await adminFetch('/admin/api/community-initiatives/reorder', {
       method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)
     });
     if (!r.ok) { toast('Failed to save order', 'err'); return; }
-    // Update in-memory displayOrder values
-    payload.forEach(p => {
-      const proj = SI.initiatives.find(x => x.id === p.id);
-      if (proj) proj.displayOrder = p.displayOrder;
-    });
+    initOrderDirty = false;
     showInitSaveBar(false);
     toast('Display order saved', 'ok');
-    // Re-render from updated in-memory data to confirm saved state
-    renderInitList();
   } catch(e) { if(e.message !== 'unauthorized') toast('Save error', 'err'); }
 }
 

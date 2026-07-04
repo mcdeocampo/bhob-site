@@ -1,5 +1,6 @@
 .env
 data/users.json
+data/audit_logs.json
 __pycache__/
 *.pyc
 *.pyo

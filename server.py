@@ -211,19 +211,23 @@ def _update_user(updated_user):
 
 def _ensure_initial_user():
     """
-    On first startup (or after a redeploy wipes ephemeral storage), create the
-    initial admin account.
+    Create the initial admin account on first startup (when users.json does not exist).
 
     Priority order for the password source:
-      1. ADMIN_PWHASH env var — a saved hash from a previous password change.
-         Set this in your deployment dashboard (e.g. Render) after changing the
-         admin password so the change survives future redeploys.
+      1. ADMIN_PWHASH env var — set this in your Render dashboard after changing
+         the admin password so the change survives future redeploys.
       2. ADMIN_PASSWORD env var — plain-text initial password (force-change required).
-      3. Auto-generated fallback (force-change required).
+      3. Auto-generated fallback Barangay@<year> (force-change required).
+
+    IMPORTANT: users.json must NOT be committed to git (it is in .gitignore).
+    If it is still tracked, run:
+        git rm --cached data/users.json data/audit_logs.json
+    and push — otherwise every deploy overwrites the live password.
     """
     users = _load_users()
     if users:
         return
+
     username   = os.environ.get('ADMIN_USERNAME', 'admin')
     saved_hash = os.environ.get('ADMIN_PWHASH', '').strip()
     force_pw   = False
@@ -236,10 +240,14 @@ def _ensure_initial_user():
     if saved_hash:
         pw_hash  = saved_hash
         force_pw = False   # Already a user-chosen password; no forced change needed
+        login_hint = '(restored from ADMIN_PWHASH env var)'
     else:
         plain_pw = os.environ.get('ADMIN_PASSWORD', '')
         if not plain_pw:
             plain_pw = f'Barangay@{datetime.now().year}'
+            login_hint = f'Password  : {plain_pw}  ← auto-generated, CHANGE THIS'
+        else:
+            login_hint = 'Password  : (value of ADMIN_PASSWORD env var)'
         pw_hash  = _hash_pw(plain_pw)
         force_pw = True    # Plain-text credential — force change on first login
 
@@ -267,7 +275,10 @@ def _ensure_initial_user():
     else:
         print(f'[BHOB] Initial admin account created.')
         print(f'[BHOB] Username : {username}')
-        print(f'[BHOB] Login with the ADMIN_PASSWORD env var value, then change it.')
+        print(f'[BHOB] {login_hint}')
+        print(f'[BHOB] Log in and change your password immediately.')
+        if not os.environ.get('ADMIN_PASSWORD'):
+            print(f'[BHOB] TIP: Set ADMIN_PASSWORD env var to control the initial password.')
     print('[BHOB] ─────────────────────────────────────────────────')
 
 
