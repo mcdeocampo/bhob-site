@@ -18278,6 +18278,15 @@ body[data-page="services.html"] .accordion-item:hover {
   box-sizing: border-box !important;
 }
 
+/* Fully rounded banner block — floats inside the card */
+.proj-card-banner {
+  border-radius: 18px !important;
+  overflow: hidden !important;
+  margin: 12px 12px 0 !important;
+  width: calc(100% - 24px) !important;
+  box-sizing: border-box !important;
+}
+
 /* Image-based banners: full-bleed photo */
 .proj-card-banner.proj-card-banner-img {
   padding: 0 !important;
@@ -18290,6 +18299,7 @@ body[data-page="services.html"] .accordion-item:hover {
   object-fit: cover !important;
   object-position: center center !important;
   display: block !important;
+  border-radius: 18px !important;
 }
 
 .proj-card-banner .ict-banner-icon {
@@ -19863,11 +19873,27 @@ body[data-page="index.html"] .emergency-action-strip{flex-direction:row!importan
 body[data-page="announcements.html"] .image-card img {
   aspect-ratio: 16 / 9 !important;
   height: auto !important;
-  width: 100% !important;
+  width: calc(100% - 24px) !important;
   object-fit: cover !important;
   object-position: center center !important;
-  border-radius: 0 !important;
+  border-radius: 18px !important;
   display: block !important;
   filter: none !important;
   image-rendering: auto !important;
+  margin: 12px 12px 0 !important;
+}
+
+/* ── Fully rounded image/banner block for Announcement and Initiative cards ── */
+/* Announcement: img floats inside the card with a small inset margin */
+.image-card > img {
+  border-radius: 18px !important;
+  display: block !important;
+  width: calc(100% - 24px) !important;
+  margin: 12px 12px 0 !important;
+}
+/* Initiative: banner and its image both fully rounded */
+.proj-card-banner,
+.proj-card-banner.proj-card-banner-img,
+.proj-card-banner.proj-card-banner-img img {
+  border-radius: 18px !important;
 }
