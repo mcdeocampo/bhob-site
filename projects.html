@@ -144,13 +144,13 @@
             + '</div>';
         }
         var hasDetails = p.fullDetails && p.fullDetails.trim();
-        return '<article class="image-card proj-card reveal' + delay + '" style="display:flex;flex-direction:column;">'
+        return '<article class="image-card proj-card reveal' + delay + '" style="display:flex;flex-direction:column;height:100%">'
           + bannerHtml
-          + '<div class="proj-card-body" style="flex:1;display:flex;flex-direction:column;padding:20px 20px 22px;">'
-          + '<span class="status implemented">' + safeCat + '</span>'
-          + '<h3>' + safeTitle + '</h3>'
-          + '<p style="margin:0;flex:1;">' + safeDesc + '</p>'
-          + (hasDetails ? '<button class="text-link proj-read-more" onclick="window.__openProjModal(' + i + ')" style="margin-top:14px;background:none;border:none;padding:0;cursor:pointer;font-family:inherit;flex-shrink:0;">Read More →</button>' : '')
+          + '<div class="proj-card-body" style="flex:1;display:flex;flex-direction:column;padding:20px 22px 22px">'
+          + '<span class="status ongoing" style="align-self:flex-start;margin-bottom:12px;font-size:.72rem">' + safeCat + '</span>'
+          + '<h3 style="margin-bottom:10px;line-height:1.22">' + safeTitle + '</h3>'
+          + '<p style="flex:1;margin-bottom:16px;line-height:1.65">' + safeDesc + '</p>'
+          + (hasDetails ? '<button class="text-link proj-read-more" onclick="window.__openProjModal(' + i + ')" style="margin-top:auto;background:none;border:none;padding:0;cursor:pointer;font-family:inherit;flex-shrink:0;align-self:flex-start">Read More →</button>' : '')
           + '</div></article>';
       }).join('');
 

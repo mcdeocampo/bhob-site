@@ -88,23 +88,33 @@
   (function() {
     var grid = document.getElementById('forms-grid');
 
+    var DEFAULT_FORMS = [
+      { title: 'Barangay Clearance Form',       description: 'Download and complete this form before visiting the Barangay Hall.' },
+      { title: 'Certificate Request Form',       description: 'Use this form to request any barangay certificate or document.' },
+      { title: 'Complaint Form',                 description: 'Use this form to file a complaint or incident report at the barangay.' },
+      { title: 'Business Clearance Form',        description: 'Required for business permit processing. Complete before submission.' },
+      { title: 'Certificate of Indigency Form',  description: 'For residents requesting indigency certification for assistance programs.' },
+      { title: 'Certificate of Residency Form',  description: 'Proof that you are a registered resident of Barangay Hulo, Obando, Bulacan.' }
+    ];
+
     function renderForms(forms) {
-      if (!forms || !forms.length) {
-        grid.innerHTML = '<div class="download-card reveal" style="justify-content:center;color:#94a3b8;font-size:.9rem">No downloadable forms available at this time.</div>';
-        return;
-      }
-      grid.innerHTML = forms.map(function(f) {
+      var list = (forms && forms.length) ? forms : DEFAULT_FORMS;
+      grid.innerHTML = list.map(function(f) {
         var safeTitle = (f.title || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
         var safeDesc  = (f.description || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-        var ext       = (f.fileType || 'pdf').toLowerCase();
-        var dlName    = safeTitle + '.' + ext;
         var btn;
         if (f.fileAvailable && f.fileUrl) {
-          btn = '<a class="btn btn-primary btn-small" href="/' + f.fileUrl + '" download="' + dlName + '">Download</a>';
+          var ext    = (f.fileType || 'pdf').toLowerCase();
+          var dlName = safeTitle + '.' + ext;
+          btn = '<a class=”btn btn-primary btn-small” href=”/' + f.fileUrl + '” download=”' + dlName + '”>Download</a>';
         } else {
-          btn = '<span style="font-size:.8rem;color:#94a3b8;font-style:italic">File not available.</span>';
+          btn = '<button class=”btn btn-primary btn-small” onclick=”alert(\'This form file is not yet available. Please visit the Barangay Hall or check back later.\')”>Download</button>';
         }
-        return '<div class="download-card reveal"><span class="icon">ðŸ“¥</span><div><h3>' + safeTitle + '</h3><p>' + safeDesc + '</p></div>' + btn + '</div>';
+        return '<div class=”download-card reveal”>'
+          + '<span class=”icon” aria-hidden=”true” style=”font-size:1.6rem;flex-shrink:0”>&#128196;</span>'
+          + '<div style=”flex:1;min-width:0”><h3>' + safeTitle + '</h3><p>' + safeDesc + '</p></div>'
+          + btn
+          + '</div>';
       }).join('');
 
       if (window.revealObserver) {
@@ -117,9 +127,7 @@
     fetch('/api/forms')
       .then(function(r) { return r.json(); })
       .then(function(d) { renderForms(d.forms || []); })
-      .catch(function() {
-        grid.innerHTML = '<div class="download-card reveal" style="justify-content:center;color:#94a3b8;font-size:.9rem">No downloadable forms available at this time.</div>';
-      });
+      .catch(function() { renderForms([]); });
   })();
   </script>
 </body>

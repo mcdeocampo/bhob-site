@@ -123,13 +123,13 @@
         var imgSrc = a.imageUrl ? '/' + a.imageUrl : ('assets/images/announcements/' + CATS[i % 3] + '.jpg');
         var safeTitle = (a.title||'').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
         var safeDesc  = (a.shortDescription||'').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-        return '<article class="image-card reveal">'
+        return '<article class="image-card reveal" style="display:flex;flex-direction:column;height:100%">'
           + '<div class="ann-img-wrap"><img src="' + imgSrc + '" alt="' + safeTitle + '" onerror="this.src=\'assets/images/announcements/announcement-1.jpg\'"></div>'
-          + '<div>'
-          + '<span class="date">' + fmtDate(a.date) + '</span>'
-          + '<h3>' + safeTitle + '</h3>'
-          + '<p>' + safeDesc + '</p>'
-          + '<button class="text-link" onclick="window.__openAnnModal(' + i + ')" style="background:none;border:none;padding:0;cursor:pointer;font-family:inherit">Read More →</button>'
+          + '<div style="display:flex;flex-direction:column;flex:1;padding:18px 20px 20px">'
+          + '<span class="date" style="font-size:.78rem;font-weight:600;color:#2563eb;margin-bottom:8px;display:block">' + fmtDate(a.date) + '</span>'
+          + '<h3 style="margin-bottom:8px;line-height:1.25">' + safeTitle + '</h3>'
+          + '<p style="flex:1;margin-bottom:14px">' + safeDesc + '</p>'
+          + '<button class="text-link" onclick="window.__openAnnModal(' + i + ')" style="background:none;border:none;padding:0;cursor:pointer;font-family:inherit;align-self:flex-start">Read More →</button>'
           + '</div></article>';
       }).join('');
 

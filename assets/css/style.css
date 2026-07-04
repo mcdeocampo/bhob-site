@@ -19869,65 +19869,55 @@ body[data-page="index.html"] .emergency-action-strip{flex-direction:row!importan
   .aqi-pollutants{grid-template-columns:repeat(2,1fr)}
 }
 
-/* ─── Announcements page: 16:9 image ratio, full quality ─── */
+/* ─── Announcements page: image fills top of card, card clips top corners ─── */
 body[data-page="announcements.html"] .image-card img {
-  aspect-ratio: 16 / 9 !important;
-  height: auto !important;
-  width: calc(100% - 24px) !important;
-  object-fit: cover !important;
-  object-position: center center !important;
-  border-radius: 18px !important;
-  display: block !important;
-  filter: none !important;
-  image-rendering: auto !important;
-  margin: 12px 12px 0 !important;
-}
-
-/* ── Fully rounded image/banner block for Announcement and Initiative cards ── */
-/* Announcement: img floats inside the card with a small inset margin */
-.image-card > img {
-  border-radius: 18px !important;
-  display: block !important;
-  width: calc(100% - 24px) !important;
-  margin: 12px 12px 0 !important;
-}
-/* Initiative: banner and its image both fully rounded */
-/* ── Announcement card image wrapper — unique class, no cascade conflicts ── */
-.ann-img-wrap {
-  border-radius: 18px;
-  overflow: hidden;
-  margin: 12px 12px 0;
-  line-height: 0;
-}
-.ann-img-wrap img {
-  width: 100%;
-  height: 190px;
-  object-fit: cover;
-  object-position: center;
-  display: block;
-  border-radius: 18px;
-}
-@media (max-width: 768px) {
-  .ann-img-wrap img { height: 160px; }
-}
-@media (max-width: 480px) {
-  .ann-img-wrap img { height: 140px; }
-}
-
-/* ── Initiative banner — .bhob-banner unique class, no cascade conflicts ── */
-.bhob-banner {
-  border-radius: 18px !important;
-  overflow: hidden !important;
-  margin: 12px 12px 0 !important;
-  width: calc(100% - 24px) !important;
-  box-sizing: border-box !important;
-  flex-shrink: 0 !important;
-}
-.bhob-banner img {
   width: 100% !important;
-  height: 100% !important;
+  margin: 0 !important;
   object-fit: cover !important;
   object-position: center !important;
   display: block !important;
-  border-radius: 18px !important;
+}
+
+/* ── Announcement card image wrapper ── */
+.ann-img-wrap {
+  overflow: hidden;
+  margin: 0;
+  line-height: 0;
+  flex-shrink: 0;
+  border-radius: 0 0 12px 12px;
+}
+.ann-img-wrap img {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+  border-radius: 0;
+}
+@media (max-width: 768px) {
+  .ann-img-wrap img { height: 172px; }
+}
+@media (max-width: 480px) {
+  .ann-img-wrap img { height: 150px; }
+}
+
+/* ── Initiative banner — fills card top, fixed height, card clips corners ── */
+.bhob-banner {
+  overflow: hidden !important;
+  margin: 0 !important;
+  width: 100% !important;
+  height: 220px !important;
+  aspect-ratio: unset !important;
+  box-sizing: border-box !important;
+  flex-shrink: 0 !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+}
+.bhob-banner img {
+  width: 100% !important;
+  height: 220px !important;
+  object-fit: cover !important;
+  object-position: center !important;
+  display: block !important;
+  border-radius: 0 !important;
 }
