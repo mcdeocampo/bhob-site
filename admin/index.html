@@ -1258,6 +1258,10 @@ function enableAnnDrag(listEl) {
       const dstIdx = allCards.indexOf(card);
       if (srcIdx < dstIdx) listEl.insertBefore(annDragSrc, card.nextSibling);
       else listEl.insertBefore(annDragSrc, card);
+      // Immediately renumber all badge labels top-to-bottom
+      listEl.querySelectorAll('.ann-card[data-id] .order-badge').forEach((badge, i) => {
+        badge.textContent = i + 1;
+      });
       annOrderDirty = true;
       showAnnSaveBar(true);
     });
@@ -1272,12 +1276,15 @@ async function saveAnnOrder() {
       method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)
     });
     if (!r.ok) { toast('Failed to save order', 'err'); return; }
+    // Update in-memory displayOrder values
     payload.forEach(p => {
       const a = S.announcements.find(x => x.id === p.id);
       if (a) a.displayOrder = p.displayOrder;
     });
     showAnnSaveBar(false);
     toast('Display order saved', 'ok');
+    // Re-render from updated in-memory data to confirm saved state
+    renderList();
   } catch(e) { if(e.message !== 'unauthorized') toast('Save error', 'err'); }
 }
 
