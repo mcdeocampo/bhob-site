@@ -452,6 +452,10 @@ a{text-decoration:none;color:inherit}
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
         Announcements
       </button>
+      <button class="nav-item" data-sec="initiatives">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+        Community Initiatives
+      </button>
       <div class="nav-label">Manage</div>
       <button class="nav-item" disabled>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
@@ -534,6 +538,34 @@ a{text-decoration:none;color:inherit}
         </div>
       </div>
       <div class="ann-list" id="ann-list"><div class="loading">Loading…</div></div>
+    </section>
+
+    <!-- Community Initiatives -->
+    <section id="sec-initiatives" style="display:none">
+      <div class="page-hdr">
+        <div>
+          <h2>Community Initiatives Management</h2>
+          <p>Manage initiatives shown on the public Community Initiatives page and Home page preview.</p>
+        </div>
+        <button class="btn-new" id="btn-new-init">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          New Initiative
+        </button>
+      </div>
+      <div class="toolbar">
+        <div class="search-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input class="search-input" id="init-search" type="search" placeholder="Search initiatives…">
+        </div>
+        <div class="tabs" id="init-tabs">
+          <button class="tab active" data-if="all">All</button>
+          <button class="tab" data-if="published">Published</button>
+          <button class="tab" data-if="draft">Draft</button>
+          <button class="tab" data-if="hidden">Hidden</button>
+          <button class="tab" data-if="featured">Featured</button>
+        </div>
+      </div>
+      <div class="ann-list" id="init-list"><div class="loading">Loading…</div></div>
     </section>
 
     <!-- Settings -->
@@ -694,6 +726,86 @@ a{text-decoration:none;color:inherit}
       <img class="detail-img" id="det-img" src="" alt="" style="display:none">
       <div class="detail-meta" id="det-meta"></div>
       <div class="detail-body" id="det-body"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ INITIATIVE MODAL ══════════════════ -->
+<div class="overlay" id="init-form-overlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="init-modal-title">New Initiative</h3>
+      <button class="btn-close" id="btn-close-init-form">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="field field-full">
+          <label>Title <span style="color:var(--red)">*</span></label>
+          <input type="text" id="if-title" maxlength="200" placeholder="Initiative title…">
+        </div>
+        <div class="field">
+          <label>Category</label>
+          <select id="if-cat">
+            <option>Technology</option>
+            <option>Infrastructure</option>
+            <option>Health</option>
+            <option>Environment</option>
+            <option>Livelihood</option>
+            <option>Safety</option>
+            <option>Education</option>
+            <option>Community Program</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Display Order <span style="color:#94a3b8;font-size:.7rem">(lower = first)</span></label>
+          <input type="number" id="if-order" min="0" value="0">
+        </div>
+        <div class="field field-full">
+          <label>Subtitle <span style="color:#94a3b8;font-size:.7rem">(shown in banner)</span></label>
+          <input type="text" id="if-subtitle" maxlength="300" placeholder="e.g. Cisco Wi-Fi, Secure Guest Access & Captive Portal">
+        </div>
+        <div class="field field-full">
+          <label>Short Description <span style="color:#94a3b8;font-size:.7rem">(shown on cards)</span></label>
+          <textarea id="if-short" rows="2" maxlength="500" placeholder="Brief summary shown on the card…"></textarea>
+        </div>
+        <div class="field field-full">
+          <label>Full Details <span style="color:#94a3b8;font-size:.7rem">(shown when Read More is clicked)</span></label>
+          <textarea id="if-details" rows="5" placeholder="Full initiative text and details…"></textarea>
+        </div>
+        <div class="field field-full">
+          <label>Image</label>
+          <div class="img-area" id="init-drop-area">
+            <img class="img-preview" id="init-img-preview" src="" alt="">
+            <div class="img-upload-row">
+              <label class="btn-upload-file" for="if-img-file">Upload Image</label>
+              <input type="file" id="if-img-file" accept=".jpg,.jpeg,.png,.webp" style="display:none">
+            </div>
+            <div class="img-url-note" id="init-img-url-note"></div>
+            <div class="img-hint">JPG, PNG, WebP — max 5 MB. Leave empty to use a colored banner.</div>
+          </div>
+        </div>
+        <div class="field">
+          <label>Status</label>
+          <div class="radio-row">
+            <div class="rc"><input type="radio" name="init-status" id="is-draft" value="draft"><label for="is-draft">Draft</label></div>
+            <div class="rc"><input type="radio" name="init-status" id="is-pub" value="published"><label for="is-pub">Published</label></div>
+            <div class="rc"><input type="radio" name="init-status" id="is-hidden" value="hidden"><label for="is-hidden">Hidden</label></div>
+          </div>
+        </div>
+        <div class="field">
+          <label>Featured on Home Page</label>
+          <div class="radio-row">
+            <div class="rc"><input type="radio" name="init-featured" id="if-feat-yes" value="yes"><label for="if-feat-yes">★ Yes</label></div>
+            <div class="rc"><input type="radio" name="init-featured" id="if-feat-no" value="no" checked><label for="if-feat-no">No</label></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-cancel" id="btn-cancel-init">Cancel</button>
+      <button class="btn-draft" id="btn-init-draft">Save Draft</button>
+      <button class="btn-publish" id="btn-init-pub">Publish</button>
     </div>
   </div>
 </div>
@@ -983,13 +1095,14 @@ async function adminFetch(url, opts) {
 
 // ── Nav ────────────────────────────────────────────────────────────────────
 function showSection(name) {
-  ['dashboard','announcements','settings'].forEach(s => {
+  ['dashboard','announcements','initiatives','settings'].forEach(s => {
     $('sec-'+s).style.display = s===name ? 'block' : 'none';
   });
   document.querySelectorAll('.nav-item[data-sec]').forEach(b => {
     b.classList.toggle('active', b.dataset.sec===name);
   });
   if (name==='announcements') renderList();
+  if (name==='initiatives') renderInitList();
   if (name==='settings') resetSettingsForm();
 }
 
@@ -1012,6 +1125,13 @@ async function loadAll() {
     S.announcements = d.announcements || [];
     updateStats();
     if ($('sec-announcements').style.display !== 'none') renderList();
+  } catch {}
+  try {
+    const r2 = await adminFetch('/admin/api/community-initiatives');
+    if (!r2.ok) return;
+    const d2 = await r2.json();
+    SI.initiatives = d2.initiatives || [];
+    if ($('sec-initiatives').style.display !== 'none') renderInitList();
   } catch {}
 }
 
@@ -1205,7 +1325,210 @@ document.addEventListener('keydown', e => {
     $('detail-overlay').classList.remove('open');
     $('confirm-overlay').classList.remove('open');
     // force-pw-overlay intentionally NOT closeable with Escape
+    // init-form-overlay handled in CI section
   }
+});
+
+// ══════════════════ COMMUNITY INITIATIVES ══════════════════
+
+const SI = { initiatives:[], filter:'all', search:'', editingId:null, imageUrl:'' };
+
+async function loadInitiatives() {
+  try {
+    const r = await adminFetch('/admin/api/community-initiatives');
+    if (!r.ok) return;
+    const d = await r.json();
+    SI.initiatives = d.initiatives || [];
+    renderInitList();
+  } catch {}
+}
+
+function renderInitList() {
+  let items = SI.initiatives;
+  if (SI.filter === 'featured') items = items.filter(p => p.featured && p.status === 'published');
+  else if (SI.filter !== 'all') items = items.filter(p => p.status === SI.filter);
+  if (SI.search) {
+    const q = SI.search.toLowerCase();
+    items = items.filter(p =>
+      (p.title||'').toLowerCase().includes(q) ||
+      (p.category||'').toLowerCase().includes(q) ||
+      (p.subtitle||'').toLowerCase().includes(q) ||
+      (p.shortDescription||'').toLowerCase().includes(q)
+    );
+  }
+  const el = $('init-list');
+  if (!items.length) {
+    el.innerHTML = `<div class="empty-state"><div class="es-icon">🌟</div><h3>No initiatives found</h3><p>${SI.filter==='all'?'Click "+ New Initiative" to create your first one.':'No '+SI.filter+' initiatives.'}</p></div>`;
+    return;
+  }
+  el.innerHTML = items.map(p => {
+    const thumb = p.imageUrl
+      ? `<img class="ann-thumb" src="/${p.imageUrl}" alt="" onerror="this.style.display='none'">`
+      : `<div class="ann-thumb-ph">🌟</div>`;
+    return `<div class="ann-card" data-id="${p.id}">
+      ${thumb}
+      <div class="ann-body">
+        <div class="ann-meta">
+          <span class="badge badge-${p.status}">${p.status}</span>
+          <span class="cat-tag">${esc(p.category)}</span>
+          ${p.featured ? '<span class="feat-tag">★ Featured</span>' : ''}
+        </div>
+        <div class="ann-title">${esc(p.title||'(no title)')}</div>
+        <div class="ann-desc">${esc(p.subtitle||p.shortDescription||'')}</div>
+      </div>
+      <div class="ann-actions">
+        <button class="btn-act" onclick="openInitEdit('${p.id}')">Edit</button>
+        <button class="btn-act" onclick="toggleInitHide('${p.id}','${p.status}')">${p.status==='hidden'?'Show':'Hide'}</button>
+        <button class="btn-act danger" onclick="confirmInitDel('${p.id}','${esc(p.title||'')}')">Delete</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+$('init-search').addEventListener('input', e => { SI.search=e.target.value; renderInitList(); });
+document.querySelectorAll('#init-tabs .tab').forEach(t => {
+  t.onclick = () => {
+    document.querySelectorAll('#init-tabs .tab').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active'); SI.filter=t.dataset.if; renderInitList();
+  };
+});
+$('btn-new-init').onclick = openInitNew;
+
+function resetInitForm() {
+  SI.editingId=null; SI.imageUrl='';
+  $('if-title').value=''; $('if-cat').value='Technology';
+  $('if-subtitle').value=''; $('if-short').value=''; $('if-details').value='';
+  $('if-order').value='0';
+  $('is-draft').checked=true; $('if-feat-no').checked=true;
+  $('init-img-preview').style.display='none'; $('init-img-preview').src='';
+  $('init-img-url-note').style.display='none'; $('init-img-url-note').textContent='';
+}
+
+function openInitNew() {
+  resetInitForm();
+  $('init-modal-title').textContent='New Initiative';
+  $('init-form-overlay').classList.add('open');
+  $('if-title').focus();
+}
+
+function openInitEdit(id) {
+  const p = SI.initiatives.find(x=>x.id===id); if(!p) return;
+  resetInitForm(); SI.editingId=id; SI.imageUrl=p.imageUrl||'';
+  $('init-modal-title').textContent='Edit Initiative';
+  $('if-title').value=p.title||'';
+  $('if-cat').value=p.category||'Other';
+  $('if-subtitle').value=p.subtitle||'';
+  $('if-short').value=p.shortDescription||'';
+  $('if-details').value=p.fullDetails||'';
+  $('if-order').value=p.displayOrder||0;
+  const sEl = document.getElementById('is-'+p.status);
+  if(sEl) sEl.checked=true; else $('is-draft').checked=true;
+  if(p.featured) $('if-feat-yes').checked=true; else $('if-feat-no').checked=true;
+  if(p.imageUrl) {
+    $('init-img-preview').src='/'+p.imageUrl; $('init-img-preview').style.display='block';
+    $('init-img-url-note').textContent=p.imageUrl; $('init-img-url-note').style.display='block';
+  }
+  $('init-form-overlay').classList.add('open');
+  $('if-title').focus();
+}
+
+function closeInitForm() { $('init-form-overlay').classList.remove('open'); }
+$('btn-close-init-form').onclick=closeInitForm;
+$('btn-cancel-init').onclick=closeInitForm;
+$('init-form-overlay').onclick=e=>{ if(e.target===$('init-form-overlay')) closeInitForm(); };
+
+$('if-img-file').onchange=async e=>{
+  const f=e.target.files[0]; if(!f) return;
+  const form=new FormData(); form.append('image',f);
+  try {
+    const r=await adminFetch('/admin/api/upload-initiative',{method:'POST',body:form});
+    const d=await r.json();
+    if(!r.ok){toast(d.error||'Upload failed','err');return;}
+    SI.imageUrl=d.url;
+    $('init-img-preview').src='/'+d.url; $('init-img-preview').style.display='block';
+    $('init-img-url-note').textContent=d.url; $('init-img-url-note').style.display='block';
+    toast('Image uploaded','ok');
+  } catch(e){ if(e.message!=='unauthorized') toast('Upload error','err'); }
+  e.target.value='';
+};
+
+const initDropArea=$('init-drop-area');
+initDropArea.addEventListener('dragover',e=>{e.preventDefault();initDropArea.classList.add('drag-over');});
+initDropArea.addEventListener('dragleave',()=>initDropArea.classList.remove('drag-over'));
+initDropArea.addEventListener('drop',async e=>{
+  e.preventDefault();initDropArea.classList.remove('drag-over');
+  const f=e.dataTransfer.files[0]; if(!f) return;
+  const form=new FormData(); form.append('image',f);
+  try {
+    const r=await adminFetch('/admin/api/upload-initiative',{method:'POST',body:form});
+    const d=await r.json();
+    if(!r.ok){toast(d.error||'Upload failed','err');return;}
+    SI.imageUrl=d.url;
+    $('init-img-preview').src='/'+d.url; $('init-img-preview').style.display='block';
+    $('init-img-url-note').textContent=d.url; $('init-img-url-note').style.display='block';
+    toast('Image uploaded','ok');
+  } catch(e){ if(e.message!=='unauthorized') toast('Upload error','err'); }
+});
+
+async function saveInitForm(forceStatus) {
+  const title=$('if-title').value.trim();
+  if(!title){toast('Title is required','err');$('if-title').focus();return;}
+  const status=forceStatus||document.querySelector('input[name="init-status"]:checked')?.value||'draft';
+  const body={
+    title,
+    category:$('if-cat').value,
+    subtitle:$('if-subtitle').value.trim(),
+    shortDescription:$('if-short').value.trim(),
+    fullDetails:$('if-details').value.trim(),
+    imageUrl:SI.imageUrl,
+    displayOrder:parseInt($('if-order').value)||0,
+    status,
+    featured:$('if-feat-yes').checked
+  };
+  const url=SI.editingId?`/admin/api/community-initiatives/${SI.editingId}`:'/admin/api/community-initiatives';
+  const method=SI.editingId?'PUT':'POST';
+  try {
+    const r=await adminFetch(url,{method,headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const d=await r.json();
+    if(!r.ok){toast(d.error||'Save failed','err');return;}
+    closeInitForm(); await loadInitiatives();
+    toast(SI.editingId?'Initiative updated':`Initiative ${status==='published'?'published':'saved as draft'}`,'ok');
+  } catch(e){ if(e.message!=='unauthorized'&&e.message!=='password_change_required') toast('Save error','err'); }
+}
+
+$('btn-init-draft').onclick=()=>saveInitForm('draft');
+$('btn-init-pub').onclick=()=>saveInitForm('published');
+
+async function toggleInitHide(id, cur) {
+  const nxt=cur==='hidden'?'published':'hidden';
+  try {
+    const r=await adminFetch(`/admin/api/community-initiatives/${id}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:nxt})});
+    if(!r.ok){toast('Update failed','err');return;}
+    await loadInitiatives();
+    toast(nxt==='hidden'?'Initiative hidden from public':'Initiative is now visible','ok');
+  } catch(e){ if(e.message!=='unauthorized') toast('Update error','err'); }
+}
+
+let pendingInitDelId=null;
+function confirmInitDel(id,title){
+  pendingInitDelId=id;
+  $('confirm-title').textContent='Delete initiative?';
+  $('confirm-msg').textContent=`"${title}" will be permanently deleted. This cannot be undone.`;
+  $('confirm-overlay').classList.add('open');
+  $('confirm-yes').onclick=async()=>{
+    if(!pendingInitDelId) return;
+    $('confirm-overlay').classList.remove('open');
+    try {
+      const r=await adminFetch(`/admin/api/community-initiatives/${pendingInitDelId}`,{method:'DELETE'});
+      if(!r.ok){toast('Delete failed','err');return;}
+      await loadInitiatives(); toast('Initiative deleted','ok');
+    } catch(e){ if(e.message!=='unauthorized') toast('Delete error','err'); }
+    pendingInitDelId=null;
+  };
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key==='Escape') $('init-form-overlay').classList.remove('open');
 });
 
 // ── Boot ───────────────────────────────────────────────────────────────────

@@ -17,10 +17,12 @@ from flask import Flask, jsonify, send_from_directory, abort, request, session
 
 BASE_DIR   = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR   = os.path.join(BASE_DIR, 'data')
-UPLOAD_DIR = os.path.join(BASE_DIR, 'assets', 'images', 'announcements')
-ANN_FILE   = os.path.join(DATA_DIR, 'announcements.json')
-USERS_FILE = os.path.join(DATA_DIR, 'users.json')
-AUDIT_FILE = os.path.join(DATA_DIR, 'audit_logs.json')
+UPLOAD_DIR      = os.path.join(BASE_DIR, 'assets', 'images', 'announcements')
+PROJ_UPLOAD_DIR = os.path.join(BASE_DIR, 'assets', 'images', 'initiatives')
+ANN_FILE    = os.path.join(DATA_DIR, 'announcements.json')
+PROJ_FILE   = os.path.join(DATA_DIR, 'community-initiatives.json')
+USERS_FILE  = os.path.join(DATA_DIR, 'users.json')
+AUDIT_FILE  = os.path.join(DATA_DIR, 'audit_logs.json')
 
 # ── Security constants ────────────────────────────────────────────────────────
 MAX_FAILED_ATTEMPTS  = 5
@@ -348,6 +350,23 @@ def _save_ann(data):
         json.dump(data, f, ensure_ascii=False, indent=2)
 
 
+def _load_proj():
+    os.makedirs(DATA_DIR, exist_ok=True)
+    if not os.path.exists(PROJ_FILE):
+        return []
+    try:
+        with open(PROJ_FILE, encoding='utf-8') as f:
+            return json.load(f)
+    except Exception:
+        return []
+
+
+def _save_proj(data):
+    os.makedirs(DATA_DIR, exist_ok=True)
+    with open(PROJ_FILE, 'w', encoding='utf-8') as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+
 def _clean(val, maxlen=500):
     return str(val or '').strip()[:maxlen]
 
@@ -432,6 +451,15 @@ def api_announcements():
     return jsonify({'status': 'ok', 'announcements': published})
 
 
+# ── Public community initiatives API ─────────────────────────────────────────
+@app.route('/api/community-initiatives')
+def api_community_initiatives():
+    all_proj  = _load_proj()
+    published = [p for p in all_proj if p.get('status') == 'published']
+    published.sort(key=lambda x: (x.get('displayOrder', 999), x.get('updatedAt', '')))
+    return jsonify({'status': 'ok', 'initiatives': published})
+
+
 # ── Public page clean URLs (no .html required) ───────────────────────────────
 _PUBLIC_PAGES = [
     'about', 'officials', 'services', 'citizens-charter',
@@ -452,6 +480,7 @@ def public_page(page_name):
 @app.route('/admin')
 @app.route('/admin/')
 @app.route('/admin/settings')
+@app.route('/admin/community-initiatives')
 def admin_page():
     f = os.path.join(BASE_DIR, 'admin', 'index.html')
     if not os.path.exists(f):
@@ -695,6 +724,88 @@ def admin_delete(ann_id):
     return jsonify({'status': 'ok'})
 
 
+# ── Admin — community initiatives CRUD ───────────────────────────────────────
+@app.route('/admin/api/community-initiatives')
+@admin_required
+def admin_proj_list():
+    all_proj = _load_proj()
+    all_proj.sort(key=lambda x: x.get('updatedAt', ''), reverse=True)
+    return jsonify({'status': 'ok', 'initiatives': all_proj})
+
+
+@app.route('/admin/api/community-initiatives', methods=['POST'])
+@admin_required
+def admin_proj_create():
+    d      = request.get_json(silent=True) or {}
+    now    = datetime.now(timezone.utc).isoformat()
+    status = d.get('status', 'draft')
+    if status not in ('draft', 'published', 'hidden'):
+        status = 'draft'
+    try:
+        display_order = int(d.get('displayOrder', 0))
+    except (ValueError, TypeError):
+        display_order = 0
+    proj = {
+        'id':               uuid.uuid4().hex,
+        'title':            _clean(d.get('title'), 200),
+        'category':         _clean(d.get('category'), 100),
+        'subtitle':         _clean(d.get('subtitle'), 300),
+        'shortDescription': _clean(d.get('shortDescription'), 500),
+        'fullDetails':      _clean(d.get('fullDetails'), 10000),
+        'imageUrl':         _clean(d.get('imageUrl'), 300),
+        'status':           status,
+        'featured':         bool(d.get('featured', False)),
+        'displayOrder':     display_order,
+        'buttonLabel':      _clean(d.get('buttonLabel'), 100),
+        'buttonLink':       _clean(d.get('buttonLink'), 300),
+        'createdAt':        now,
+        'updatedAt':        now,
+    }
+    all_proj = _load_proj()
+    all_proj.append(proj)
+    _save_proj(all_proj)
+    return jsonify({'status': 'ok', 'initiative': proj}), 201
+
+
+@app.route('/admin/api/community-initiatives/<proj_id>', methods=['PUT'])
+@admin_required
+def admin_proj_update(proj_id):
+    d        = request.get_json(silent=True) or {}
+    all_proj = _load_proj()
+    idx      = next((i for i, p in enumerate(all_proj) if p.get('id') == proj_id), None)
+    if idx is None:
+        return jsonify({'error': 'Not found'}), 404
+    p = all_proj[idx]
+    for field, maxlen in [('title', 200), ('category', 100), ('subtitle', 300),
+                          ('shortDescription', 500), ('fullDetails', 10000),
+                          ('imageUrl', 300), ('buttonLabel', 100), ('buttonLink', 300)]:
+        if field in d:
+            p[field] = _clean(d[field], maxlen)
+    if 'status' in d and d['status'] in ('draft', 'published', 'hidden'):
+        p['status'] = d['status']
+    if 'featured' in d:
+        p['featured'] = bool(d['featured'])
+    if 'displayOrder' in d:
+        try:
+            p['displayOrder'] = int(d['displayOrder'])
+        except (ValueError, TypeError):
+            pass
+    p['updatedAt'] = datetime.now(timezone.utc).isoformat()
+    _save_proj(all_proj)
+    return jsonify({'status': 'ok', 'initiative': p})
+
+
+@app.route('/admin/api/community-initiatives/<proj_id>', methods=['DELETE'])
+@admin_required
+def admin_proj_delete(proj_id):
+    all_proj = _load_proj()
+    filtered = [p for p in all_proj if p.get('id') != proj_id]
+    if len(filtered) == len(all_proj):
+        return jsonify({'error': 'Not found'}), 404
+    _save_proj(filtered)
+    return jsonify({'status': 'ok'})
+
+
 # ── Image upload ──────────────────────────────────────────────────────────────
 ALLOWED_EXT = {'jpg', 'jpeg', 'png', 'webp'}
 MAX_BYTES   = 5 * 1024 * 1024
@@ -717,6 +828,25 @@ def admin_upload():
     with open(os.path.join(UPLOAD_DIR, fname), 'wb') as out:
         out.write(data)
     return jsonify({'status': 'ok', 'url': 'assets/images/announcements/' + fname})
+
+
+@app.route('/admin/api/upload-initiative', methods=['POST'])
+@admin_required
+def admin_upload_initiative():
+    f = request.files.get('image')
+    if not f or not f.filename:
+        return jsonify({'error': 'No file selected'}), 400
+    ext = f.filename.rsplit('.', 1)[-1].lower() if '.' in f.filename else ''
+    if ext not in ALLOWED_EXT:
+        return jsonify({'error': 'Invalid file type. Use JPG, PNG, or WebP.'}), 400
+    data = f.read(MAX_BYTES + 1)
+    if len(data) > MAX_BYTES:
+        return jsonify({'error': 'File too large (max 5 MB)'}), 400
+    fname = uuid.uuid4().hex + '.' + ext
+    os.makedirs(PROJ_UPLOAD_DIR, exist_ok=True)
+    with open(os.path.join(PROJ_UPLOAD_DIR, fname), 'wb') as out:
+        out.write(data)
+    return jsonify({'status': 'ok', 'url': 'assets/images/initiatives/' + fname})
 
 
 # ── Static file serving ───────────────────────────────────────────────────────
