@@ -9,6 +9,7 @@
     "imageUrl": "assets/images/announcements/announcement-1.jpg",
     "status": "published",
     "featured": true,
+    "displayOrder": 1,
     "createdAt": "2026-06-20T00:00:00+00:00",
     "updatedAt": "2026-06-20T00:00:00+00:00"
   },
@@ -22,6 +23,7 @@
     "imageUrl": "assets/images/announcements/announcement-2.jpg",
     "status": "published",
     "featured": false,
+    "displayOrder": 2,
     "createdAt": "2026-06-25T00:00:00+00:00",
     "updatedAt": "2026-06-25T00:00:00+00:00"
   },
@@ -35,6 +37,7 @@
     "imageUrl": "assets/images/announcements/announcement-3.jpg",
     "status": "published",
     "featured": false,
+    "displayOrder": 3,
     "createdAt": "2026-07-01T00:00:00+00:00",
     "updatedAt": "2026-07-01T00:00:00+00:00"
   },
@@ -48,6 +51,7 @@
     "imageUrl": "assets/images/announcements/announcement-1.jpg",
     "status": "published",
     "featured": false,
+    "displayOrder": 4,
     "createdAt": "2026-07-10T00:00:00+00:00",
     "updatedAt": "2026-07-10T00:00:00+00:00"
   },
@@ -61,6 +65,7 @@
     "imageUrl": "assets/images/announcements/announcement-2.jpg",
     "status": "published",
     "featured": false,
+    "displayOrder": 5,
     "createdAt": "2026-07-15T00:00:00+00:00",
     "updatedAt": "2026-07-15T00:00:00+00:00"
   },
@@ -74,6 +79,7 @@
     "imageUrl": "assets/images/announcements/announcement-3.jpg",
     "status": "published",
     "featured": true,
+    "displayOrder": 6,
     "createdAt": "2026-07-20T00:00:00+00:00",
     "updatedAt": "2026-07-20T00:00:00+00:00"
   }

@@ -466,14 +466,20 @@ def api_tide():
         return jsonify({'status': 'unavailable'})
 
 
+def _order_key(item):
+    """Safe displayOrder sort key — None/missing items sort last."""
+    v = item.get('displayOrder')
+    return v if isinstance(v, (int, float)) else 9999
+
+
 # ── Public announcements API ──────────────────────────────────────────────────
 @app.route('/api/announcements')
 def api_announcements():
     all_ann   = _load_ann()
     published = [a for a in all_ann if a.get('status') == 'published']
-    # Two-pass stable sort: first by date desc (fallback), then by displayOrder asc (primary)
+    # Two-pass stable sort: date desc (fallback), then displayOrder asc (primary)
     published.sort(key=lambda x: x.get('date', ''), reverse=True)
-    published.sort(key=lambda x: x.get('displayOrder', 9999))
+    published.sort(key=_order_key)
     return jsonify({'status': 'ok', 'announcements': published})
 
 
@@ -482,9 +488,9 @@ def api_announcements():
 def api_community_initiatives():
     all_proj  = _load_proj()
     published = [p for p in all_proj if p.get('status') == 'published']
-    # Two-pass stable sort: updatedAt desc (fallback), then displayOrder asc (primary)
-    published.sort(key=lambda x: x.get('updatedAt', ''), reverse=True)
-    published.sort(key=lambda x: x.get('displayOrder', 9999))
+    # Two-pass stable sort: createdAt desc (fallback), then displayOrder asc (primary)
+    published.sort(key=lambda x: x.get('createdAt', ''), reverse=True)
+    published.sort(key=_order_key)
     return jsonify({'status': 'ok', 'initiatives': published})
 
 
@@ -705,7 +711,9 @@ def admin_change_password():
 @admin_required
 def admin_list():
     all_ann = _load_ann()
+    # Sort by displayOrder asc (primary), updatedAt desc (secondary for unordered items)
     all_ann.sort(key=lambda x: x.get('updatedAt', ''), reverse=True)
+    all_ann.sort(key=_order_key)
     return jsonify({'status': 'ok', 'announcements': all_ann})
 
 
@@ -802,7 +810,9 @@ def admin_delete(ann_id):
 @admin_required
 def admin_proj_list():
     all_proj = _load_proj()
+    # Sort by displayOrder asc (primary), updatedAt desc (secondary for unordered items)
     all_proj.sort(key=lambda x: x.get('updatedAt', ''), reverse=True)
+    all_proj.sort(key=_order_key)
     return jsonify({'status': 'ok', 'initiatives': all_proj})
 
 
