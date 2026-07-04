@@ -1,112 +1,52 @@
 [
   {
-    "id": "c375b74e9352415aba29920c54e4cc9c",
+    "id": "d296ce3812a04785a03256ff869b7a1a",
     "userId": "ae15c1f981224c2eb9bcdb7cc9cc0b46",
+    "eventType": "login_failed_locked",
+    "description": "Login attempt while account locked: admin",
+    "success": false,
+    "ipAddress": "127.0.0.1",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Claude/1.18286.0 Chrome/148.0.7778.271 Electron/42.5.1 Safari/537.36 MSIX",
+    "createdAt": "2026-07-04T12:25:09.639112+00:00"
+  },
+  {
+    "id": "c67772a4eedc4028b2ae158263c5876b",
+    "userId": "ae15c1f981224c2eb9bcdb7cc9cc0b46",
+    "eventType": "login_failed",
+    "description": "Failed login attempt: admin",
+    "success": false,
+    "ipAddress": "127.0.0.1",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Claude/1.18286.0 Chrome/148.0.7778.271 Electron/42.5.1 Safari/537.36 MSIX",
+    "createdAt": "2026-07-04T12:25:50.883549+00:00"
+  },
+  {
+    "id": "261b9fa29c674de7abc2be956ec4f25b",
+    "userId": "71a5a938bd1f4703a63e907a564e8331",
+    "eventType": "login_failed",
+    "description": "Failed login attempt: admin",
+    "success": false,
+    "ipAddress": "127.0.0.1",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Claude/1.18286.0 Chrome/148.0.7778.271 Electron/42.5.1 Safari/537.36 MSIX",
+    "createdAt": "2026-07-04T12:27:00.149840+00:00"
+  },
+  {
+    "id": "3d84fe2c1f5542c58aabd6e4295ac9ce",
+    "userId": "71a5a938bd1f4703a63e907a564e8331",
     "eventType": "login_success",
     "description": "Successful login: admin",
     "success": true,
     "ipAddress": "127.0.0.1",
     "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Claude/1.18286.0 Chrome/148.0.7778.271 Electron/42.5.1 Safari/537.36 MSIX",
-    "createdAt": "2026-07-04T07:47:03.735297+00:00"
+    "createdAt": "2026-07-04T12:28:58.547568+00:00"
   },
   {
-    "id": "39309edaabd541f391e65099a30f4686",
-    "userId": "ae15c1f981224c2eb9bcdb7cc9cc0b46",
+    "id": "439975bfd3754c4886b0c28521427f65",
+    "userId": "71a5a938bd1f4703a63e907a564e8331",
     "eventType": "password_changed",
     "description": "Password changed successfully",
     "success": true,
     "ipAddress": "127.0.0.1",
     "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Claude/1.18286.0 Chrome/148.0.7778.271 Electron/42.5.1 Safari/537.36 MSIX",
-    "createdAt": "2026-07-04T07:47:59.236620+00:00"
-  },
-  {
-    "id": "da38c4956cdf4e708a4d8c4c0c03a6d2",
-    "userId": "ae15c1f981224c2eb9bcdb7cc9cc0b46",
-    "eventType": "login_success",
-    "description": "Successful login: admin",
-    "success": true,
-    "ipAddress": "127.0.0.1",
-    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Claude/1.18286.0 Chrome/148.0.7778.271 Electron/42.5.1 Safari/537.36 MSIX",
-    "createdAt": "2026-07-04T07:52:25.804027+00:00"
-  },
-  {
-    "id": "e0f2a3fabf3741f59fd9023efc94a6d0",
-    "userId": "ae15c1f981224c2eb9bcdb7cc9cc0b46",
-    "eventType": "login_success",
-    "description": "Successful login: admin",
-    "success": true,
-    "ipAddress": "127.0.0.1",
-    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
-    "createdAt": "2026-07-04T07:54:48.157006+00:00"
-  },
-  {
-    "id": "b33bb56fd2454d6b8cc89da6ad3ab867",
-    "userId": "ae15c1f981224c2eb9bcdb7cc9cc0b46",
-    "eventType": "logout",
-    "description": "Admin logout: admin",
-    "success": true,
-    "ipAddress": "127.0.0.1",
-    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Claude/1.18286.0 Chrome/148.0.7778.271 Electron/42.5.1 Safari/537.36 MSIX",
-    "createdAt": "2026-07-04T07:55:30.739942+00:00"
-  },
-  {
-    "id": "568330a571f64a6cbd69e55b90144918",
-    "userId": "ae15c1f981224c2eb9bcdb7cc9cc0b46",
-    "eventType": "login_success",
-    "description": "Successful login: admin",
-    "success": true,
-    "ipAddress": "127.0.0.1",
-    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Claude/1.18286.0 Chrome/148.0.7778.271 Electron/42.5.1 Safari/537.36 MSIX",
-    "createdAt": "2026-07-04T07:56:11.001929+00:00"
-  },
-  {
-    "id": "5479f84bd70746c19040045642f40c43",
-    "userId": "ae15c1f981224c2eb9bcdb7cc9cc0b46",
-    "eventType": "logout",
-    "description": "Admin logout: admin",
-    "success": true,
-    "ipAddress": "127.0.0.1",
-    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
-    "createdAt": "2026-07-04T07:56:32.512869+00:00"
-  },
-  {
-    "id": "e3e4ba1e4a9b424c835766d3547e485f",
-    "userId": "ae15c1f981224c2eb9bcdb7cc9cc0b46",
-    "eventType": "logout",
-    "description": "Admin logout: admin",
-    "success": true,
-    "ipAddress": "127.0.0.1",
-    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Claude/1.18286.0 Chrome/148.0.7778.271 Electron/42.5.1 Safari/537.36 MSIX",
-    "createdAt": "2026-07-04T07:58:36.596383+00:00"
-  },
-  {
-    "id": "6b07af444f19418988bebefc5c9d312d",
-    "userId": "ae15c1f981224c2eb9bcdb7cc9cc0b46",
-    "eventType": "login_failed",
-    "description": "Failed login attempt: admin",
-    "success": false,
-    "ipAddress": "127.0.0.1",
-    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Claude/1.18286.0 Chrome/148.0.7778.271 Electron/42.5.1 Safari/537.36 MSIX",
-    "createdAt": "2026-07-04T09:36:44.829795+00:00"
-  },
-  {
-    "id": "c470c04bf39c4a02bb8caf5380fd7456",
-    "userId": "ae15c1f981224c2eb9bcdb7cc9cc0b46",
-    "eventType": "login_success",
-    "description": "Successful login: admin",
-    "success": true,
-    "ipAddress": "127.0.0.1",
-    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Claude/1.18286.0 Chrome/148.0.7778.271 Electron/42.5.1 Safari/537.36 MSIX",
-    "createdAt": "2026-07-04T09:36:54.720608+00:00"
-  },
-  {
-    "id": "16acc55962ca4328992dec241d79e911",
-    "userId": "ae15c1f981224c2eb9bcdb7cc9cc0b46",
-    "eventType": "login_failed",
-    "description": "Failed login attempt: admin",
-    "success": false,
-    "ipAddress": "127.0.0.1",
-    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Claude/1.18286.0 Chrome/148.0.7778.271 Electron/42.5.1 Safari/537.36 MSIX",
-    "createdAt": "2026-07-04T11:46:20.966091+00:00"
+    "createdAt": "2026-07-04T12:30:12.502642+00:00"
   }
 ]
