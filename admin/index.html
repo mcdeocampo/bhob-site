@@ -1,0 +1,1216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin | Barangay Hulo</title>
+<link rel="icon" type="image/png" href="../assets/images/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#1e3a5f;--blue:#2563eb;--blue-hover:#1d4ed8;
+  --green:#16a34a;--amber:#d97706;--red:#dc2626;--gray:#64748b;
+  --bg:#f0f4f8;--card:#fff;--border:#e2e8f0;--text:#1e293b;
+  --sidebar-w:240px;--radius:8px;
+}
+body{font-family:'Inter',sans-serif;font-size:14px;color:var(--text);background:var(--bg);line-height:1.5}
+button{font-family:inherit;cursor:pointer}
+input,select,textarea{font-family:inherit}
+a{text-decoration:none;color:inherit}
+
+/* ─── LOGIN ─────────────────────────────────────────────── */
+#login-wrap{
+  min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;
+  position:relative;overflow:hidden;
+  background:
+    radial-gradient(circle at 78% 12%, rgba(6,182,212,.32) 0%, transparent 34%),
+    radial-gradient(circle at 18% 88%, rgba(34,197,94,.14) 0%, transparent 30%),
+    linear-gradient(135deg,#0f2f57 0%,#123f73 45%,#0a4f86 100%)}
+.login-card{
+  position:relative;z-index:1;
+  background:rgba(255,255,255,.94);
+  backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+  border:1px solid rgba(255,255,255,.38);
+  border-radius:24px;
+  padding:0 0 38px;
+  width:100%;max-width:440px;
+  box-shadow:0 28px 70px rgba(0,0,0,.26),0 4px 16px rgba(0,0,0,.1)}
+.login-inner{padding:36px 40px 0}
+.login-logo{display:flex;flex-direction:column;align-items:center;gap:11px;margin-bottom:24px;
+  position:relative}
+.login-logo::before{content:'';position:absolute;top:-10px;left:50%;transform:translateX(-50%);
+  width:120px;height:80px;background:radial-gradient(ellipse,rgba(14,165,233,.13) 0%,transparent 70%);
+  pointer-events:none;z-index:0}
+.login-logo img{width:60px;height:60px;object-fit:contain;position:relative;z-index:1}
+.login-logo-name{font-size:1.08rem;font-weight:600;color:#0f2f57;line-height:1.2;text-align:center;
+  letter-spacing:-.01em}
+.login-logo-sub{font-size:.72rem;color:#5b7a99;letter-spacing:.04em;text-align:center}
+.login-divider{border:none;border-top:1px solid rgba(15,47,87,.10);margin:0 0 24px}
+.login-card h2{font-size:1.08rem;font-weight:700;text-align:center;margin-bottom:24px;
+  color:#0f2f57;letter-spacing:-.01em}
+.login-footer-note{text-align:center;font-size:.69rem;color:#8b9bb0;margin-top:20px;
+  letter-spacing:.08em;text-transform:uppercase}
+@media(max-width:520px){
+  .login-inner{padding:28px 26px 0}
+  .login-card{padding-bottom:30px}
+  .login-logo img{width:52px;height:52px}
+}
+
+/* ─── FIELDS ─────────────────────────────────────────────── */
+.field{margin-bottom:16px}
+.field label{display:block;font-size:.72rem;font-weight:600;color:#4a6580;
+  margin-bottom:6px;text-transform:uppercase;letter-spacing:.07em}
+.field input,.field select,.field textarea{width:100%;padding:12px 14px;
+  border:1px solid #c8d8e8;border-radius:12px;font-size:.9rem;
+  outline:none;transition:border-color .2s,box-shadow .2s;background:#fff;
+  min-height:46px}
+.field input:focus,.field select:focus,.field textarea:focus{
+  border-color:#0ea5e9;box-shadow:0 0 0 4px rgba(14,165,233,.12)}
+.field textarea{resize:vertical;min-height:80px;border-radius:var(--radius)}
+
+/* ─── PASSWORD FIELD WITH EYE TOGGLE ────────────────────── */
+.pw-wrap{position:relative;display:flex;align-items:center}
+.pw-wrap input{padding-right:40px}
+.pw-eye{position:absolute;right:0;top:0;bottom:0;width:38px;background:none;border:none;
+  display:flex;align-items:center;justify-content:center;color:#94a3b8;
+  cursor:pointer;border-radius:0 var(--radius) var(--radius) 0;transition:color .15s}
+.pw-eye:hover{color:var(--blue)}
+.pw-eye svg{width:16px;height:16px;flex-shrink:0}
+
+/* ─── PASSWORD STRENGTH BOX ─────────────────────────────── */
+.pw-strength-box{margin-top:8px;padding:10px 12px;background:#f8fafc;
+  border:1px solid var(--border);border-radius:var(--radius);display:none}
+.pw-strength-box.visible{display:block}
+.pw-strength-title{font-size:.7rem;font-weight:600;color:var(--gray);
+  text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+.sreq{display:flex;align-items:center;gap:6px;font-size:.75rem;
+  color:#94a3b8;margin-bottom:3px;transition:color .2s}
+.sreq.met{color:var(--green)}
+.sreq svg{width:12px;height:12px;flex-shrink:0}
+.sreq .sr-x{display:block}.sreq .sr-ok{display:none}
+.sreq.met .sr-x{display:none}.sreq.met .sr-ok{display:block}
+
+/* ─── BUTTONS ────────────────────────────────────────────── */
+.btn-primary{width:100%;height:48px;background:linear-gradient(90deg,#0b5ed7,#12a8e8);
+  color:#fff;border:none;border-radius:12px;font-size:.92rem;font-weight:700;
+  transition:filter .2s,box-shadow .2s,transform .15s;display:flex;align-items:center;
+  justify-content:center;gap:6px;letter-spacing:.03em;
+  box-shadow:0 10px 24px rgba(11,94,215,.28)}
+.btn-primary:hover{filter:brightness(1.07);box-shadow:0 12px 28px rgba(11,94,215,.38);
+  transform:translateY(-1px)}
+.btn-primary:active{transform:translateY(0);filter:brightness(.97)}
+.btn-primary:disabled{opacity:.6;cursor:not-allowed}
+.error-msg{color:var(--red);font-size:.8rem;margin-top:10px;text-align:center;display:none}
+
+/* ─── POLICY BOX ─────────────────────────────────────────── */
+.pw-policy-box{background:#eff6ff;border:1px solid #bfdbfe;border-radius:var(--radius);
+  padding:10px 14px;margin-bottom:16px;font-size:.75rem;color:#1d4ed8;line-height:1.7}
+.pw-policy-box strong{display:block;margin-bottom:4px;font-size:.73rem;
+  text-transform:uppercase;letter-spacing:.05em}
+
+/* ─── ADMIN APP ──────────────────────────────────────────── */
+#admin-app{display:none;height:100vh;overflow:hidden}
+#admin-app.active{display:flex}
+
+/* ─── SIDEBAR ────────────────────────────────────────────── */
+.sidebar{width:var(--sidebar-w);background:var(--navy);color:#e2e8f0;
+  display:flex;flex-direction:column;height:100vh;overflow-y:auto;flex-shrink:0}
+.sidebar-header{padding:18px 16px;display:flex;align-items:center;gap:10px;
+  border-bottom:1px solid rgba(255,255,255,.1)}
+.sidebar-header img{width:34px;height:34px;object-fit:contain;border-radius:6px}
+.sidebar-header strong{display:block;font-size:.82rem;color:#fff;line-height:1.3}
+.sidebar-header small{font-size:.68rem;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.06em}
+.sidebar nav{flex:1;padding:10px 0}
+.nav-label{padding:14px 16px 4px;font-size:.62rem;font-weight:600;
+  color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.08em}
+.nav-item{display:flex;align-items:center;gap:9px;padding:9px 16px;width:100%;
+  background:none;border:none;border-left:3px solid transparent;
+  color:rgba(255,255,255,.6);font-size:.83rem;text-align:left;
+  transition:all .15s;white-space:nowrap}
+.nav-item:hover:not([disabled]){background:rgba(255,255,255,.07);color:#fff}
+.nav-item.active{background:rgba(37,130,246,.18);color:#fff;border-left-color:var(--blue)}
+.nav-item[disabled]{opacity:.35;cursor:not-allowed}
+.nav-item svg{width:15px;height:15px;flex-shrink:0}
+.soon-badge{font-size:.6rem;background:rgba(255,255,255,.12);padding:1px 5px;
+  border-radius:4px;margin-left:auto;color:rgba(255,255,255,.45)}
+.sidebar-bottom{padding:12px 16px;border-top:1px solid rgba(255,255,255,.08)}
+.sidebar-user{font-size:.72rem;color:rgba(255,255,255,.4);margin-bottom:8px;
+  display:flex;align-items:center;gap:5px}
+.btn-logout{display:flex;align-items:center;gap:7px;width:100%;padding:7px 10px;
+  background:none;border:1px solid rgba(255,255,255,.18);border-radius:var(--radius);
+  color:rgba(255,255,255,.6);font-size:.78rem;transition:all .2s}
+.btn-logout:hover{background:rgba(220,38,38,.15);border-color:rgba(220,38,38,.4);color:#fca5a5}
+
+/* ─── MAIN CONTENT ───────────────────────────────────────── */
+.main-content{flex:1;overflow-y:auto;padding:28px 32px}
+
+/* ─── DASHBOARD ──────────────────────────────────────────── */
+.dash-welcome{background:var(--card);border:1px solid var(--border);border-radius:10px;
+  padding:24px 28px;margin-bottom:24px}
+.dash-welcome h2{font-size:1.2rem;font-weight:700;margin-bottom:4px}
+.dash-welcome p{font-size:.85rem;color:var(--gray)}
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:14px}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:10px;
+  padding:18px 20px;cursor:pointer;transition:box-shadow .2s}
+.stat-card:hover{box-shadow:0 2px 10px rgba(0,0,0,.1)}
+.stat-num{font-size:2rem;font-weight:700;line-height:1}
+.stat-label{font-size:.75rem;color:var(--gray);margin-top:4px}
+.stat-published .stat-num{color:var(--green)}
+.stat-draft .stat-num{color:var(--amber)}
+.stat-hidden .stat-num{color:var(--gray)}
+.stat-total .stat-num{color:var(--blue)}
+
+/* ─── ANNOUNCEMENTS ──────────────────────────────────────── */
+.page-hdr{display:flex;align-items:flex-start;justify-content:space-between;
+  margin-bottom:20px;gap:12px;flex-wrap:wrap}
+.page-hdr h2{font-size:1.3rem;font-weight:700}
+.page-hdr p{font-size:.8rem;color:var(--gray);margin-top:2px}
+.btn-new{display:flex;align-items:center;gap:6px;padding:9px 18px;
+  background:var(--blue);color:#fff;border:none;border-radius:var(--radius);
+  font-size:.85rem;font-weight:600;transition:background .2s;white-space:nowrap}
+.btn-new:hover{background:var(--blue-hover)}
+.toolbar{display:flex;align-items:center;gap:10px;margin-bottom:18px;flex-wrap:wrap}
+.search-wrap{position:relative;flex:1;min-width:180px}
+.search-wrap svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);
+  width:14px;height:14px;color:#94a3b8;pointer-events:none}
+.search-input{width:100%;padding:8px 12px 8px 32px;border:1px solid var(--border);
+  border-radius:var(--radius);font-size:.85rem;outline:none;background:#fff;transition:border-color .2s}
+.search-input:focus{border-color:var(--blue)}
+.tabs{display:flex;gap:3px;background:#e2e8f0;padding:3px;border-radius:8px}
+.tab{padding:5px 14px;border:none;background:none;border-radius:6px;
+  font-size:.78rem;font-weight:500;color:var(--gray);transition:all .15s;white-space:nowrap}
+.tab.active{background:#fff;color:var(--blue);box-shadow:0 1px 3px rgba(0,0,0,.08);font-weight:600}
+.ann-list{display:flex;flex-direction:column;gap:8px}
+.ann-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  padding:12px 14px;display:flex;align-items:flex-start;gap:12px;transition:box-shadow .2s}
+.ann-card:hover{box-shadow:0 2px 8px rgba(0,0,0,.07)}
+.ann-thumb{width:70px;height:56px;object-fit:cover;border-radius:6px;flex-shrink:0;background:var(--bg)}
+.ann-thumb-ph{width:70px;height:56px;border-radius:6px;flex-shrink:0;
+  background:var(--bg);display:flex;align-items:center;justify-content:center;
+  font-size:1.4rem;color:#cbd5e1}
+.ann-body{flex:1;min-width:0}
+.ann-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:3px}
+.badge{padding:2px 8px;border-radius:20px;font-size:.65rem;font-weight:700;text-transform:uppercase}
+.badge-published{background:#dcfce7;color:#15803d}
+.badge-draft{background:#fef3c7;color:#b45309}
+.badge-hidden{background:#f1f5f9;color:#64748b}
+.ann-date{font-size:.72rem;color:var(--gray)}
+.cat-tag{font-size:.68rem;color:var(--blue);font-weight:500;
+  background:rgba(37,99,235,.08);padding:1px 7px;border-radius:10px}
+.feat-tag{font-size:.68rem;color:var(--amber);font-weight:500;
+  background:rgba(245,158,11,.1);padding:1px 7px;border-radius:10px}
+.ann-title{font-size:.88rem;font-weight:600;white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis;margin-bottom:2px}
+.ann-desc{font-size:.75rem;color:var(--gray);line-height:1.4;
+  overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.ann-actions{display:flex;gap:5px;flex-shrink:0;align-items:center}
+.btn-act{padding:5px 10px;border:1px solid var(--border);border-radius:6px;
+  background:#fff;font-size:.73rem;font-weight:500;color:var(--gray);
+  transition:all .15s;white-space:nowrap}
+.btn-act:hover{border-color:var(--blue);color:var(--blue)}
+.btn-act.danger:hover{border-color:var(--red);color:var(--red);background:#fff5f5}
+.empty-state{text-align:center;padding:60px 20px}
+.empty-state .es-icon{font-size:2.5rem;margin-bottom:12px}
+.empty-state h3{font-size:1rem;font-weight:600;margin-bottom:6px;color:var(--text)}
+.empty-state p{font-size:.82rem;color:var(--gray)}
+.loading{text-align:center;padding:40px;color:var(--gray)}
+
+/* ─── SETTINGS ───────────────────────────────────────────── */
+.settings-card{background:var(--card);border:1px solid var(--border);border-radius:10px;
+  padding:28px;max-width:520px}
+.settings-card h3{font-size:1rem;font-weight:700;margin-bottom:4px}
+.settings-desc{font-size:.82rem;color:var(--gray);margin-bottom:20px}
+.settings-acts{display:flex;gap:8px;margin-top:20px;flex-wrap:wrap}
+
+/* ─── OVERLAYS ───────────────────────────────────────────── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.52);z-index:100;
+  display:none;align-items:center;justify-content:center;padding:16px}
+.overlay.open{display:flex}
+.modal{background:var(--card);border-radius:12px;width:100%;max-width:680px;
+  max-height:94vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.25);display:flex;flex-direction:column}
+.modal-head{padding:20px 24px 16px;display:flex;align-items:center;justify-content:space-between;
+  border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--card);z-index:1}
+.modal-head h3{font-size:1.05rem;font-weight:700}
+.btn-close{background:none;border:none;font-size:1.25rem;color:var(--gray);
+  padding:4px 8px;border-radius:4px;line-height:1}
+.btn-close:hover{background:var(--bg)}
+.modal-body{padding:20px 24px;flex:1}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.field-full{grid-column:1/-1}
+.img-area{border:2px dashed var(--border);border-radius:var(--radius);padding:18px;
+  text-align:center;background:var(--bg);transition:border-color .2s}
+.img-area:hover,.img-area.drag-over{border-color:var(--blue);background:rgba(37,99,235,.03)}
+.img-preview{width:100%;max-height:180px;object-fit:cover;border-radius:6px;
+  display:none;margin-bottom:10px}
+.img-upload-row{display:flex;align-items:center;gap:10px;justify-content:center}
+.btn-upload-file{padding:7px 16px;background:var(--blue);color:#fff;border:none;
+  border-radius:var(--radius);font-size:.8rem;font-weight:600;cursor:pointer}
+.img-hint{font-size:.74rem;color:var(--gray);margin-top:6px}
+.img-url-note{font-size:.72rem;color:var(--gray);margin-top:5px;word-break:break-all;
+  background:var(--bg);padding:4px 8px;border-radius:4px;display:none}
+.default-imgs{margin-top:10px;border-top:1px solid var(--border);padding-top:10px}
+.default-imgs label{font-size:.72rem;color:var(--gray);display:block;margin-bottom:7px;font-weight:500}
+.default-imgs-row{display:flex;gap:7px;flex-wrap:wrap}
+.di-btn{border:2px solid transparent;border-radius:6px;overflow:hidden;
+  cursor:pointer;transition:border-color .15s;background:none;padding:0}
+.di-btn:hover,.di-btn.sel{border-color:var(--blue)}
+.di-btn img{width:72px;height:50px;object-fit:cover;display:block}
+.radio-row{display:flex;gap:8px;flex-wrap:wrap}
+.rc{position:relative}
+.rc input{position:absolute;opacity:0;width:0;height:0}
+.rc label{display:flex;align-items:center;gap:5px;padding:6px 14px;
+  border:1px solid var(--border);border-radius:var(--radius);cursor:pointer;
+  font-size:.8rem;font-weight:500;transition:all .15s}
+.rc input:checked+label{border-color:var(--blue);background:rgba(37,99,235,.07);color:var(--blue)}
+.modal-foot{padding:14px 24px;border-top:1px solid var(--border);
+  display:flex;justify-content:flex-end;gap:8px;position:sticky;bottom:0;background:var(--card)}
+.btn-cancel{padding:8px 18px;background:#fff;border:1px solid var(--border);
+  border-radius:var(--radius);font-size:.83rem;font-weight:500;color:var(--text);transition:all .15s}
+.btn-cancel:hover{border-color:var(--blue);color:var(--blue)}
+.btn-draft{padding:8px 18px;background:#fffbeb;border:1px solid #fcd34d;
+  border-radius:var(--radius);font-size:.83rem;font-weight:600;color:var(--amber);transition:all .15s}
+.btn-draft:hover{background:#fef3c7}
+.btn-publish{padding:8px 18px;background:var(--green);border:none;
+  border-radius:var(--radius);font-size:.83rem;font-weight:600;color:#fff;transition:background .15s}
+.btn-publish:hover{background:#15803d}
+.btn-publish:disabled{opacity:.6;cursor:not-allowed}
+
+/* ─── FORCE PW OVERLAY ───────────────────────────────────── */
+#force-pw-overlay{position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:500;
+  display:none;align-items:center;justify-content:center;padding:16px}
+#force-pw-overlay.open{display:flex}
+.force-pw-card{background:#fff;border-radius:14px;width:100%;max-width:460px;
+  box-shadow:0 24px 64px rgba(0,0,0,.35);overflow:hidden;max-height:95vh;overflow-y:auto}
+.force-pw-head{background:linear-gradient(135deg,#1e3a5f,#2563eb);
+  padding:22px 24px;color:#fff;display:flex;align-items:flex-start;gap:14px}
+.force-pw-icon{width:40px;height:40px;background:rgba(255,255,255,.15);
+  border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
+.force-pw-head h2{font-size:1rem;font-weight:700;margin-bottom:4px}
+.force-pw-head p{font-size:.77rem;color:rgba(255,255,255,.75);line-height:1.5}
+.force-pw-body{padding:22px 24px}
+.force-pw-foot{padding:0 24px 22px;display:flex;justify-content:flex-end}
+
+/* ─── CONFIRM ────────────────────────────────────────────── */
+.confirm-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:150;
+  display:none;align-items:center;justify-content:center}
+.confirm-overlay.open{display:flex}
+.confirm-box{background:#fff;border-radius:12px;padding:28px;width:360px;
+  box-shadow:0 8px 32px rgba(0,0,0,.2)}
+.confirm-box h4{font-size:1rem;font-weight:700;margin-bottom:8px}
+.confirm-box p{font-size:.84rem;color:var(--gray);margin-bottom:22px}
+.confirm-acts{display:flex;justify-content:flex-end;gap:8px}
+.btn-del{padding:8px 18px;background:var(--red);border:none;border-radius:var(--radius);
+  font-size:.83rem;font-weight:600;color:#fff}
+.btn-del:hover{background:#b91c1c}
+
+/* ─── DETAIL MODAL ───────────────────────────────────────── */
+.detail-modal{max-width:680px}
+.detail-img{width:100%;max-height:260px;object-fit:cover;border-radius:8px;
+  display:block;margin-bottom:18px}
+.detail-meta{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:center}
+.detail-body{font-size:.88rem;color:var(--text);line-height:1.7;white-space:pre-wrap}
+
+/* ─── TOAST ──────────────────────────────────────────────── */
+#toast-wrap{position:fixed;bottom:22px;right:22px;z-index:600;
+  display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.toast{padding:11px 16px;border-radius:8px;font-size:.83rem;font-weight:500;
+  box-shadow:0 4px 14px rgba(0,0,0,.14);min-width:220px;pointer-events:all;
+  animation:toastIn .22s ease}
+.toast-ok{background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0}
+.toast-err{background:#fff5f5;color:var(--red);border:1px solid #fecaca}
+.toast-info{background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe}
+@keyframes toastIn{from{transform:translateY(12px);opacity:0}to{transform:none;opacity:1}}
+
+/* ─── RESPONSIVE ─────────────────────────────────────────── */
+@media(max-width:900px){.sidebar{width:200px}.form-grid{grid-template-columns:1fr}}
+@media(max-width:640px){
+  #admin-app{flex-direction:column}.sidebar{width:100%;height:auto}
+  .sidebar-header{padding:12px 14px}.main-content{padding:16px}
+  .ann-card{flex-direction:column}.ann-actions{justify-content:flex-start}
+  .modal{max-height:100vh;border-radius:0}.settings-card{padding:18px}
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════ LOGIN ══════════════════ -->
+<div id="login-wrap">
+  <div class="login-card">
+    <div class="login-inner">
+    <div class="login-logo">
+      <img src="../assets/images/logo.png" alt="Barangay Hulo">
+      <div class="login-logo-name">Barangay Hulo</div>
+      <div class="login-logo-sub">Obando, Bulacan</div>
+    </div>
+    <hr class="login-divider">
+    <h2>Admin Login</h2>
+    <div class="field">
+      <label>Username</label>
+      <input type="text" id="inp-user" autocomplete="username">
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <div class="pw-wrap">
+        <input type="password" id="inp-pass" autocomplete="current-password">
+        <button type="button" class="pw-eye" onclick="togglePw('inp-pass',this)" tabindex="-1" aria-label="Toggle password visibility">
+          <svg class="eye-show" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          <svg class="eye-hide" style="display:none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+        </button>
+      </div>
+    </div>
+    <button class="btn-primary" id="btn-login">Login</button>
+    <div class="error-msg" id="login-err"></div>
+    <div class="login-footer-note">Authorized personnel only</div>
+    </div><!-- /.login-inner -->
+  </div>
+</div>
+
+<!-- ══════════════════ FORCE PASSWORD CHANGE (non-dismissible) ══════════════════ -->
+<div id="force-pw-overlay">
+  <div class="force-pw-card">
+    <div class="force-pw-head">
+      <div class="force-pw-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      </div>
+      <div>
+        <h2>Change Your Password</h2>
+        <p>Your account requires a new password before you can continue. This step cannot be skipped.</p>
+      </div>
+    </div>
+    <div class="force-pw-body">
+      <div class="pw-policy-box">
+        <strong>Password Requirements</strong>
+        At least 10 characters &nbsp;·&nbsp; Uppercase (A-Z) &nbsp;·&nbsp; Lowercase (a-z) &nbsp;·&nbsp; Number (0-9) &nbsp;·&nbsp; Special character (!@#$%...)
+      </div>
+      <div class="field">
+        <label>Current Password (Temporary)</label>
+        <div class="pw-wrap">
+          <input type="password" id="fp-current" autocomplete="current-password" placeholder="Enter your current/temporary password">
+          <button type="button" class="pw-eye" onclick="togglePw('fp-current',this)" tabindex="-1" aria-label="Toggle">
+            <svg class="eye-show" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            <svg class="eye-hide" style="display:none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="field">
+        <label>New Password</label>
+        <div class="pw-wrap">
+          <input type="password" id="fp-new" autocomplete="new-password" placeholder="Choose a strong new password" oninput="updateStrength(this.value,'fp-strength')">
+          <button type="button" class="pw-eye" onclick="togglePw('fp-new',this)" tabindex="-1" aria-label="Toggle">
+            <svg class="eye-show" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            <svg class="eye-hide" style="display:none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+          </button>
+        </div>
+        <div class="pw-strength-box" id="fp-strength">
+          <div class="pw-strength-title">Password must contain:</div>
+          <div class="sreq" id="fp-r-len"><svg class="sr-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg><svg class="sr-ok" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>At least 10 characters</div>
+          <div class="sreq" id="fp-r-upper"><svg class="sr-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg><svg class="sr-ok" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Uppercase letter (A-Z)</div>
+          <div class="sreq" id="fp-r-lower"><svg class="sr-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg><svg class="sr-ok" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Lowercase letter (a-z)</div>
+          <div class="sreq" id="fp-r-num"><svg class="sr-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg><svg class="sr-ok" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Number (0-9)</div>
+          <div class="sreq" id="fp-r-special"><svg class="sr-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg><svg class="sr-ok" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Special character (!@#$%...)</div>
+        </div>
+      </div>
+      <div class="field" style="margin-bottom:8px">
+        <label>Confirm New Password</label>
+        <div class="pw-wrap">
+          <input type="password" id="fp-confirm" autocomplete="new-password" placeholder="Confirm new password">
+          <button type="button" class="pw-eye" onclick="togglePw('fp-confirm',this)" tabindex="-1" aria-label="Toggle">
+            <svg class="eye-show" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            <svg class="eye-hide" style="display:none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+          </button>
+        </div>
+      </div>
+      <div id="fp-err" style="color:var(--red);font-size:.8rem;display:none;padding:6px 0 2px"></div>
+    </div>
+    <div class="force-pw-foot">
+      <button class="btn-publish" id="fp-submit" onclick="submitForcePwChange()">
+        Set New Password
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ ADMIN APP ══════════════════ -->
+<div id="admin-app">
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <img src="../assets/images/logo.png" alt="Logo">
+      <div>
+        <strong>Barangay Hulo</strong>
+        <small>Admin Panel</small>
+      </div>
+    </div>
+    <nav>
+      <div class="nav-label">Content</div>
+      <button class="nav-item active" data-sec="dashboard">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
+        Dashboard
+      </button>
+      <button class="nav-item" data-sec="announcements">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        Announcements
+      </button>
+      <div class="nav-label">Manage</div>
+      <button class="nav-item" disabled>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Officials
+        <span class="soon-badge">Soon</span>
+      </button>
+      <button class="nav-item" disabled>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        Public Services
+        <span class="soon-badge">Soon</span>
+      </button>
+      <div class="nav-label">Account</div>
+      <button class="nav-item" data-sec="settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        Settings
+      </button>
+    </nav>
+    <div class="sidebar-bottom">
+      <div class="sidebar-user">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+        <span id="sidebar-user-name">admin</span>
+      </div>
+      <button class="btn-logout" id="btn-logout">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Logout
+      </button>
+    </div>
+  </aside>
+
+  <main class="main-content">
+
+    <!-- Dashboard -->
+    <section id="sec-dashboard" style="display:none">
+      <div class="dash-welcome">
+        <h2>Welcome back, <span id="dash-user">admin</span>!</h2>
+        <p>Manage announcements and barangay content from this panel.</p>
+      </div>
+      <div class="stat-grid">
+        <div class="stat-card stat-total" onclick="goAnnouncements('all')">
+          <div class="stat-num" id="stat-total">—</div>
+          <div class="stat-label">Total Announcements</div>
+        </div>
+        <div class="stat-card stat-published" onclick="goAnnouncements('published')">
+          <div class="stat-num" id="stat-pub">—</div>
+          <div class="stat-label">Published</div>
+        </div>
+        <div class="stat-card stat-draft" onclick="goAnnouncements('draft')">
+          <div class="stat-num" id="stat-draft">—</div>
+          <div class="stat-label">Drafts</div>
+        </div>
+        <div class="stat-card stat-hidden" onclick="goAnnouncements('hidden')">
+          <div class="stat-num" id="stat-hidden">—</div>
+          <div class="stat-label">Hidden</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Announcements -->
+    <section id="sec-announcements" style="display:none">
+      <div class="page-hdr">
+        <div>
+          <h2>Announcement Management</h2>
+          <p>Create, edit, and manage public announcements for Barangay Hulo.</p>
+        </div>
+        <button class="btn-new" id="btn-new">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          New Announcement
+        </button>
+      </div>
+      <div class="toolbar">
+        <div class="search-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input class="search-input" id="search-input" type="search" placeholder="Search announcements…">
+        </div>
+        <div class="tabs">
+          <button class="tab active" data-f="all">All</button>
+          <button class="tab" data-f="published">Published</button>
+          <button class="tab" data-f="draft">Draft</button>
+          <button class="tab" data-f="hidden">Hidden</button>
+        </div>
+      </div>
+      <div class="ann-list" id="ann-list"><div class="loading">Loading…</div></div>
+    </section>
+
+    <!-- Settings -->
+    <section id="sec-settings" style="display:none">
+      <div class="page-hdr">
+        <div>
+          <h2>Settings</h2>
+          <p>Manage your admin account and security settings.</p>
+        </div>
+      </div>
+      <div class="settings-card">
+        <h3>Change Password</h3>
+        <p class="settings-desc">Keep your account secure by updating your password regularly.</p>
+        <div class="pw-policy-box">
+          <strong>Password Requirements</strong>
+          At least 10 characters &nbsp;·&nbsp; Uppercase (A-Z) &nbsp;·&nbsp; Lowercase (a-z) &nbsp;·&nbsp; Number (0-9) &nbsp;·&nbsp; Special character (!@#$%...)
+        </div>
+        <div class="field">
+          <label>Current Password</label>
+          <div class="pw-wrap">
+            <input type="password" id="cp-current" autocomplete="current-password" placeholder="Enter your current password">
+            <button type="button" class="pw-eye" onclick="togglePw('cp-current',this)" tabindex="-1" aria-label="Toggle">
+              <svg class="eye-show" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              <svg class="eye-hide" style="display:none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="field">
+          <label>New Password</label>
+          <div class="pw-wrap">
+            <input type="password" id="cp-new" autocomplete="new-password" placeholder="Enter a strong new password" oninput="updateStrength(this.value,'cp-strength')">
+            <button type="button" class="pw-eye" onclick="togglePw('cp-new',this)" tabindex="-1" aria-label="Toggle">
+              <svg class="eye-show" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              <svg class="eye-hide" style="display:none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+            </button>
+          </div>
+          <div class="pw-strength-box" id="cp-strength">
+            <div class="pw-strength-title">Password must contain:</div>
+            <div class="sreq" id="cp-r-len"><svg class="sr-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg><svg class="sr-ok" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>At least 10 characters</div>
+            <div class="sreq" id="cp-r-upper"><svg class="sr-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg><svg class="sr-ok" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Uppercase letter (A-Z)</div>
+            <div class="sreq" id="cp-r-lower"><svg class="sr-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg><svg class="sr-ok" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Lowercase letter (a-z)</div>
+            <div class="sreq" id="cp-r-num"><svg class="sr-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg><svg class="sr-ok" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Number (0-9)</div>
+            <div class="sreq" id="cp-r-special"><svg class="sr-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg><svg class="sr-ok" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Special character (!@#$%...)</div>
+          </div>
+        </div>
+        <div class="field" style="margin-bottom:8px">
+          <label>Confirm New Password</label>
+          <div class="pw-wrap">
+            <input type="password" id="cp-confirm" autocomplete="new-password" placeholder="Confirm new password">
+            <button type="button" class="pw-eye" onclick="togglePw('cp-confirm',this)" tabindex="-1" aria-label="Toggle">
+              <svg class="eye-show" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              <svg class="eye-hide" style="display:none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+            </button>
+          </div>
+        </div>
+        <div id="cp-err" style="color:var(--red);font-size:.8rem;display:none;padding:5px 0"></div>
+        <div class="settings-acts">
+          <button class="btn-cancel" onclick="resetSettingsForm()">Cancel</button>
+          <button class="btn-publish" id="cp-submit" onclick="submitChangePassword()">Change Password</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- ══════════════════ ANNOUNCEMENT MODAL ══════════════════ -->
+<div class="overlay" id="form-overlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="modal-title">New Announcement</h3>
+      <button class="btn-close" id="btn-close-form">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="field field-full">
+          <label>Title <span style="color:var(--red)">*</span></label>
+          <input type="text" id="f-title" maxlength="200" placeholder="Announcement title…">
+        </div>
+        <div class="field">
+          <label>Date</label>
+          <input type="date" id="f-date">
+        </div>
+        <div class="field">
+          <label>Category</label>
+          <select id="f-cat">
+            <option>Barangay Assembly</option>
+            <option>Health Program</option>
+            <option>Clean-up Drive</option>
+            <option>Public Advisory</option>
+            <option>Community Event</option>
+            <option>Emergency Notice</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div class="field field-full">
+          <label>Short Description <span style="color:#94a3b8;font-size:.7rem">(shown on cards)</span></label>
+          <textarea id="f-short" rows="2" maxlength="500" placeholder="Brief summary shown on the announcement card…"></textarea>
+        </div>
+        <div class="field field-full">
+          <label>Full Details <span style="color:#94a3b8;font-size:.7rem">(shown when Read More is clicked)</span></label>
+          <textarea id="f-details" rows="5" placeholder="Full announcement text, details, instructions…"></textarea>
+        </div>
+        <div class="field field-full">
+          <label>Image</label>
+          <div class="img-area" id="img-drop-area">
+            <img class="img-preview" id="img-preview" src="" alt="">
+            <div class="img-upload-row">
+              <label class="btn-upload-file" for="f-img-file">Upload Image</label>
+              <input type="file" id="f-img-file" accept=".jpg,.jpeg,.png,.webp" style="display:none">
+              <span style="font-size:.75rem;color:var(--gray)">or choose a default:</span>
+            </div>
+            <div class="img-url-note" id="img-url-note"></div>
+            <div class="img-hint">JPG, PNG, WebP — max 5 MB</div>
+            <div class="default-imgs">
+              <label>Default images:</label>
+              <div class="default-imgs-row">
+                <button type="button" class="di-btn" data-url="assets/images/announcements/announcement-1.jpg"><img src="../assets/images/announcements/announcement-1.jpg" alt="Default 1"></button>
+                <button type="button" class="di-btn" data-url="assets/images/announcements/announcement-2.jpg"><img src="../assets/images/announcements/announcement-2.jpg" alt="Default 2"></button>
+                <button type="button" class="di-btn" data-url="assets/images/announcements/announcement-3.jpg"><img src="../assets/images/announcements/announcement-3.jpg" alt="Default 3"></button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="field">
+          <label>Status</label>
+          <div class="radio-row">
+            <div class="rc"><input type="radio" name="status" id="s-draft" value="draft"><label for="s-draft">Draft</label></div>
+            <div class="rc"><input type="radio" name="status" id="s-pub" value="published"><label for="s-pub">Published</label></div>
+            <div class="rc"><input type="radio" name="status" id="s-hidden" value="hidden"><label for="s-hidden">Hidden</label></div>
+          </div>
+        </div>
+        <div class="field">
+          <label>Featured</label>
+          <div class="radio-row">
+            <div class="rc"><input type="radio" name="featured" id="feat-yes" value="yes"><label for="feat-yes">★ Yes</label></div>
+            <div class="rc"><input type="radio" name="featured" id="feat-no" value="no" checked><label for="feat-no">No</label></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-cancel" id="btn-cancel">Cancel</button>
+      <button class="btn-draft" id="btn-save-draft">Save Draft</button>
+      <button class="btn-publish" id="btn-pub-now">Publish</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ DETAIL MODAL ══════════════════ -->
+<div class="overlay" id="detail-overlay">
+  <div class="modal detail-modal">
+    <div class="modal-head">
+      <h3 id="det-title">Announcement</h3>
+      <button class="btn-close" id="btn-close-detail">✕</button>
+    </div>
+    <div class="modal-body">
+      <img class="detail-img" id="det-img" src="" alt="" style="display:none">
+      <div class="detail-meta" id="det-meta"></div>
+      <div class="detail-body" id="det-body"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ CONFIRM DELETE ══════════════════ -->
+<div class="confirm-overlay" id="confirm-overlay">
+  <div class="confirm-box">
+    <h4 id="confirm-title">Delete announcement?</h4>
+    <p id="confirm-msg">This action cannot be undone.</p>
+    <div class="confirm-acts">
+      <button class="btn-cancel" id="confirm-no">Cancel</button>
+      <button class="btn-del" id="confirm-yes">Delete</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast-wrap"></div>
+
+<script>
+'use strict';
+
+// ── State ──────────────────────────────────────────────────────────────────
+const S = { announcements:[], filter:'all', search:'', editingId:null, imageUrl:'' };
+
+// ── Helpers ────────────────────────────────────────────────────────────────
+const $  = id => document.getElementById(id);
+const esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+function fmtDate(d) {
+  if (!d) return '';
+  try { return new Date(d+'T00:00:00').toLocaleDateString('en-PH',{year:'numeric',month:'long',day:'numeric'}); }
+  catch { return d; }
+}
+
+function toast(msg, type='ok') {
+  const el = document.createElement('div');
+  el.className = 'toast toast-' + type;
+  el.textContent = msg;
+  $('toast-wrap').appendChild(el);
+  setTimeout(() => el.remove(), 3800);
+}
+
+// ── Password eye toggle ────────────────────────────────────────────────────
+function togglePw(id, btn) {
+  const inp = $(id);
+  if (!inp) return;
+  const show = inp.type === 'password';
+  inp.type = show ? 'text' : 'password';
+  if (btn) {
+    btn.querySelector('.eye-show').style.display = show ? 'none' : '';
+    btn.querySelector('.eye-hide').style.display = show ? '' : 'none';
+  }
+  inp.focus();
+}
+
+// ── Password strength ──────────────────────────────────────────────────────
+function checkStrength(pw) {
+  return {
+    len:     pw.length >= 10,
+    upper:   /[A-Z]/.test(pw),
+    lower:   /[a-z]/.test(pw),
+    num:     /[0-9]/.test(pw),
+    special: /[^A-Za-z0-9]/.test(pw),
+  };
+}
+
+function updateStrength(pw, boxId) {
+  const box = $(boxId);
+  if (!box) return;
+  box.classList.add('visible');
+  const r = checkStrength(pw);
+  const pfx = boxId.split('-')[0]; // 'fp' or 'cp'
+  function sr(key, met) {
+    const el = $(pfx+'-r-'+key);
+    if (el) el.classList.toggle('met', met);
+  }
+  sr('len', r.len); sr('upper', r.upper); sr('lower', r.lower);
+  sr('num', r.num); sr('special', r.special);
+}
+
+function allMet(pw) {
+  const r = checkStrength(pw);
+  return r.len && r.upper && r.lower && r.num && r.special;
+}
+
+// ── Auth ───────────────────────────────────────────────────────────────────
+async function init() {
+  try {
+    const r = await fetch('/admin/check');
+    const d = await r.json();
+    if (d.logged_in) showAdmin(d.user, d.fullName, d.forcePasswordChange);
+    else showLogin();
+  } catch { showLogin(); }
+}
+
+function showLogin() {
+  $('login-wrap').style.display = 'flex';
+  $('admin-app').classList.remove('active');
+  $('force-pw-overlay').style.display = 'none';
+  $('inp-user').value = '';
+  $('inp-pass').value = '';
+  $('login-err').style.display = 'none';
+}
+
+function showAdmin(username, fullName, forcePasswordChange) {
+  $('login-wrap').style.display = 'none';
+  $('admin-app').classList.add('active');
+  const display = username || 'admin';
+  $('sidebar-user-name').textContent = display;
+  $('dash-user').textContent = fullName || display;
+  if (forcePasswordChange) {
+    showForcePwChange();
+  } else {
+    $('force-pw-overlay').style.display = 'none';
+    showSection('dashboard');
+    loadAll();
+  }
+}
+
+function showForcePwChange() {
+  $('force-pw-overlay').style.display = 'flex';
+  ['fp-current','fp-new','fp-confirm'].forEach(id => { const e=$(id); if(e) e.value=''; });
+  $('fp-err').style.display = 'none';
+  const box = $('fp-strength');
+  if (box) { box.classList.remove('visible'); }
+  // Reset strength indicators
+  ['fp-r-len','fp-r-upper','fp-r-lower','fp-r-num','fp-r-special'].forEach(id => {
+    const e=$(id); if(e) e.classList.remove('met');
+  });
+  setTimeout(() => { const e=$('fp-current'); if(e) e.focus(); }, 120);
+}
+
+// Login handler
+$('btn-login').onclick = async () => {
+  const btn  = $('btn-login');
+  const err  = $('login-err');
+  const user = $('inp-user').value.trim();
+  const pass = $('inp-pass').value;
+  err.style.display = 'none';
+  if (!user || !pass) { err.textContent='Please enter your username and password.'; err.style.display='block'; return; }
+  btn.disabled=true; btn.textContent='Logging in…';
+  try {
+    const r = await fetch('/admin/login', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({username:user, password:pass})
+    });
+    const d = await r.json();
+    if (d.ok) { showAdmin(d.user, d.fullName, d.forcePasswordChange); }
+    else { err.textContent = d.error || 'Login failed. Please try again.'; err.style.display='block'; }
+  } catch { err.textContent='Connection error. Please try again.'; err.style.display='block'; }
+  finally {
+    btn.disabled=false;
+    btn.textContent = 'Login';
+  }
+};
+$('inp-pass').addEventListener('keydown', e => { if(e.key==='Enter') $('btn-login').click(); });
+$('inp-user').addEventListener('keydown', e => { if(e.key==='Enter') $('inp-pass').focus(); });
+
+$('btn-logout').onclick = async () => {
+  await fetch('/admin/logout', {method:'POST'});
+  showLogin();
+  toast('You have been logged out.', 'info');
+};
+
+// ── Force password change ──────────────────────────────────────────────────
+async function submitForcePwChange() {
+  const btn     = $('fp-submit');
+  const errEl   = $('fp-err');
+  const current = $('fp-current').value;
+  const newPw   = $('fp-new').value;
+  const confirm = $('fp-confirm').value;
+  errEl.style.display = 'none';
+
+  if (!current) { showFpErr('Current password is required.'); return; }
+  if (!newPw)   { showFpErr('New password is required.'); return; }
+  if (!confirm) { showFpErr('Please confirm your new password.'); return; }
+  if (newPw !== confirm) { showFpErr('New password and confirm password do not match.'); return; }
+  if (!allMet(newPw)) { showFpErr('Password does not meet the requirements. Please review the checklist above.'); return; }
+
+  btn.disabled=true; btn.textContent='Saving…';
+  try {
+    const res = await fetch('/admin/api/change-password', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({currentPassword:current, newPassword:newPw, confirmPassword:confirm})
+    });
+    const d = await res.json();
+    if (d.ok) {
+      $('force-pw-overlay').style.display = 'none';
+      toast(d.message || 'Password changed. Please log in with your new password.', 'ok');
+      setTimeout(showLogin, 1400);
+    } else {
+      showFpErr(d.error || 'Password change failed. Please try again.');
+    }
+  } catch { showFpErr('Connection error. Please try again.'); }
+  finally { btn.disabled=false; btn.textContent='Set New Password'; }
+}
+
+function showFpErr(msg) {
+  const el = $('fp-err'); el.textContent=msg; el.style.display='block';
+}
+
+['fp-current','fp-new','fp-confirm'].forEach(id => {
+  const el = $(id);
+  if (el) el.addEventListener('keydown', e => { if(e.key==='Enter') submitForcePwChange(); });
+});
+
+// ── Settings — change password ─────────────────────────────────────────────
+async function submitChangePassword() {
+  const btn     = $('cp-submit');
+  const errEl   = $('cp-err');
+  const current = $('cp-current').value;
+  const newPw   = $('cp-new').value;
+  const confirm = $('cp-confirm').value;
+  errEl.style.display='none';
+
+  if (!current) { showCpErr('Current password is required.'); return; }
+  if (!newPw)   { showCpErr('New password is required.'); return; }
+  if (!confirm) { showCpErr('Please confirm your new password.'); return; }
+  if (newPw !== confirm) { showCpErr('New password and confirm password do not match.'); return; }
+  if (!allMet(newPw)) { showCpErr('Password does not meet the requirements. Please review the checklist above.'); return; }
+
+  btn.disabled=true; btn.textContent='Saving…';
+  try {
+    const res = await fetch('/admin/api/change-password', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({currentPassword:current, newPassword:newPw, confirmPassword:confirm})
+    });
+    const d = await res.json();
+    if (d.ok) {
+      toast(d.message || 'Password changed. Please log in with your new password.', 'ok');
+      resetSettingsForm();
+      setTimeout(showLogin, 1800);
+    } else {
+      showCpErr(d.error || 'Password change failed. Please try again.');
+    }
+  } catch { showCpErr('Connection error. Please try again.'); }
+  finally { btn.disabled=false; btn.textContent='Change Password'; }
+}
+
+function showCpErr(msg) {
+  const el=$('cp-err'); el.textContent=msg; el.style.display='block';
+}
+
+function resetSettingsForm() {
+  ['cp-current','cp-new','cp-confirm'].forEach(id => { const e=$(id); if(e) e.value=''; });
+  $('cp-err').style.display='none';
+  const box=$('cp-strength');
+  if (box) box.classList.remove('visible');
+  ['cp-r-len','cp-r-upper','cp-r-lower','cp-r-num','cp-r-special'].forEach(id => {
+    const e=$(id); if(e) e.classList.remove('met');
+  });
+}
+
+// ── Session monitor (checks every 5 min) ──────────────────────────────────
+function initSessionMonitor() {
+  setInterval(async function() {
+    try {
+      const r = await fetch('/admin/check');
+      if (!r.ok) { showLogin(); return; }
+      const d = await r.json();
+      if (!d.logged_in) {
+        showLogin();
+        toast('Your session has expired. Please log in again.', 'info');
+      }
+    } catch {}
+  }, 5 * 60 * 1000);
+}
+
+// Wrapper for admin API calls — handles 401 (session expired) and 403 (force pw change)
+async function adminFetch(url, opts) {
+  const r = await fetch(url, opts);
+  if (r.status === 401) {
+    showLogin();
+    toast('Session expired. Please log in again.', 'info');
+    throw new Error('unauthorized');
+  }
+  if (r.status === 403) {
+    const d = await r.json().catch(() => ({}));
+    if (d.error === 'password_change_required') {
+      showForcePwChange();
+      throw new Error('password_change_required');
+    }
+    throw new Error('forbidden');
+  }
+  return r;
+}
+
+// ── Nav ────────────────────────────────────────────────────────────────────
+function showSection(name) {
+  ['dashboard','announcements','settings'].forEach(s => {
+    $('sec-'+s).style.display = s===name ? 'block' : 'none';
+  });
+  document.querySelectorAll('.nav-item[data-sec]').forEach(b => {
+    b.classList.toggle('active', b.dataset.sec===name);
+  });
+  if (name==='announcements') renderList();
+  if (name==='settings') resetSettingsForm();
+}
+
+document.querySelectorAll('.nav-item[data-sec]').forEach(b => {
+  b.onclick = () => showSection(b.dataset.sec);
+});
+
+function goAnnouncements(filter) {
+  S.filter = filter;
+  showSection('announcements');
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.f===filter));
+}
+
+// ── Data ───────────────────────────────────────────────────────────────────
+async function loadAll() {
+  try {
+    const r = await adminFetch('/admin/api/announcements');
+    if (!r.ok) return;
+    const d = await r.json();
+    S.announcements = d.announcements || [];
+    updateStats();
+    if ($('sec-announcements').style.display !== 'none') renderList();
+  } catch {}
+}
+
+function updateStats() {
+  const a = S.announcements;
+  $('stat-total').textContent  = a.length;
+  $('stat-pub').textContent    = a.filter(x=>x.status==='published').length;
+  $('stat-draft').textContent  = a.filter(x=>x.status==='draft').length;
+  $('stat-hidden').textContent = a.filter(x=>x.status==='hidden').length;
+}
+
+function renderList() {
+  let items = S.announcements;
+  if (S.filter !== 'all') items = items.filter(a => a.status===S.filter);
+  if (S.search) {
+    const q = S.search.toLowerCase();
+    items = items.filter(a =>
+      (a.title||'').toLowerCase().includes(q) ||
+      (a.category||'').toLowerCase().includes(q) ||
+      (a.shortDescription||'').toLowerCase().includes(q)
+    );
+  }
+  const el = $('ann-list');
+  if (!items.length) {
+    el.innerHTML = `<div class="empty-state"><div class="es-icon">📋</div><h3>No announcements found</h3><p>${S.filter==='all'?'Click "+ New Announcement" to create your first one.':'No '+S.filter+' announcements.'}</p></div>`;
+    return;
+  }
+  el.innerHTML = items.map(a => {
+    const img = a.imageUrl
+      ? `<img class="ann-thumb" src="/${a.imageUrl}" alt="" onerror="this.style.display='none'">`
+      : `<div class="ann-thumb-ph">📋</div>`;
+    return `<div class="ann-card" data-id="${a.id}">
+      ${img}
+      <div class="ann-body">
+        <div class="ann-meta">
+          <span class="badge badge-${a.status}">${a.status}</span>
+          <span class="ann-date">${esc(fmtDate(a.date))}</span>
+          <span class="cat-tag">${esc(a.category)}</span>
+          ${a.featured ? '<span class="feat-tag">★ Featured</span>' : ''}
+        </div>
+        <div class="ann-title">${esc(a.title||'(no title)')}</div>
+        <div class="ann-desc">${esc(a.shortDescription||'')}</div>
+      </div>
+      <div class="ann-actions">
+        <button class="btn-act" onclick="openDetail('${a.id}')">View</button>
+        <button class="btn-act" onclick="openEdit('${a.id}')">Edit</button>
+        <button class="btn-act" onclick="toggleHide('${a.id}','${a.status}')">${a.status==='hidden'?'Show':'Hide'}</button>
+        <button class="btn-act danger" onclick="confirmDel('${a.id}','${esc(a.title||'')}')">Delete</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+$('search-input').addEventListener('input', e => { S.search=e.target.value; renderList(); });
+document.querySelectorAll('.tab').forEach(t => {
+  t.onclick = () => {
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active'); S.filter=t.dataset.f; renderList();
+  };
+});
+$('btn-new').onclick = openNew;
+
+// ── Announcement form ──────────────────────────────────────────────────────
+function resetForm() {
+  S.editingId=null; S.imageUrl='';
+  $('f-title').value=''; $('f-date').value=new Date().toISOString().slice(0,10);
+  $('f-cat').value='Barangay Assembly'; $('f-short').value=''; $('f-details').value='';
+  $('s-draft').checked=true; $('feat-no').checked=true;
+  $('img-preview').style.display='none'; $('img-preview').src='';
+  $('img-url-note').style.display='none'; $('img-url-note').textContent='';
+  document.querySelectorAll('.di-btn').forEach(b=>b.classList.remove('sel'));
+}
+
+function openNew() { resetForm(); $('modal-title').textContent='New Announcement'; $('form-overlay').classList.add('open'); $('f-title').focus(); }
+
+function openEdit(id) {
+  const a = S.announcements.find(x=>x.id===id); if(!a) return;
+  resetForm(); S.editingId=id; S.imageUrl=a.imageUrl||'';
+  $('modal-title').textContent='Edit Announcement';
+  $('f-title').value=a.title||''; $('f-date').value=a.date||'';
+  $('f-cat').value=a.category||'Other';
+  $('f-short').value=a.shortDescription||''; $('f-details').value=a.fullDetails||'';
+  const sEl = document.getElementById('s-'+a.status);
+  if(sEl) sEl.checked=true; else $('s-draft').checked=true;
+  if(a.featured) $('feat-yes').checked=true; else $('feat-no').checked=true;
+  if(a.imageUrl) {
+    $('img-preview').src='/'+a.imageUrl; $('img-preview').style.display='block';
+    $('img-url-note').textContent=a.imageUrl; $('img-url-note').style.display='block';
+    document.querySelectorAll('.di-btn').forEach(b=>b.classList.toggle('sel',b.dataset.url===a.imageUrl));
+  }
+  $('form-overlay').classList.add('open'); $('f-title').focus();
+}
+
+function closeForm() { $('form-overlay').classList.remove('open'); }
+$('btn-close-form').onclick=closeForm;
+$('btn-cancel').onclick=closeForm;
+$('form-overlay').onclick=e=>{ if(e.target===$('form-overlay')) closeForm(); };
+
+$('f-img-file').onchange=async e=>{ const f=e.target.files[0]; if(!f) return; await doUpload(f); e.target.value=''; };
+const dropArea=$('img-drop-area');
+dropArea.addEventListener('dragover',e=>{e.preventDefault();dropArea.classList.add('drag-over');});
+dropArea.addEventListener('dragleave',()=>dropArea.classList.remove('drag-over'));
+dropArea.addEventListener('drop',async e=>{e.preventDefault();dropArea.classList.remove('drag-over');const f=e.dataTransfer.files[0];if(f) await doUpload(f);});
+
+async function doUpload(file) {
+  const form=new FormData(); form.append('image',file);
+  try {
+    const r=await adminFetch('/admin/api/upload',{method:'POST',body:form});
+    const d=await r.json();
+    if(!r.ok){toast(d.error||'Upload failed','err');return;}
+    S.imageUrl=d.url; $('img-preview').src='/'+d.url; $('img-preview').style.display='block';
+    $('img-url-note').textContent=d.url; $('img-url-note').style.display='block';
+    document.querySelectorAll('.di-btn').forEach(b=>b.classList.remove('sel'));
+    toast('Image uploaded','ok');
+  } catch(e){ if(e.message!=='unauthorized') toast('Upload error','err'); }
+}
+
+document.querySelectorAll('.di-btn').forEach(btn=>{
+  btn.onclick=()=>{
+    S.imageUrl=btn.dataset.url;
+    $('img-preview').src='/'+btn.dataset.url; $('img-preview').style.display='block';
+    $('img-url-note').textContent=btn.dataset.url; $('img-url-note').style.display='block';
+    document.querySelectorAll('.di-btn').forEach(b=>b.classList.remove('sel'));
+    btn.classList.add('sel');
+  };
+});
+
+async function saveForm(forceStatus) {
+  const title=$('f-title').value.trim();
+  if(!title){toast('Title is required','err');$('f-title').focus();return;}
+  const status=forceStatus||document.querySelector('input[name="status"]:checked')?.value||'draft';
+  const body={title,date:$('f-date').value,category:$('f-cat').value,shortDescription:$('f-short').value.trim(),fullDetails:$('f-details').value.trim(),imageUrl:S.imageUrl,status,featured:$('feat-yes').checked};
+  const url=S.editingId?`/admin/api/announcements/${S.editingId}`:'/admin/api/announcements';
+  const method=S.editingId?'PUT':'POST';
+  try {
+    const r=await adminFetch(url,{method,headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const d=await r.json();
+    if(!r.ok){toast(d.error||'Save failed','err');return;}
+    closeForm(); await loadAll();
+    toast(S.editingId?'Announcement updated':`Announcement ${status==='published'?'published':'saved as draft'}`,'ok');
+  } catch(e){ if(e.message!=='unauthorized'&&e.message!=='password_change_required') toast('Save error','err'); }
+}
+
+$('btn-save-draft').onclick=()=>saveForm('draft');
+$('btn-pub-now').onclick=()=>saveForm('published');
+
+async function toggleHide(id, cur) {
+  const nxt=cur==='hidden'?'published':'hidden';
+  try {
+    const r=await adminFetch(`/admin/api/announcements/${id}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:nxt})});
+    if(!r.ok){toast('Update failed','err');return;}
+    await loadAll();
+    toast(nxt==='hidden'?'Announcement hidden from public':'Announcement is now visible','ok');
+  } catch(e){ if(e.message!=='unauthorized') toast('Update error','err'); }
+}
+
+let pendingDelId=null;
+function confirmDel(id,title){
+  pendingDelId=id;
+  $('confirm-title').textContent='Delete announcement?';
+  $('confirm-msg').textContent=`"${title}" will be permanently deleted. This cannot be undone.`;
+  $('confirm-overlay').classList.add('open');
+}
+$('confirm-no').onclick=()=>{$('confirm-overlay').classList.remove('open');pendingDelId=null;};
+$('confirm-yes').onclick=async()=>{
+  if(!pendingDelId) return;
+  $('confirm-overlay').classList.remove('open');
+  try {
+    const r=await adminFetch(`/admin/api/announcements/${pendingDelId}`,{method:'DELETE'});
+    if(!r.ok){toast('Delete failed','err');return;}
+    await loadAll(); toast('Announcement deleted','ok');
+  } catch(e){ if(e.message!=='unauthorized') toast('Delete error','err'); }
+  pendingDelId=null;
+};
+
+function openDetail(id){
+  const a=S.announcements.find(x=>x.id===id); if(!a) return;
+  $('det-title').textContent=a.title||'Announcement';
+  const img=$('det-img');
+  if(a.imageUrl){img.src='/'+a.imageUrl;img.style.display='block';}else img.style.display='none';
+  $('det-meta').innerHTML=`<span class="badge badge-${a.status}">${a.status}</span><span class="ann-date">${esc(fmtDate(a.date))}</span><span class="cat-tag">${esc(a.category)}</span>${a.featured?'<span class="feat-tag">★ Featured</span>':''}`;
+  $('det-body').textContent=a.fullDetails||a.shortDescription||'(No details)';
+  $('detail-overlay').classList.add('open');
+}
+$('btn-close-detail').onclick=()=>$('detail-overlay').classList.remove('open');
+$('detail-overlay').onclick=e=>{if(e.target===$('detail-overlay'))$('detail-overlay').classList.remove('open');};
+
+document.addEventListener('keydown', e => {
+  if (e.key==='Escape') {
+    $('form-overlay').classList.remove('open');
+    $('detail-overlay').classList.remove('open');
+    $('confirm-overlay').classList.remove('open');
+    // force-pw-overlay intentionally NOT closeable with Escape
+  }
+});
+
+// ── Boot ───────────────────────────────────────────────────────────────────
+initSessionMonitor();
+init();
+</script>
+</body>
+</html>

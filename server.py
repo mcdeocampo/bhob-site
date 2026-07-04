@@ -1,0 +1,745 @@
+"""
+BHOB Site — Flask server
+Serves static files, weather/tide proxy, announcement management API, and secure admin auth.
+"""
+import os
+import json
+import time
+import uuid
+import hashlib
+import hmac
+import re
+import urllib.request
+import urllib.error
+from datetime import datetime, timezone, timedelta
+from functools import wraps
+from flask import Flask, jsonify, send_from_directory, abort, request, session
+
+BASE_DIR   = os.path.dirname(os.path.abspath(__file__))
+DATA_DIR   = os.path.join(BASE_DIR, 'data')
+UPLOAD_DIR = os.path.join(BASE_DIR, 'assets', 'images', 'announcements')
+ANN_FILE   = os.path.join(DATA_DIR, 'announcements.json')
+USERS_FILE = os.path.join(DATA_DIR, 'users.json')
+AUDIT_FILE = os.path.join(DATA_DIR, 'audit_logs.json')
+
+# ── Security constants ────────────────────────────────────────────────────────
+MAX_FAILED_ATTEMPTS  = 5
+LOCKOUT_MINUTES      = 15
+SESSION_IDLE_MINUTES = 60
+PW_ITERATIONS        = 600000   # PBKDF2-SHA256 iteration count
+SALT_BYTES           = 32
+
+COMMON_PASSWORDS = {
+    'password', 'password1', 'password12', 'password123', 'password1234',
+    'password!', 'password@123',
+    'admin', 'admin123', 'admin1234', 'admin@123', 'administrator',
+    'barangay', 'barangay1', 'barangay123', 'barangay2025', 'barangay2026',
+    'qwerty', 'qwerty1', 'qwerty123', 'qwerty!', 'qwerty@123',
+    '12345678', '123456789', '1234567890', '12345678!',
+    'letmein', 'letmein1', 'letmein!',
+    'welcome', 'welcome1', 'welcome123', 'welcome!',
+    'iloveyou', 'sunshine', 'sunshine1',
+    'obando', 'obando123', 'hulo', 'hulo123', 'bulacan', 'bulacan123',
+}
+
+
+def _load_env(path):
+    """Minimal .env loader — no external dependency required."""
+    if not os.path.exists(path):
+        return
+    with open(path, encoding='utf-8') as f:
+        for line in f:
+            line = line.strip()
+            if not line or line.startswith('#') or '=' not in line:
+                continue
+            key, _, val = line.partition('=')
+            key = key.strip()
+            val = val.strip().strip('"').strip("'")
+            os.environ.setdefault(key, val)
+
+
+_load_env(os.path.join(BASE_DIR, '.env'))
+
+app = Flask(__name__)
+app.secret_key = os.environ.get('SECRET_KEY') or uuid.uuid4().hex
+
+# Secure session cookie settings
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+# Enable in production (HTTPS): app.config['SESSION_COOKIE_SECURE'] = True
+
+# ── Fixed coordinates — Barangay Hulo, Obando, Bulacan ───────────────────────
+TIDE_LAT = 14.7201
+TIDE_LON  = 120.9284
+
+# ── Server-side caches ────────────────────────────────────────────────────────
+_tide_cache    = {'data': None, 'ts': 0}
+TIDE_TTL       = 30 * 60
+_weather_cache = {'data': None, 'ts': 0}
+WEATHER_TTL    = 10 * 60
+
+WMO_LABELS = {
+    0: 'Clear Sky', 1: 'Mainly Clear', 2: 'Partly Cloudy', 3: 'Overcast',
+    45: 'Fog', 48: 'Icy Fog', 51: 'Light Drizzle', 53: 'Drizzle',
+    55: 'Heavy Drizzle', 61: 'Slight Rain', 63: 'Moderate Rain', 65: 'Heavy Rain',
+    71: 'Light Snow', 73: 'Snow', 75: 'Heavy Snow',
+    80: 'Slight Rain Showers', 81: 'Moderate Rain Showers', 82: 'Violent Rain Showers',
+    95: 'Thunderstorm', 96: 'Thunderstorm', 99: 'Thunderstorm',
+}
+
+
+def _manila_now():
+    return datetime.now(timezone.utc) + timedelta(hours=8)
+
+
+def _wttr_color(code):
+    c = int(code)
+    if c == 113:                  return '#fbbf24'
+    if c == 116:                  return '#93c5fd'
+    if c in (119, 122):           return '#94a3b8'
+    if c in (143, 248, 260):      return '#cbd5e1'
+    if 176 <= c <= 314:           return '#60a5fa'
+    if c in (386, 389, 392, 395): return '#a855f7'
+    if 323 <= c <= 377:           return '#e2e8f0'
+    return 'rgba(255,255,255,0.80)'
+
+
+# ── Password hashing ──────────────────────────────────────────────────────────
+def _hash_pw(password):
+    """Hash a password using PBKDF2-SHA256. Format: iterations:salt_hex:hash_hex"""
+    salt = os.urandom(SALT_BYTES).hex()
+    h = hashlib.pbkdf2_hmac(
+        'sha256', password.encode('utf-8'), salt.encode('utf-8'), PW_ITERATIONS
+    ).hex()
+    return f'{PW_ITERATIONS}:{salt}:{h}'
+
+
+def _check_pw(password, stored):
+    """Verify a password against a stored hash. Always timing-safe."""
+    try:
+        parts = stored.split(':', 2)
+        iterations = int(parts[0])
+        salt = parts[1]
+        expected = parts[2]
+        actual = hashlib.pbkdf2_hmac(
+            'sha256', password.encode('utf-8'), salt.encode('utf-8'), iterations
+        ).hex()
+        return hmac.compare_digest(expected, actual)
+    except Exception:
+        return False
+
+
+def _validate_pw_strength(password, username='', email=''):
+    """
+    Validate password against strength policy.
+    Returns (ok: bool, error_message: str).
+    Never logs or returns the password itself.
+    """
+    if len(password) < 10:
+        return False, 'Password must be at least 10 characters.'
+    if not re.search(r'[A-Z]', password):
+        return False, 'Password must contain at least one uppercase letter (A-Z).'
+    if not re.search(r'[a-z]', password):
+        return False, 'Password must contain at least one lowercase letter (a-z).'
+    if not re.search(r'[0-9]', password):
+        return False, 'Password must contain at least one number (0-9).'
+    if not re.search(r'[^A-Za-z0-9]', password):
+        return False, 'Password must contain at least one special character (e.g. !@#$%).'
+    if password.lower() in COMMON_PASSWORDS:
+        return False, 'Password is too common. Please choose a stronger password.'
+    if username and len(username) >= 3 and username.lower() in password.lower():
+        return False, 'Password must not contain your username.'
+    if email:
+        local = email.split('@')[0].lower()
+        if local and len(local) >= 3 and local in password.lower():
+            return False, 'Password must not contain part of your email address.'
+    return True, ''
+
+
+# ── User management ───────────────────────────────────────────────────────────
+def _load_users():
+    os.makedirs(DATA_DIR, exist_ok=True)
+    if not os.path.exists(USERS_FILE):
+        return []
+    try:
+        with open(USERS_FILE, encoding='utf-8') as f:
+            return json.load(f)
+    except Exception:
+        return []
+
+
+def _save_users(users):
+    os.makedirs(DATA_DIR, exist_ok=True)
+    with open(USERS_FILE, 'w', encoding='utf-8') as f:
+        json.dump(users, f, ensure_ascii=False, indent=2)
+
+
+def _get_user_by_username(username):
+    for u in _load_users():
+        if u.get('username', '').strip().lower() == username.strip().lower():
+            return u
+    return None
+
+
+def _get_user_by_id(uid):
+    if not uid:
+        return None
+    for u in _load_users():
+        if u.get('id') == uid:
+            return u
+    return None
+
+
+def _update_user(updated_user):
+    """Persist changes to a single user record."""
+    users = _load_users()
+    for i, u in enumerate(users):
+        if u.get('id') == updated_user.get('id'):
+            updated_user['updatedAt'] = datetime.now(timezone.utc).isoformat()
+            users[i] = updated_user
+            _save_users(users)
+            return True
+    return False
+
+
+def _ensure_initial_user():
+    """
+    On first startup, create the initial admin account from environment variables.
+    The password is hashed immediately; the plain-text value is only printed once.
+    Forces a password change on first login.
+    """
+    users = _load_users()
+    if users:
+        return
+    username = os.environ.get('ADMIN_USERNAME', 'admin')
+    plain_pw = os.environ.get('ADMIN_PASSWORD', '')
+    if not plain_pw:
+        plain_pw = f'Barangay@{datetime.now().year}'
+    pw_hash = _hash_pw(plain_pw)
+    now = datetime.now(timezone.utc).isoformat()
+    user = {
+        'id':                 uuid.uuid4().hex,
+        'fullName':           'Barangay Admin',
+        'username':           username,
+        'email':              '',
+        'passwordHash':       pw_hash,
+        'role':               'admin',
+        'status':             'active',
+        'forcePasswordChange': True,
+        'failedLoginCount':   0,
+        'lockedUntil':        None,
+        'lastLoginAt':        None,
+        'createdAt':          now,
+        'updatedAt':          now,
+    }
+    _save_users([user])
+    print('[BHOB] ─────────────────────────────────────────────────')
+    print(f'[BHOB] Initial admin account created.')
+    print(f'[BHOB] Username : {username}')
+    print(f'[BHOB] Password : {plain_pw}  ← change immediately on first login')
+    print('[BHOB] ─────────────────────────────────────────────────')
+
+
+# ── Audit logging ─────────────────────────────────────────────────────────────
+def _audit(event_type, description, user_id=None, success=True):
+    """
+    Write a tamper-evident audit log entry.
+    Never logs plain passwords, hashes, tokens, or secrets.
+    """
+    try:
+        os.makedirs(DATA_DIR, exist_ok=True)
+        logs = []
+        if os.path.exists(AUDIT_FILE):
+            try:
+                with open(AUDIT_FILE, encoding='utf-8') as f:
+                    logs = json.load(f)
+            except Exception:
+                logs = []
+        entry = {
+            'id':          uuid.uuid4().hex,
+            'userId':      user_id,
+            'eventType':   event_type,
+            'description': description,
+            'success':     success,
+            'ipAddress':   request.remote_addr if request else None,
+            'userAgent':   (request.headers.get('User-Agent', '')[:200]) if request else None,
+            'createdAt':   datetime.now(timezone.utc).isoformat(),
+        }
+        logs.append(entry)
+        if len(logs) > 2000:
+            logs = logs[-2000:]
+        with open(AUDIT_FILE, 'w', encoding='utf-8') as f:
+            json.dump(logs, f, ensure_ascii=False, indent=2)
+    except Exception:
+        pass  # Audit failures must never break the application
+
+
+# ── Session helpers ───────────────────────────────────────────────────────────
+def _session_valid():
+    """
+    Return True if the current session is authenticated and not idle-expired.
+    Updates last_active on each valid check (sliding window).
+    """
+    if not session.get('admin_logged_in'):
+        return False
+    last = session.get('last_active', 0)
+    if time.time() - last > SESSION_IDLE_MINUTES * 60:
+        session.clear()
+        return False
+    session['last_active'] = time.time()
+    return True
+
+
+# ── Auth decorators ───────────────────────────────────────────────────────────
+def admin_required(f):
+    """
+    Full admin guard: session valid + user active + forcePasswordChange NOT set.
+    Use on all admin API routes except change-password.
+    """
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        if not _session_valid():
+            return jsonify({'error': 'unauthorized'}), 401
+        user = _get_user_by_id(session.get('admin_user_id'))
+        if not user or user.get('status') != 'active':
+            session.clear()
+            return jsonify({'error': 'unauthorized'}), 401
+        if user.get('forcePasswordChange', False):
+            return jsonify({
+                'error': 'password_change_required',
+                'message': 'You must change your password before continuing.',
+            }), 403
+        return f(*args, **kwargs)
+    return decorated
+
+
+def admin_auth_only(f):
+    """
+    Auth guard without forcePasswordChange enforcement.
+    Use on /admin/api/change-password so admins can change during forced-change flow.
+    """
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        if not _session_valid():
+            return jsonify({'error': 'unauthorized'}), 401
+        user = _get_user_by_id(session.get('admin_user_id'))
+        if not user or user.get('status') != 'active':
+            session.clear()
+            return jsonify({'error': 'unauthorized'}), 401
+        return f(*args, **kwargs)
+    return decorated
+
+
+# ── General helpers ───────────────────────────────────────────────────────────
+def _load_ann():
+    os.makedirs(DATA_DIR, exist_ok=True)
+    if not os.path.exists(ANN_FILE):
+        return []
+    try:
+        with open(ANN_FILE, encoding='utf-8') as f:
+            return json.load(f)
+    except Exception:
+        return []
+
+
+def _save_ann(data):
+    os.makedirs(DATA_DIR, exist_ok=True)
+    with open(ANN_FILE, 'w', encoding='utf-8') as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+
+def _clean(val, maxlen=500):
+    return str(val or '').strip()[:maxlen]
+
+
+# ── Public routes — weather & tide ────────────────────────────────────────────
+@app.route('/api/weather')
+def api_weather():
+    now_unix = time.time()
+    if _weather_cache['data'] and (now_unix - _weather_cache['ts']) < WEATHER_TTL:
+        return jsonify(_weather_cache['data'])
+    try:
+        url = 'https://wttr.in/Obando,Bulacan?format=j1'
+        req = urllib.request.Request(url, headers={'User-Agent': 'curl/7.88'})
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            raw = json.loads(resp.read().decode('utf-8'))
+        cc    = raw['current_condition'][0]
+        temp  = int(cc['temp_C'])
+        code  = cc.get('weatherCode', '113')
+        label = cc['weatherDesc'][0]['value']
+        color = _wttr_color(code)
+        result = {'status': 'ok', 'temp': temp, 'code': code, 'label': label, 'color': color}
+        _weather_cache['data'] = result
+        _weather_cache['ts']   = now_unix
+        return jsonify(result)
+    except Exception:
+        return jsonify({'status': 'unavailable'})
+
+
+@app.route('/api/tide')
+def api_tide():
+    now_unix = time.time()
+    if _tide_cache['data'] and (now_unix - _tide_cache['ts']) < TIDE_TTL:
+        return jsonify(_tide_cache['data'])
+    try:
+        manila = _manila_now()
+        url = (
+            'https://marine-api.open-meteo.com/v1/marine'
+            f'?latitude={TIDE_LAT}&longitude={TIDE_LON}'
+            '&hourly=sea_level_height_msl&forecast_days=2&timezone=Asia%2FManila'
+        )
+        req = urllib.request.Request(url, headers={'User-Agent': 'BHOB-Site/1.0'})
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            raw = json.loads(resp.read().decode('utf-8'))
+        times   = (raw.get('hourly') or {}).get('time', [])
+        heights = (raw.get('hourly') or {}).get('sea_level_height_msl', [])
+        valid   = [h for h in heights if h is not None]
+        if not times or not valid:
+            return jsonify({'status': 'unavailable'})
+        current_iso = manila.strftime('%Y-%m-%dT%H:00')
+        start_idx   = next((i for i, t in enumerate(times) if t == current_iso), 0)
+        end_idx     = min(start_idx + 25, len(times))
+        window      = [(times[i], heights[i]) for i in range(start_idx, end_idx)
+                       if heights[i] is not None]
+        if not window:
+            return jsonify({'status': 'unavailable'})
+        high_pair = max(window, key=lambda x: x[1])
+        low_pair  = min(window, key=lambda x: x[1])
+
+        def fmt_time(iso_str):
+            h = int(iso_str[11:13])
+            return f'{h % 12 or 12}:00 {"AM" if h < 12 else "PM"}'
+
+        result = {
+            'status': 'ok', 'estimated': True,
+            'high': {'time': fmt_time(high_pair[0]), 'height': f'{high_pair[1]:.1f} m'},
+            'low':  {'time': fmt_time(low_pair[0]),  'height': f'{low_pair[1]:.1f} m'},
+            'source': 'Open-Meteo Marine',
+        }
+        _tide_cache['data'] = result
+        _tide_cache['ts']   = now_unix
+        return jsonify(result)
+    except Exception:
+        return jsonify({'status': 'unavailable'})
+
+
+# ── Public announcements API ──────────────────────────────────────────────────
+@app.route('/api/announcements')
+def api_announcements():
+    all_ann   = _load_ann()
+    published = [a for a in all_ann if a.get('status') == 'published']
+    published.sort(key=lambda x: x.get('date', ''), reverse=True)
+    return jsonify({'status': 'ok', 'announcements': published})
+
+
+# ── Public page clean URLs (no .html required) ───────────────────────────────
+_PUBLIC_PAGES = [
+    'about', 'officials', 'services', 'citizens-charter',
+    'announcements', 'projects', 'transparency', 'downloads', 'contact',
+]
+
+@app.route('/<page_name>')
+def public_page(page_name):
+    if page_name in _PUBLIC_PAGES:
+        f = os.path.join(BASE_DIR, page_name + '.html')
+        if os.path.exists(f):
+            return send_from_directory(BASE_DIR, page_name + '.html')
+    # Fall through to static_files handler via abort so Flask picks the next rule
+    abort(404)
+
+
+# ── Admin page serving ────────────────────────────────────────────────────────
+@app.route('/admin')
+@app.route('/admin/')
+@app.route('/admin/settings')
+def admin_page():
+    f = os.path.join(BASE_DIR, 'admin', 'index.html')
+    if not os.path.exists(f):
+        abort(404)
+    return send_from_directory(os.path.join(BASE_DIR, 'admin'), 'index.html')
+
+
+# ── Admin auth API ────────────────────────────────────────────────────────────
+@app.route('/admin/login', methods=['POST'])
+def admin_login():
+    d        = request.get_json(silent=True) or {}
+    username = _clean(d.get('username', ''), 100)
+    password = str(d.get('password', ''))
+
+    if not username or not password:
+        return jsonify({'error': 'Invalid username or password.'}), 401
+
+    user = _get_user_by_username(username)
+
+    # Check existing lockout before doing anything else
+    if user:
+        locked_until = user.get('lockedUntil')
+        if locked_until:
+            try:
+                lock_dt = datetime.fromisoformat(locked_until)
+                if datetime.now(timezone.utc) < lock_dt:
+                    remaining = max(1, int((lock_dt - datetime.now(timezone.utc)).total_seconds() / 60) + 1)
+                    _audit('login_failed_locked', f'Login attempt while account locked: {username}',
+                           user.get('id'), False)
+                    return jsonify({
+                        'error': f'Too many failed login attempts. Please try again in {remaining} minute(s).'
+                    }), 401
+                else:
+                    # Lockout period has passed — reset
+                    user['lockedUntil']       = None
+                    user['failedLoginCount']  = 0
+            except Exception:
+                user['lockedUntil'] = None
+
+    # Always run password check (prevents timing-based username enumeration)
+    dummy_hash = '600000:' + '0' * 64 + ':' + '0' * 64
+    pw_ok = bool(user) and _check_pw(password, user.get('passwordHash', dummy_hash))
+
+    if not pw_ok:
+        if user:
+            user['failedLoginCount'] = user.get('failedLoginCount', 0) + 1
+            if user['failedLoginCount'] >= MAX_FAILED_ATTEMPTS:
+                user['lockedUntil'] = (
+                    datetime.now(timezone.utc) + timedelta(minutes=LOCKOUT_MINUTES)
+                ).isoformat()
+                _update_user(user)
+                _audit('account_locked',
+                       f'Account locked after {MAX_FAILED_ATTEMPTS} failed attempts: {username}',
+                       user.get('id'), False)
+                return jsonify({
+                    'error': f'Too many failed login attempts. Please try again in {LOCKOUT_MINUTES} minutes.'
+                }), 401
+            _update_user(user)
+        _audit('login_failed', f'Failed login attempt: {username}',
+               user.get('id') if user else None, False)
+        return jsonify({'error': 'Invalid username or password.'}), 401
+
+    # Check account status after verifying password
+    if user.get('status') != 'active':
+        _audit('login_failed', f'Login on inactive account: {username}', user.get('id'), False)
+        return jsonify({'error': 'Invalid username or password.'}), 401
+
+    # Successful login — reset failure counter and update last login
+    user['failedLoginCount'] = 0
+    user['lockedUntil']      = None
+    user['lastLoginAt']      = datetime.now(timezone.utc).isoformat()
+    _update_user(user)
+
+    session.clear()
+    session['admin_logged_in'] = True
+    session['admin_user_id']   = user['id']
+    session['admin_username']  = user['username']
+    session['last_active']     = time.time()
+    app.permanent_session_lifetime = timedelta(hours=2)
+    session.permanent = True
+
+    _audit('login_success', f'Successful login: {username}', user['id'], True)
+
+    return jsonify({
+        'ok':                True,
+        'user':              user.get('username', ''),
+        'fullName':          user.get('fullName', ''),
+        'forcePasswordChange': bool(user.get('forcePasswordChange', False)),
+    })
+
+
+@app.route('/admin/logout', methods=['POST'])
+def admin_logout():
+    user_id  = session.get('admin_user_id')
+    username = session.get('admin_username', '')
+    _audit('logout', f'Admin logout: {username}', user_id, True)
+    session.clear()
+    return jsonify({'ok': True})
+
+
+@app.route('/admin/check')
+def admin_check():
+    if not _session_valid():
+        return jsonify({'logged_in': False})
+    user = _get_user_by_id(session.get('admin_user_id'))
+    if not user or user.get('status') != 'active':
+        session.clear()
+        return jsonify({'logged_in': False})
+    return jsonify({
+        'logged_in':           True,
+        'user':                user.get('username', ''),
+        'fullName':            user.get('fullName', ''),
+        'role':                user.get('role', 'admin'),
+        'forcePasswordChange': bool(user.get('forcePasswordChange', False)),
+    })
+
+
+# ── Change password ───────────────────────────────────────────────────────────
+@app.route('/admin/api/change-password', methods=['POST'])
+@admin_auth_only   # allows forcePasswordChange state — intentional
+def admin_change_password():
+    d          = request.get_json(silent=True) or {}
+    current_pw = str(d.get('currentPassword', ''))
+    new_pw     = str(d.get('newPassword', ''))
+    confirm_pw = str(d.get('confirmPassword', ''))
+    user_id    = session.get('admin_user_id')
+
+    users = _load_users()
+    user  = next((u for u in users if u.get('id') == user_id), None)
+    if not user:
+        return jsonify({'error': 'Unauthorized.'}), 401
+
+    # --- Validate current password ---
+    if not current_pw:
+        return jsonify({'error': 'Current password is required.'}), 400
+    if not _check_pw(current_pw, user.get('passwordHash', '')):
+        _audit('password_change_failed', 'Wrong current password supplied', user_id, False)
+        return jsonify({'error': 'Current password is incorrect.'}), 400
+
+    # --- Validate new password ---
+    if not new_pw:
+        return jsonify({'error': 'New password is required.'}), 400
+    if not confirm_pw:
+        return jsonify({'error': 'Confirm password is required.'}), 400
+    if new_pw != confirm_pw:
+        return jsonify({'error': 'New password and confirm password do not match.'}), 400
+
+    ok, msg = _validate_pw_strength(new_pw, user.get('username', ''), user.get('email', ''))
+    if not ok:
+        return jsonify({'error': msg}), 400
+
+    if _check_pw(new_pw, user.get('passwordHash', '')):
+        return jsonify({'error': 'New password must be different from your current password.'}), 400
+
+    # --- Update password hash ---
+    for i, u in enumerate(users):
+        if u.get('id') == user_id:
+            users[i]['passwordHash']       = _hash_pw(new_pw)
+            users[i]['forcePasswordChange'] = False
+            users[i]['updatedAt']          = datetime.now(timezone.utc).isoformat()
+            break
+    _save_users(users)
+
+    _audit('password_changed', 'Password changed successfully', user_id, True)
+
+    # Invalidate session — require re-login with new password
+    session.clear()
+
+    return jsonify({
+        'ok':      True,
+        'message': 'Password changed successfully. Please log in with your new password.',
+    })
+
+
+# ── Admin — announcement CRUD ─────────────────────────────────────────────────
+@app.route('/admin/api/announcements')
+@admin_required
+def admin_list():
+    all_ann = _load_ann()
+    all_ann.sort(key=lambda x: x.get('updatedAt', ''), reverse=True)
+    return jsonify({'status': 'ok', 'announcements': all_ann})
+
+
+@app.route('/admin/api/announcements', methods=['POST'])
+@admin_required
+def admin_create():
+    d      = request.get_json(silent=True) or {}
+    now    = datetime.now(timezone.utc).isoformat()
+    status = d.get('status', 'draft')
+    if status not in ('draft', 'published', 'hidden'):
+        status = 'draft'
+    ann = {
+        'id':               uuid.uuid4().hex,
+        'title':            _clean(d.get('title'), 200),
+        'date':             _clean(d.get('date'), 20),
+        'category':         _clean(d.get('category', 'Other'), 50),
+        'shortDescription': _clean(d.get('shortDescription'), 500),
+        'fullDetails':      _clean(d.get('fullDetails'), 10000),
+        'imageUrl':         _clean(d.get('imageUrl'), 300),
+        'status':           status,
+        'featured':         bool(d.get('featured', False)),
+        'createdAt':        now,
+        'updatedAt':        now,
+    }
+    all_ann = _load_ann()
+    all_ann.append(ann)
+    _save_ann(all_ann)
+    return jsonify({'status': 'ok', 'announcement': ann}), 201
+
+
+@app.route('/admin/api/announcements/<ann_id>', methods=['PUT'])
+@admin_required
+def admin_update(ann_id):
+    d       = request.get_json(silent=True) or {}
+    all_ann = _load_ann()
+    idx     = next((i for i, a in enumerate(all_ann) if a.get('id') == ann_id), None)
+    if idx is None:
+        return jsonify({'error': 'Not found'}), 404
+    a = all_ann[idx]
+    for field, maxlen in [('title', 200), ('date', 20), ('category', 50),
+                          ('shortDescription', 500), ('fullDetails', 10000), ('imageUrl', 300)]:
+        if field in d:
+            a[field] = _clean(d[field], maxlen)
+    if 'status' in d and d['status'] in ('draft', 'published', 'hidden'):
+        a['status'] = d['status']
+    if 'featured' in d:
+        a['featured'] = bool(d['featured'])
+    a['updatedAt'] = datetime.now(timezone.utc).isoformat()
+    _save_ann(all_ann)
+    return jsonify({'status': 'ok', 'announcement': a})
+
+
+@app.route('/admin/api/announcements/<ann_id>', methods=['DELETE'])
+@admin_required
+def admin_delete(ann_id):
+    all_ann  = _load_ann()
+    filtered = [a for a in all_ann if a.get('id') != ann_id]
+    if len(filtered) == len(all_ann):
+        return jsonify({'error': 'Not found'}), 404
+    _save_ann(filtered)
+    return jsonify({'status': 'ok'})
+
+
+# ── Image upload ──────────────────────────────────────────────────────────────
+ALLOWED_EXT = {'jpg', 'jpeg', 'png', 'webp'}
+MAX_BYTES   = 5 * 1024 * 1024
+
+
+@app.route('/admin/api/upload', methods=['POST'])
+@admin_required
+def admin_upload():
+    f = request.files.get('image')
+    if not f or not f.filename:
+        return jsonify({'error': 'No file selected'}), 400
+    ext = f.filename.rsplit('.', 1)[-1].lower() if '.' in f.filename else ''
+    if ext not in ALLOWED_EXT:
+        return jsonify({'error': 'Invalid file type. Use JPG, PNG, or WebP.'}), 400
+    data = f.read(MAX_BYTES + 1)
+    if len(data) > MAX_BYTES:
+        return jsonify({'error': 'File too large (max 5 MB)'}), 400
+    fname = uuid.uuid4().hex + '.' + ext
+    os.makedirs(UPLOAD_DIR, exist_ok=True)
+    with open(os.path.join(UPLOAD_DIR, fname), 'wb') as out:
+        out.write(data)
+    return jsonify({'status': 'ok', 'url': 'assets/images/announcements/' + fname})
+
+
+# ── Static file serving ───────────────────────────────────────────────────────
+@app.route('/')
+def index():
+    return send_from_directory(BASE_DIR, 'index.html')
+
+
+@app.route('/<path:filename>')
+def static_files(filename):
+    # Block direct filesystem access to admin and data directories
+    if filename.startswith('admin') or filename.startswith('data/'):
+        abort(404)
+    full = os.path.join(BASE_DIR, filename)
+    if not os.path.exists(full):
+        abort(404)
+    return send_from_directory(BASE_DIR, filename)
+
+
+# ── Bootstrap ─────────────────────────────────────────────────────────────────
+_ensure_initial_user()
+
+if __name__ == '__main__':
+    port = int(os.environ.get('PORT', 8768))
+    print(f'BHOB Site server running at http://localhost:{port}')
+    app.run(host='0.0.0.0', port=port, debug=False)

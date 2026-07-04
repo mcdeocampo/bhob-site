@@ -1,0 +1,82 @@
+[
+  {
+    "id": "c375b74e9352415aba29920c54e4cc9c",
+    "userId": "ae15c1f981224c2eb9bcdb7cc9cc0b46",
+    "eventType": "login_success",
+    "description": "Successful login: admin",
+    "success": true,
+    "ipAddress": "127.0.0.1",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Claude/1.18286.0 Chrome/148.0.7778.271 Electron/42.5.1 Safari/537.36 MSIX",
+    "createdAt": "2026-07-04T07:47:03.735297+00:00"
+  },
+  {
+    "id": "39309edaabd541f391e65099a30f4686",
+    "userId": "ae15c1f981224c2eb9bcdb7cc9cc0b46",
+    "eventType": "password_changed",
+    "description": "Password changed successfully",
+    "success": true,
+    "ipAddress": "127.0.0.1",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Claude/1.18286.0 Chrome/148.0.7778.271 Electron/42.5.1 Safari/537.36 MSIX",
+    "createdAt": "2026-07-04T07:47:59.236620+00:00"
+  },
+  {
+    "id": "da38c4956cdf4e708a4d8c4c0c03a6d2",
+    "userId": "ae15c1f981224c2eb9bcdb7cc9cc0b46",
+    "eventType": "login_success",
+    "description": "Successful login: admin",
+    "success": true,
+    "ipAddress": "127.0.0.1",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Claude/1.18286.0 Chrome/148.0.7778.271 Electron/42.5.1 Safari/537.36 MSIX",
+    "createdAt": "2026-07-04T07:52:25.804027+00:00"
+  },
+  {
+    "id": "e0f2a3fabf3741f59fd9023efc94a6d0",
+    "userId": "ae15c1f981224c2eb9bcdb7cc9cc0b46",
+    "eventType": "login_success",
+    "description": "Successful login: admin",
+    "success": true,
+    "ipAddress": "127.0.0.1",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
+    "createdAt": "2026-07-04T07:54:48.157006+00:00"
+  },
+  {
+    "id": "b33bb56fd2454d6b8cc89da6ad3ab867",
+    "userId": "ae15c1f981224c2eb9bcdb7cc9cc0b46",
+    "eventType": "logout",
+    "description": "Admin logout: admin",
+    "success": true,
+    "ipAddress": "127.0.0.1",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Claude/1.18286.0 Chrome/148.0.7778.271 Electron/42.5.1 Safari/537.36 MSIX",
+    "createdAt": "2026-07-04T07:55:30.739942+00:00"
+  },
+  {
+    "id": "568330a571f64a6cbd69e55b90144918",
+    "userId": "ae15c1f981224c2eb9bcdb7cc9cc0b46",
+    "eventType": "login_success",
+    "description": "Successful login: admin",
+    "success": true,
+    "ipAddress": "127.0.0.1",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Claude/1.18286.0 Chrome/148.0.7778.271 Electron/42.5.1 Safari/537.36 MSIX",
+    "createdAt": "2026-07-04T07:56:11.001929+00:00"
+  },
+  {
+    "id": "5479f84bd70746c19040045642f40c43",
+    "userId": "ae15c1f981224c2eb9bcdb7cc9cc0b46",
+    "eventType": "logout",
+    "description": "Admin logout: admin",
+    "success": true,
+    "ipAddress": "127.0.0.1",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
+    "createdAt": "2026-07-04T07:56:32.512869+00:00"
+  },
+  {
+    "id": "e3e4ba1e4a9b424c835766d3547e485f",
+    "userId": "ae15c1f981224c2eb9bcdb7cc9cc0b46",
+    "eventType": "logout",
+    "description": "Admin logout: admin",
+    "success": true,
+    "ipAddress": "127.0.0.1",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Claude/1.18286.0 Chrome/148.0.7778.271 Electron/42.5.1 Safari/537.36 MSIX",
+    "createdAt": "2026-07-04T07:58:36.596383+00:00"
+  }
+]

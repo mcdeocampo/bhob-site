@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Read the latest announcements, advisories, events, programs, and public updates from Barangay Hulo, Obando, Bulacan.">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Announcements | Barangay Hulo">
+  <meta property="og:description" content="Read the latest announcements, advisories, events, programs, and public updates from Barangay Hulo, Obando, Bulacan.">
+  <meta property="og:image" content="assets/images/logo.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Announcements | Barangay Hulo">
+  <meta name="twitter:description" content="Read the latest announcements, advisories, events, programs, and public updates from Barangay Hulo, Obando, Bulacan.">
+  <meta name="twitter:image" content="assets/images/logo.png">
+  <link rel="canonical" href="https://huloobando.gov.ph/announcements.html">
+  <title>Barangay Hulo | Obando, Bulacan</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/logo.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="assets/images/logo.png">
+  <link rel="apple-touch-icon" href="assets/images/logo.png">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body data-page="announcements.html">
+  <header class="site-header" id="top">
+    <nav class="navbar container" aria-label="Main Navigation">
+      <a href="index.html" class="brand" aria-label="Barangay Hulo Home">
+        <img src="assets/images/logo.png" alt="Barangay Hulo Logo">
+        <span><strong>Barangay Hulo</strong><small>Obando, Bulacan</small></span>
+      </a>
+      <button class="menu-toggle" aria-label="Open navigation menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+      <div class="nav-menu">
+        <a href="index.html" class="nav-link" data-page="index.html">Home</a>
+<a href="about.html" class="nav-link" data-page="about.html">About Us</a>
+<a href="officials.html" class="nav-link" data-page="officials.html">Officials</a>
+<a href="services.html" class="nav-link" data-page="services.html">Public Services</a>
+<a href="citizens-charter.html" class="nav-link" data-page="citizens-charter.html">Service Standards</a>
+<a href="announcements.html" class="nav-link" data-page="announcements.html">Announcements</a>
+<a href="projects.html" class="nav-link" data-page="projects.html">Community Initiatives</a>
+<!-- TEMP HIDDEN: <a href="transparency.html" class="nav-link" data-page="transparency.html">Transparency</a> -->
+<!-- TEMP HIDDEN: <a href="downloads.html" class="nav-link" data-page="downloads.html">Downloads</a> -->
+<a href="contact.html" class="nav-link nav-contact" data-page="contact.html">Contact Us</a>
+      </div>
+    </nav>
+  </header>
+  <main><section class="page-hero section-pad-sm">
+      <div class="container reveal">
+        <span class="eyebrow">Barangay Updates</span>
+        <h1>Announcements</h1>
+        <p>Community events, cleanup drives, health programs, public advisories, and important schedules.</p>
+      </div>
+    </section><section class="section-pad">
+    <div class="container">
+      <div id="ann-grid" class="card-grid three">
+        <p style="color:#64748b;font-size:.95rem;grid-column:1/-1;text-align:center;padding:40px 0">Loading announcements…</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Read More modal -->
+  <div id="ann-modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:900;align-items:center;justify-content:center;padding:16px">
+    <div style="background:#fff;border-radius:14px;max-width:640px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.25)">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 22px 14px;border-bottom:1px solid #e2e8f0;position:sticky;top:0;background:#fff;z-index:1">
+        <h3 id="ann-modal-title" style="font-size:1.05rem;font-weight:700;color:#1e293b;margin:0"></h3>
+        <button id="ann-modal-close" aria-label="Close" style="background:none;border:none;font-size:1.3rem;color:#64748b;cursor:pointer;padding:4px 8px;line-height:1;border-radius:4px">✕</button>
+      </div>
+      <div style="padding:20px 22px">
+        <img id="ann-modal-img" src="" alt="" style="width:100%;max-height:240px;object-fit:cover;border-radius:8px;display:none;margin-bottom:16px">
+        <div id="ann-modal-meta" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:center"></div>
+        <p id="ann-modal-body" style="font-size:.9rem;color:#1e293b;line-height:1.75;white-space:pre-wrap;margin:0"></p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  (function() {
+    var DEFAULT_IMG = 'assets/images/announcements/announcement-1.jpg';
+    var CATS = ['announcement-1','announcement-2','announcement-3'];
+
+    function fmtDate(d) {
+      if (!d) return '';
+      try { return new Date(d+'T00:00:00').toLocaleDateString('en-PH',{year:'numeric',month:'long',day:'numeric'}); }
+      catch(e) { return d; }
+    }
+
+    function openModal(a) {
+      document.getElementById('ann-modal-title').textContent = a.title || '';
+      var img = document.getElementById('ann-modal-img');
+      if (a.imageUrl) { img.src = '/' + a.imageUrl; img.style.display = 'block'; }
+      else img.style.display = 'none';
+      var meta = document.getElementById('ann-modal-meta');
+      meta.innerHTML = '<span style="font-size:.75rem;color:#64748b">' + fmtDate(a.date) + '</span>'
+        + (a.category ? '<span style="font-size:.7rem;color:#2563eb;background:rgba(37,99,235,.08);padding:2px 9px;border-radius:10px;font-weight:500">' + a.category + '</span>' : '');
+      document.getElementById('ann-modal-body').textContent = a.fullDetails || a.shortDescription || '';
+      var ov = document.getElementById('ann-modal-overlay');
+      ov.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal() {
+      document.getElementById('ann-modal-overlay').style.display = 'none';
+      document.body.style.overflow = '';
+    }
+
+    document.getElementById('ann-modal-close').onclick = closeModal;
+    document.getElementById('ann-modal-overlay').onclick = function(e) {
+      if (e.target === this) closeModal();
+    };
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') closeModal();
+    });
+
+    function render(announcements) {
+      var grid = document.getElementById('ann-grid');
+      if (!announcements || !announcements.length) {
+        grid.innerHTML = '<p style="color:#64748b;font-size:.95rem;grid-column:1/-1;text-align:center;padding:60px 0">No announcements available at this time.</p>';
+        return;
+      }
+      grid.innerHTML = announcements.map(function(a, i) {
+        var imgSrc = a.imageUrl ? '/' + a.imageUrl : ('assets/images/announcements/' + CATS[i % 3] + '.jpg');
+        var safeTitle = (a.title||'').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        var safeDesc  = (a.shortDescription||'').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        return '<article class="image-card reveal">'
+          + '<img src="' + imgSrc + '" alt="' + safeTitle + '" onerror="this.src=\'assets/images/announcements/announcement-1.jpg\'">'
+          + '<div>'
+          + '<span class="date">' + fmtDate(a.date) + '</span>'
+          + '<h3>' + safeTitle + '</h3>'
+          + '<p>' + safeDesc + '</p>'
+          + '<button class="text-link" onclick="window.__openAnnModal(' + i + ')" style="background:none;border:none;padding:0;cursor:pointer;font-family:inherit">Read More →</button>'
+          + '</div></article>';
+      }).join('');
+
+      window.__annData = announcements;
+      window.__openAnnModal = function(idx) { openModal(announcements[idx]); };
+
+      // trigger reveal animation for newly added cards
+      if (window.revealObserver) {
+        document.querySelectorAll('#ann-grid .reveal').forEach(function(el) {
+          window.revealObserver.observe(el);
+        });
+      }
+    }
+
+    var grid = document.getElementById('ann-grid');
+
+    fetch('/api/announcements')
+      .then(function(r) {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.json();
+      })
+      .then(function(d) {
+        try {
+          render(d.announcements || []);
+        } catch(renderErr) {
+          console.error('Render error:', renderErr);
+          grid.innerHTML = '<p style="color:#64748b;font-size:.95rem;grid-column:1/-1;text-align:center;padding:60px 0">No announcements available at this time.</p>';
+        }
+      })
+      .catch(function(err) {
+        console.error('Announcements fetch failed:', err);
+        grid.innerHTML = '<p style="color:#64748b;font-size:.95rem;grid-column:1/-1;text-align:center;padding:60px 0">Unable to load announcements. Please try again later.</p>';
+      });
+  })();
+  </script>  </main>
+  <footer class="site-footer">
+    <div class="container footer-grid">
+      <div>
+        <div class="footer-brand"><img src="assets/images/logo.png" alt="Barangay Hulo Logo"><strong>Barangay Hulo</strong></div>
+        <p>Serving residents of Barangay Hulo, Obando, Bulacan through accessible, transparent, and community-centered public service.</p>
+      </div>
+      <div>
+        <h3>Contact Information</h3>
+        <p>Barangay Hall, Hulo, Obando, Bulacan<br>Phone: 02 8741 2573<br>Email: <span class="footer-email">contact@huloobando.gov.ph</span></p>
+      </div>
+      <div>
+        <h3>Quick Links</h3>
+        <ul class="footer-links"><li><a href="index.html">Home</a></li><li><a href="about.html">About Us</a></li><li><a href="officials.html">Officials</a></li><li><a href="services.html">Public Services</a></li><li><a href="citizens-charter.html">Service Standards</a></li><li><a href="announcements.html">Announcements</a></li></ul>
+      </div></div>
+    <div class="footer-bottom">© 2026 Barangay Hulo, Obando, Bulacan. All Rights Reserved.</div>
+  </footer>
+  <button class="back-to-top" aria-label="Back to top">↑</button>
+  <script src="assets/js/main.js"></script>
+</body>
+</html>

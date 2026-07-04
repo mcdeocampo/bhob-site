@@ -1,0 +1,80 @@
+[
+  {
+    "id": "ann_seed_001",
+    "title": "Barangay Assembly Schedule",
+    "date": "2026-06-30",
+    "category": "Barangay Assembly",
+    "shortDescription": "Residents are encouraged to attend and participate in the barangay assembly.",
+    "fullDetails": "All residents of Barangay Hulo, Obando, Bulacan are encouraged to attend the upcoming Barangay Assembly. This assembly provides an opportunity for residents to participate in local governance, raise concerns, and stay informed about barangay programs and developments. The assembly will be held at the Barangay Hall. Attendance of all household heads is highly encouraged.",
+    "imageUrl": "assets/images/announcements/announcement-1.jpg",
+    "status": "published",
+    "featured": true,
+    "createdAt": "2026-06-20T00:00:00+00:00",
+    "updatedAt": "2026-06-20T00:00:00+00:00"
+  },
+  {
+    "id": "ann_seed_002",
+    "title": "Community Clean-up Drive",
+    "date": "2026-07-05",
+    "category": "Clean-up Drive",
+    "shortDescription": "Join the cleanup activity to help keep Barangay Hulo safe and beautiful.",
+    "fullDetails": "Barangay Hulo is organizing a community-wide clean-up drive. All residents are encouraged to participate in keeping our community clean and healthy. Volunteers should bring their own cleaning materials such as gloves, brooms, and trash bags. The barangay will provide additional supplies. Let us work together to maintain the cleanliness and beauty of our barangay.",
+    "imageUrl": "assets/images/announcements/announcement-2.jpg",
+    "status": "published",
+    "featured": false,
+    "createdAt": "2026-06-25T00:00:00+00:00",
+    "updatedAt": "2026-06-25T00:00:00+00:00"
+  },
+  {
+    "id": "ann_seed_003",
+    "title": "Health and Wellness Program",
+    "date": "2026-07-12",
+    "category": "Health Program",
+    "shortDescription": "Free basic health checks and wellness information for residents.",
+    "fullDetails": "The Barangay Health Center will be conducting a free Health and Wellness Program for all residents. Services include blood pressure monitoring, blood sugar testing, BMI assessment, and health consultations. Medicines will also be available for qualified residents. Please bring your barangay ID or any valid government ID. This service is free of charge for all Barangay Hulo residents.",
+    "imageUrl": "assets/images/announcements/announcement-3.jpg",
+    "status": "published",
+    "featured": false,
+    "createdAt": "2026-07-01T00:00:00+00:00",
+    "updatedAt": "2026-07-01T00:00:00+00:00"
+  },
+  {
+    "id": "ann_seed_004",
+    "title": "Disaster Preparedness Update",
+    "date": "2026-07-20",
+    "category": "Public Advisory",
+    "shortDescription": "Preparedness reminders for rainy season and emergency response.",
+    "fullDetails": "With the rainy season underway, the Barangay Disaster Risk Reduction and Management Council (BDRRMC) reminds all residents to be prepared for potential flooding and strong winds. Please keep emergency hotlines saved, prepare emergency kits with food and medicine, and know your nearest evacuation center. Report any hazardous conditions to the barangay immediately.",
+    "imageUrl": "assets/images/announcements/announcement-1.jpg",
+    "status": "published",
+    "featured": false,
+    "createdAt": "2026-07-10T00:00:00+00:00",
+    "updatedAt": "2026-07-10T00:00:00+00:00"
+  },
+  {
+    "id": "ann_seed_005",
+    "title": "Public Advisory on Local Ordinances",
+    "date": "2026-07-25",
+    "category": "Public Advisory",
+    "shortDescription": "Important reminders and local ordinance updates for the community.",
+    "fullDetails": "The Barangay Council reminds all residents to comply with local ordinances. This includes proper waste segregation and disposal, observing curfew hours for minors, responsible pet ownership, and noise regulation. Residents are encouraged to report violations to the Barangay Hall. Cooperation from all residents ensures a peaceful and orderly community.",
+    "imageUrl": "assets/images/announcements/announcement-2.jpg",
+    "status": "published",
+    "featured": false,
+    "createdAt": "2026-07-15T00:00:00+00:00",
+    "updatedAt": "2026-07-15T00:00:00+00:00"
+  },
+  {
+    "id": "ann_seed_006",
+    "title": "Community Event — August Festival",
+    "date": "2026-08-01",
+    "category": "Community Event",
+    "shortDescription": "Upcoming celebration for residents and families of Barangay Hulo.",
+    "fullDetails": "Barangay Hulo invites all residents and their families to join the upcoming community celebration. There will be cultural performances, games for children, food stalls, and a program recognizing outstanding residents and senior citizens. This is a free event open to all. Let us come together and celebrate our community spirit!",
+    "imageUrl": "assets/images/announcements/announcement-3.jpg",
+    "status": "published",
+    "featured": true,
+    "createdAt": "2026-07-20T00:00:00+00:00",
+    "updatedAt": "2026-07-20T00:00:00+00:00"
+  }
+]
