@@ -323,6 +323,26 @@ a{text-decoration:none;color:inherit}
 .toast-info{background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe}
 @keyframes toastIn{from{transform:translateY(12px);opacity:0}to{transform:none;opacity:1}}
 
+/* ─── DRAG & ORDER ───────────────────────────────────────── */
+.drag-handle{cursor:grab;color:#cbd5e1;padding:0 8px 0 0;flex-shrink:0;
+  display:flex;align-items:center;font-size:1.05rem;user-select:none;line-height:1;
+  touch-action:none}
+.drag-handle:hover{color:#94a3b8}
+.drag-handle:active{cursor:grabbing}
+.ann-card.dragging{opacity:.35;border-style:dashed}
+.ann-card.drag-over-card{border-color:var(--blue);background:#eff6ff;border-top:2px solid var(--blue)}
+.order-badge{font-size:.65rem;color:#94a3b8;font-weight:600;min-width:18px;
+  text-align:center;flex-shrink:0;line-height:1;padding-top:2px}
+.save-order-bar{display:none;align-items:center;justify-content:space-between;gap:12px;
+  background:#eff6ff;border:1px solid #bfdbfe;border-radius:var(--radius);
+  padding:9px 14px;margin-bottom:12px}
+.save-order-bar.visible{display:flex}
+.save-order-bar p{font-size:.79rem;color:#1d4ed8;margin:0}
+.btn-save-order{padding:6px 16px;background:var(--blue);color:#fff;border:none;
+  border-radius:var(--radius);font-size:.79rem;font-weight:600;white-space:nowrap;
+  transition:background .15s}
+.btn-save-order:hover{background:var(--blue-hover)}
+
 /* ─── RESPONSIVE ─────────────────────────────────────────── */
 @media(max-width:900px){.sidebar{width:200px}.form-grid{grid-template-columns:1fr}}
 @media(max-width:640px){
@@ -537,6 +557,10 @@ a{text-decoration:none;color:inherit}
           <button class="tab" data-f="hidden">Hidden</button>
         </div>
       </div>
+      <div class="save-order-bar" id="ann-save-order-bar">
+        <p>⠿ Drag items to reorder, then save.</p>
+        <button class="btn-save-order" onclick="saveAnnOrder()">Save Order</button>
+      </div>
       <div class="ann-list" id="ann-list"><div class="loading">Loading…</div></div>
     </section>
 
@@ -564,6 +588,10 @@ a{text-decoration:none;color:inherit}
           <button class="tab" data-if="hidden">Hidden</button>
           <button class="tab" data-if="featured">Featured</button>
         </div>
+      </div>
+      <div class="save-order-bar" id="init-save-order-bar">
+        <p>⠿ Drag items to reorder, then save.</p>
+        <button class="btn-save-order" onclick="saveInitOrder()">Save Order</button>
       </div>
       <div class="ann-list" id="init-list"><div class="loading">Loading…</div></div>
     </section>
@@ -1143,8 +1171,70 @@ function updateStats() {
   $('stat-hidden').textContent = a.filter(x=>x.status==='hidden').length;
 }
 
+let annOrderDirty = false;
+let annDragSrc = null;
+
+function showAnnSaveBar(show) {
+  $('ann-save-order-bar').classList.toggle('visible', show);
+  if (!show) annOrderDirty = false;
+}
+
+function enableAnnDrag(listEl) {
+  listEl.querySelectorAll('.ann-card[data-id]').forEach(card => {
+    card.setAttribute('draggable', 'true');
+    card.addEventListener('dragstart', e => {
+      annDragSrc = card;
+      setTimeout(() => card.classList.add('dragging'), 0);
+      e.dataTransfer.effectAllowed = 'move';
+    });
+    card.addEventListener('dragend', () => {
+      card.classList.remove('dragging');
+      listEl.querySelectorAll('.ann-card').forEach(c => c.classList.remove('drag-over-card'));
+      annDragSrc = null;
+    });
+    card.addEventListener('dragover', e => {
+      e.preventDefault();
+      if (!annDragSrc || annDragSrc === card) return;
+      listEl.querySelectorAll('.ann-card').forEach(c => c.classList.remove('drag-over-card'));
+      card.classList.add('drag-over-card');
+    });
+    card.addEventListener('dragleave', () => card.classList.remove('drag-over-card'));
+    card.addEventListener('drop', e => {
+      e.preventDefault();
+      card.classList.remove('drag-over-card');
+      if (!annDragSrc || annDragSrc === card) return;
+      const cards = [...listEl.children];
+      const srcIdx = cards.indexOf(annDragSrc);
+      const dstIdx = cards.indexOf(card);
+      if (srcIdx < dstIdx) listEl.insertBefore(annDragSrc, card.nextSibling);
+      else listEl.insertBefore(annDragSrc, card);
+      annOrderDirty = true;
+      showAnnSaveBar(true);
+    });
+  });
+}
+
+async function saveAnnOrder() {
+  const cards = [...$('ann-list').querySelectorAll('.ann-card[data-id]')];
+  const payload = cards.map((c, i) => ({ id: c.dataset.id, displayOrder: i + 1 }));
+  try {
+    const r = await adminFetch('/admin/api/announcements/reorder', {
+      method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)
+    });
+    if (!r.ok) { toast('Failed to save order', 'err'); return; }
+    payload.forEach(p => {
+      const a = S.announcements.find(x => x.id === p.id);
+      if (a) a.displayOrder = p.displayOrder;
+    });
+    showAnnSaveBar(false);
+    toast('Display order saved', 'ok');
+  } catch(e) { if(e.message !== 'unauthorized') toast('Save error', 'err'); }
+}
+
 function renderList() {
-  let items = S.announcements;
+  let items = [...S.announcements];
+  // Sort by displayOrder ascending (missing order goes last)
+  items.sort((a, b) => (a.displayOrder ?? 9999) - (b.displayOrder ?? 9999));
   if (S.filter !== 'all') items = items.filter(a => a.status===S.filter);
   if (S.search) {
     const q = S.search.toLowerCase();
@@ -1155,15 +1245,19 @@ function renderList() {
     );
   }
   const el = $('ann-list');
+  // Reset order bar when list is re-rendered from server data
+  showAnnSaveBar(false);
   if (!items.length) {
     el.innerHTML = `<div class="empty-state"><div class="es-icon">📋</div><h3>No announcements found</h3><p>${S.filter==='all'?'Click "+ New Announcement" to create your first one.':'No '+S.filter+' announcements.'}</p></div>`;
     return;
   }
-  el.innerHTML = items.map(a => {
+  el.innerHTML = items.map((a, i) => {
     const img = a.imageUrl
       ? `<img class="ann-thumb" src="/${a.imageUrl}" alt="" onerror="this.style.display='none'">`
       : `<div class="ann-thumb-ph">📋</div>`;
     return `<div class="ann-card" data-id="${a.id}">
+      <span class="drag-handle" title="Drag to reorder">⠿</span>
+      <span class="order-badge">${i+1}</span>
       ${img}
       <div class="ann-body">
         <div class="ann-meta">
@@ -1183,6 +1277,7 @@ function renderList() {
       </div>
     </div>`;
   }).join('');
+  enableAnnDrag(el);
 }
 
 $('search-input').addEventListener('input', e => { S.search=e.target.value; renderList(); });
@@ -1343,8 +1438,70 @@ async function loadInitiatives() {
   } catch {}
 }
 
+let initOrderDirty = false;
+let initDragSrc = null;
+
+function showInitSaveBar(show) {
+  $('init-save-order-bar').classList.toggle('visible', show);
+  if (!show) initOrderDirty = false;
+}
+
+function enableInitDrag(listEl) {
+  listEl.querySelectorAll('.ann-card[data-id]').forEach(card => {
+    card.setAttribute('draggable', 'true');
+    card.addEventListener('dragstart', e => {
+      initDragSrc = card;
+      setTimeout(() => card.classList.add('dragging'), 0);
+      e.dataTransfer.effectAllowed = 'move';
+    });
+    card.addEventListener('dragend', () => {
+      card.classList.remove('dragging');
+      listEl.querySelectorAll('.ann-card').forEach(c => c.classList.remove('drag-over-card'));
+      initDragSrc = null;
+    });
+    card.addEventListener('dragover', e => {
+      e.preventDefault();
+      if (!initDragSrc || initDragSrc === card) return;
+      listEl.querySelectorAll('.ann-card').forEach(c => c.classList.remove('drag-over-card'));
+      card.classList.add('drag-over-card');
+    });
+    card.addEventListener('dragleave', () => card.classList.remove('drag-over-card'));
+    card.addEventListener('drop', e => {
+      e.preventDefault();
+      card.classList.remove('drag-over-card');
+      if (!initDragSrc || initDragSrc === card) return;
+      const cards = [...listEl.children];
+      const srcIdx = cards.indexOf(initDragSrc);
+      const dstIdx = cards.indexOf(card);
+      if (srcIdx < dstIdx) listEl.insertBefore(initDragSrc, card.nextSibling);
+      else listEl.insertBefore(initDragSrc, card);
+      initOrderDirty = true;
+      showInitSaveBar(true);
+    });
+  });
+}
+
+async function saveInitOrder() {
+  const cards = [...$('init-list').querySelectorAll('.ann-card[data-id]')];
+  const payload = cards.map((c, i) => ({ id: c.dataset.id, displayOrder: i + 1 }));
+  try {
+    const r = await adminFetch('/admin/api/community-initiatives/reorder', {
+      method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)
+    });
+    if (!r.ok) { toast('Failed to save order', 'err'); return; }
+    payload.forEach(p => {
+      const proj = SI.initiatives.find(x => x.id === p.id);
+      if (proj) proj.displayOrder = p.displayOrder;
+    });
+    showInitSaveBar(false);
+    toast('Display order saved', 'ok');
+  } catch(e) { if(e.message !== 'unauthorized') toast('Save error', 'err'); }
+}
+
 function renderInitList() {
-  let items = SI.initiatives;
+  let items = [...SI.initiatives];
+  // Sort by displayOrder ascending (missing order goes last)
+  items.sort((a, b) => (a.displayOrder ?? 9999) - (b.displayOrder ?? 9999));
   if (SI.filter === 'featured') items = items.filter(p => p.featured && p.status === 'published');
   else if (SI.filter !== 'all') items = items.filter(p => p.status === SI.filter);
   if (SI.search) {
@@ -1357,15 +1514,19 @@ function renderInitList() {
     );
   }
   const el = $('init-list');
+  // Reset order bar when list is re-rendered from server data
+  showInitSaveBar(false);
   if (!items.length) {
     el.innerHTML = `<div class="empty-state"><div class="es-icon">🌟</div><h3>No initiatives found</h3><p>${SI.filter==='all'?'Click "+ New Initiative" to create your first one.':'No '+SI.filter+' initiatives.'}</p></div>`;
     return;
   }
-  el.innerHTML = items.map(p => {
+  el.innerHTML = items.map((p, i) => {
     const thumb = p.imageUrl
       ? `<img class="ann-thumb" src="/${p.imageUrl}" alt="" onerror="this.style.display='none'">`
       : `<div class="ann-thumb-ph">🌟</div>`;
     return `<div class="ann-card" data-id="${p.id}">
+      <span class="drag-handle" title="Drag to reorder">⠿</span>
+      <span class="order-badge">${i+1}</span>
       ${thumb}
       <div class="ann-body">
         <div class="ann-meta">
@@ -1383,6 +1544,7 @@ function renderInitList() {
       </div>
     </div>`;
   }).join('');
+  enableInitDrag(el);
 }
 
 $('init-search').addEventListener('input', e => { SI.search=e.target.value; renderInitList(); });

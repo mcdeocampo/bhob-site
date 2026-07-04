@@ -447,7 +447,9 @@ def api_tide():
 def api_announcements():
     all_ann   = _load_ann()
     published = [a for a in all_ann if a.get('status') == 'published']
+    # Two-pass stable sort: first by date desc (fallback), then by displayOrder asc (primary)
     published.sort(key=lambda x: x.get('date', ''), reverse=True)
+    published.sort(key=lambda x: x.get('displayOrder', 9999))
     return jsonify({'status': 'ok', 'announcements': published})
 
 
@@ -456,7 +458,9 @@ def api_announcements():
 def api_community_initiatives():
     all_proj  = _load_proj()
     published = [p for p in all_proj if p.get('status') == 'published']
-    published.sort(key=lambda x: (x.get('displayOrder', 999), x.get('updatedAt', '')))
+    # Two-pass stable sort: updatedAt desc (fallback), then displayOrder asc (primary)
+    published.sort(key=lambda x: x.get('updatedAt', ''), reverse=True)
+    published.sort(key=lambda x: x.get('displayOrder', 9999))
     return jsonify({'status': 'ok', 'initiatives': published})
 
 
@@ -667,11 +671,13 @@ def admin_list():
 @app.route('/admin/api/announcements', methods=['POST'])
 @admin_required
 def admin_create():
-    d      = request.get_json(silent=True) or {}
-    now    = datetime.now(timezone.utc).isoformat()
-    status = d.get('status', 'draft')
+    d       = request.get_json(silent=True) or {}
+    all_ann = _load_ann()
+    now     = datetime.now(timezone.utc).isoformat()
+    status  = d.get('status', 'draft')
     if status not in ('draft', 'published', 'hidden'):
         status = 'draft'
+    max_order = max((a.get('displayOrder', 0) for a in all_ann), default=0)
     ann = {
         'id':               uuid.uuid4().hex,
         'title':            _clean(d.get('title'), 200),
@@ -682,13 +688,34 @@ def admin_create():
         'imageUrl':         _clean(d.get('imageUrl'), 300),
         'status':           status,
         'featured':         bool(d.get('featured', False)),
+        'displayOrder':     max_order + 1,
         'createdAt':        now,
         'updatedAt':        now,
     }
-    all_ann = _load_ann()
     all_ann.append(ann)
     _save_ann(all_ann)
     return jsonify({'status': 'ok', 'announcement': ann}), 201
+
+
+@app.route('/admin/api/announcements/reorder', methods=['PUT'])
+@admin_required
+def admin_reorder():
+    items = request.get_json(silent=True) or []
+    if not isinstance(items, list):
+        return jsonify({'error': 'Invalid payload'}), 400
+    order_map = {}
+    for item in items:
+        if isinstance(item, dict) and 'id' in item:
+            try:
+                order_map[str(item['id'])] = int(item['displayOrder'])
+            except (ValueError, TypeError, KeyError):
+                pass
+    all_ann = _load_ann()
+    for a in all_ann:
+        if a.get('id') in order_map:
+            a['displayOrder'] = order_map[a['id']]
+    _save_ann(all_ann)
+    return jsonify({'status': 'ok'})
 
 
 @app.route('/admin/api/announcements/<ann_id>', methods=['PUT'])
@@ -708,6 +735,11 @@ def admin_update(ann_id):
         a['status'] = d['status']
     if 'featured' in d:
         a['featured'] = bool(d['featured'])
+    if 'displayOrder' in d:
+        try:
+            a['displayOrder'] = int(d['displayOrder'])
+        except (ValueError, TypeError):
+            pass
     a['updatedAt'] = datetime.now(timezone.utc).isoformat()
     _save_ann(all_ann)
     return jsonify({'status': 'ok', 'announcement': a})
@@ -765,6 +797,27 @@ def admin_proj_create():
     all_proj.append(proj)
     _save_proj(all_proj)
     return jsonify({'status': 'ok', 'initiative': proj}), 201
+
+
+@app.route('/admin/api/community-initiatives/reorder', methods=['PUT'])
+@admin_required
+def admin_proj_reorder():
+    items = request.get_json(silent=True) or []
+    if not isinstance(items, list):
+        return jsonify({'error': 'Invalid payload'}), 400
+    order_map = {}
+    for item in items:
+        if isinstance(item, dict) and 'id' in item:
+            try:
+                order_map[str(item['id'])] = int(item['displayOrder'])
+            except (ValueError, TypeError, KeyError):
+                pass
+    all_proj = _load_proj()
+    for p in all_proj:
+        if p.get('id') in order_map:
+            p['displayOrder'] = order_map[p['id']]
+    _save_proj(all_proj)
+    return jsonify({'status': 'ok'})
 
 
 @app.route('/admin/api/community-initiatives/<proj_id>', methods=['PUT'])
