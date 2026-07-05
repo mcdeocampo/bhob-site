@@ -1096,12 +1096,38 @@ except ImportError:
     _HAS_PIL = False
 
 def _optimize_image(data, ext):
-    """Resize to max 1200px wide and save as JPEG 85%. Falls back to raw if PIL unavailable."""
+    """Preserve good image quality for announcement/initiative uploads.
+
+    Resize only very large images and save at high quality so uploaded
+    graphics with text do not look pixelated on public cards.
+    Falls back to the original file if PIL is unavailable or processing fails.
+    """
     if not _HAS_PIL:
         return data, ext
     try:
         img = _PILImage.open(_io.BytesIO(data))
-        # Flatten transparency onto white background
+        ext = (ext or '').lower()
+
+        # Downscale only — never upscale. Use a larger display-safe width
+        # because cards may be viewed on high-DPI/Retina screens.
+        max_w = 1800
+        if img.width > max_w:
+            new_h = int(img.height * max_w / img.width)
+            img = img.resize((max_w, new_h), _PILImage.LANCZOS)
+
+        out = _io.BytesIO()
+
+        # Preserve transparent PNG/WebP when possible.
+        if ext == 'png':
+            img.save(out, format='PNG', optimize=True)
+            return out.getvalue(), 'png'
+
+        if ext == 'webp':
+            img.save(out, format='WEBP', quality=94, method=6)
+            return out.getvalue(), 'webp'
+
+        # JPEG fallback: flatten transparency and use high quality with
+        # 4:4:4 chroma to keep text/lines cleaner.
         if img.mode in ('RGBA', 'LA', 'P'):
             if img.mode == 'P':
                 img = img.convert('RGBA')
@@ -1110,13 +1136,8 @@ def _optimize_image(data, ext):
             img = bg
         elif img.mode != 'RGB':
             img = img.convert('RGB')
-        # Downscale only — never upscale
-        max_w = 1200
-        if img.width > max_w:
-            new_h = int(img.height * max_w / img.width)
-            img = img.resize((max_w, new_h), _PILImage.LANCZOS)
-        out = _io.BytesIO()
-        img.save(out, format='JPEG', quality=85, optimize=True)
+
+        img.save(out, format='JPEG', quality=94, optimize=True, progressive=True, subsampling=0)
         return out.getvalue(), 'jpg'
     except Exception:
         return data, ext

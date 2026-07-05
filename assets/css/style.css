@@ -20012,6 +20012,7 @@ body[data-page="announcements.html"] .image-card img {
   .dl-form-btn { width: 100%; justify-content: center; }
 }
 
+
 /* =====================================================================
    Targeted fix: rounded public card image edges only
    Scope: Announcements and Community Initiatives public cards.
@@ -20158,7 +20159,6 @@ body[data-page="index.html"] .image-card .prog-banner .ict-banner-label span {
   line-height: 1.35 !important;
   white-space: normal !important;
 }
-
 /* =====================================================================
    Targeted fix: Announcement card image spacing refinement only
    Scope: public Announcements cards.
@@ -20205,9 +20205,33 @@ body[data-page="announcements.html"] .image-card .ann-img-wrap img {
   }
 }
 
+/* =====================================================================
+   Targeted fix: Community Initiatives uploaded image quality refinement
+   Scope: public Community Initiatives cards and Home preview cards only.
+   Keeps card layout, rounded corners, admin, data, downloads, and routes unchanged.
+   ===================================================================== */
+body[data-page="projects.html"] .image-card .proj-card-banner-img.bhob-banner,
+body[data-page="index.html"] .image-card .proj-card-banner-img.bhob-banner {
+  border-radius: 24px !important;
+  overflow: hidden !important;
+  background: transparent !important;
+  padding: 0 !important;
+  transform: none !important;
+  filter: none !important;
+  box-sizing: border-box !important;
+  -webkit-mask-image: -webkit-radial-gradient(white, black);
+}
 
-
-
-
-
-
+body[data-page="projects.html"] .image-card .proj-card-banner-img.bhob-banner img,
+body[data-page="index.html"] .image-card .proj-card-banner-img.bhob-banner img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  object-position: center !important;
+  display: block !important;
+  border-radius: 24px !important;
+  image-rendering: auto !important;
+  transform: none !important;
+  filter: none !important;
+  backface-visibility: hidden !important;
+}
