@@ -20011,3 +20011,95 @@ body[data-page="announcements.html"] .image-card img {
   .dl-form-card { flex-wrap: wrap; }
   .dl-form-btn { width: 100%; justify-content: center; }
 }
+
+/* =====================================================================
+   Targeted fix: rounded public card image edges only
+   Scope: Announcements and Community Initiatives public cards.
+   Do not use these rules for admin panels, downloads, navigation, or other sections.
+   ===================================================================== */
+
+/* Announcements page: uploaded/default announcement image wrapper */
+body[data-page="announcements.html"] .image-card .ann-img-wrap {
+  border-radius: 24px !important;
+  overflow: hidden !important;
+  -webkit-mask-image: -webkit-radial-gradient(white, black);
+  line-height: 0 !important;
+}
+
+body[data-page="announcements.html"] .image-card .ann-img-wrap img {
+  border-radius: 24px !important;
+  overflow: hidden !important;
+  display: block !important;
+  width: 100% !important;
+  height: 185px !important;
+  object-fit: cover !important;
+  object-position: center !important;
+}
+
+/* Keep any card overlay from visually squaring the image area */
+body[data-page="announcements.html"] .image-card::after {
+  border-radius: 24px !important;
+  left: 10px !important;
+  right: 10px !important;
+  width: auto !important;
+  overflow: hidden !important;
+}
+
+/* Community Initiatives page: default/generated and uploaded header image blocks */
+body[data-page="projects.html"] .image-card .bhob-banner,
+body[data-page="projects.html"] .image-card .proj-card-banner,
+body[data-page="projects.html"] .image-card .prog-banner,
+body[data-page="projects.html"] .image-card .ict-banner {
+  border-radius: 24px !important;
+  overflow: hidden !important;
+  -webkit-mask-image: -webkit-radial-gradient(white, black);
+}
+
+body[data-page="projects.html"] .image-card .bhob-banner img,
+body[data-page="projects.html"] .image-card .proj-card-banner img,
+body[data-page="projects.html"] .image-card .prog-banner img,
+body[data-page="projects.html"] .image-card .ict-banner img {
+  border-radius: 24px !important;
+  overflow: hidden !important;
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  object-position: center !important;
+}
+
+/* Home page community initiatives preview only, if it uses the same card classes */
+body[data-page="index.html"] .image-card .bhob-banner,
+body[data-page="index.html"] .image-card .proj-card-banner,
+body[data-page="index.html"] .image-card .prog-banner,
+body[data-page="index.html"] .image-card .ict-banner {
+  border-radius: 24px !important;
+  overflow: hidden !important;
+  -webkit-mask-image: -webkit-radial-gradient(white, black);
+}
+
+body[data-page="index.html"] .image-card .bhob-banner img,
+body[data-page="index.html"] .image-card .proj-card-banner img,
+body[data-page="index.html"] .image-card .prog-banner img,
+body[data-page="index.html"] .image-card .ict-banner img {
+  border-radius: 24px !important;
+  overflow: hidden !important;
+  display: block !important;
+  object-fit: cover !important;
+  object-position: center !important;
+}
+
+@media (max-width: 768px) {
+  body[data-page="announcements.html"] .image-card .ann-img-wrap img {
+    height: 160px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  body[data-page="announcements.html"] .image-card .ann-img-wrap img {
+    height: 140px !important;
+  }
+}
+
+
+
