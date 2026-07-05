@@ -20101,5 +20101,66 @@ body[data-page="index.html"] .image-card .ict-banner img {
   }
 }
 
+/* =====================================================================
+   Targeted fix: Community Initiatives banner text alignment only
+   Scope: public Community Initiatives cards and Home preview cards.
+   Keeps rounded image/header edges intact and avoids touching other sections.
+   ===================================================================== */
+body[data-page="projects.html"] .image-card .bhob-banner:not(.proj-card-banner-img),
+body[data-page="projects.html"] .image-card .proj-card-banner:not(.proj-card-banner-img),
+body[data-page="projects.html"] .image-card .prog-banner,
+body[data-page="index.html"] .image-card .bhob-banner:not(.proj-card-banner-img),
+body[data-page="index.html"] .image-card .proj-card-banner:not(.proj-card-banner-img),
+body[data-page="index.html"] .image-card .prog-banner {
+  display: flex !important;
+  align-items: flex-end !important;
+  justify-content: flex-start !important;
+  box-sizing: border-box !important;
+  padding: 0 28px 28px !important;
+  text-align: left !important;
+}
+
+body[data-page="projects.html"] .image-card .bhob-banner .ict-banner-label,
+body[data-page="projects.html"] .image-card .proj-card-banner .ict-banner-label,
+body[data-page="projects.html"] .image-card .prog-banner .ict-banner-label,
+body[data-page="index.html"] .image-card .bhob-banner .ict-banner-label,
+body[data-page="index.html"] .image-card .proj-card-banner .ict-banner-label,
+body[data-page="index.html"] .image-card .prog-banner .ict-banner-label {
+  position: relative !important;
+  z-index: 2 !important;
+  max-width: calc(100% - 12px) !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  transform: none !important;
+  text-align: left !important;
+  overflow: visible !important;
+}
+
+body[data-page="projects.html"] .image-card .bhob-banner .ict-banner-label strong,
+body[data-page="projects.html"] .image-card .proj-card-banner .ict-banner-label strong,
+body[data-page="projects.html"] .image-card .prog-banner .ict-banner-label strong,
+body[data-page="index.html"] .image-card .bhob-banner .ict-banner-label strong,
+body[data-page="index.html"] .image-card .proj-card-banner .ict-banner-label strong,
+body[data-page="index.html"] .image-card .prog-banner .ict-banner-label strong {
+  display: block !important;
+  margin: 0 0 6px !important;
+  line-height: 1.2 !important;
+  white-space: normal !important;
+}
+
+body[data-page="projects.html"] .image-card .bhob-banner .ict-banner-label span,
+body[data-page="projects.html"] .image-card .proj-card-banner .ict-banner-label span,
+body[data-page="projects.html"] .image-card .prog-banner .ict-banner-label span,
+body[data-page="index.html"] .image-card .bhob-banner .ict-banner-label span,
+body[data-page="index.html"] .image-card .proj-card-banner .ict-banner-label span,
+body[data-page="index.html"] .image-card .prog-banner .ict-banner-label span {
+  display: block !important;
+  line-height: 1.35 !important;
+  white-space: normal !important;
+}
+
+
+
+
 
 
