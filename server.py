@@ -594,6 +594,103 @@ def _form_bulk_order(order_map):
         ).eq('id', form_id).execute()
 
 
+# ── Officials helpers ─────────────────────────────────────────────────────────
+def _row_to_official(row):
+    return {
+        'id':              row['id'],
+        'fullName':        row.get('full_name', ''),
+        'position':        row.get('position', ''),
+        'roleDescription': row.get('role_description', ''),
+        'photoUrl':        row.get('photo_url', ''),
+        'quote':           row.get('quote', ''),
+        'isPunong':        bool(row.get('is_punong', False)),
+        'displayOrder':    row.get('display_order', 99),
+        'status':          row.get('status', 'draft'),
+        'createdAt':       row.get('created_at', ''),
+        'updatedAt':       row.get('updated_at', ''),
+    }
+
+
+def _load_officials():
+    try:
+        res = supabase.table('officials').select('*').execute()
+        return [_row_to_official(r) for r in (res.data or [])]
+    except Exception as exc:
+        print(f'[BHOB] ERROR loading officials: {exc}')
+        return []
+
+
+def _official_create(data):
+    now = datetime.now(timezone.utc).isoformat()
+    record = {
+        'full_name':        str(data.get('fullName', '')).strip(),
+        'position':         str(data.get('position', '')).strip(),
+        'role_description': str(data.get('roleDescription', '')).strip(),
+        'photo_url':        str(data.get('photoUrl', '')).strip(),
+        'quote':            str(data.get('quote', '')).strip(),
+        'is_punong':        bool(data.get('isPunong', False)),
+        'display_order':    int(data.get('displayOrder', 99)),
+        'status':           data.get('status', 'draft'),
+        'created_at':       now,
+        'updated_at':       now,
+    }
+    res = supabase.table('officials').insert(record).execute()
+    return _row_to_official(res.data[0]) if res.data else data
+
+
+def _official_update(official_id, patch):
+    now = datetime.now(timezone.utc).isoformat()
+    record = {'updated_at': now}
+    field_map = [
+        ('fullName',        'full_name'),
+        ('position',        'position'),
+        ('roleDescription', 'role_description'),
+        ('photoUrl',        'photo_url'),
+        ('quote',           'quote'),
+        ('isPunong',        'is_punong'),
+        ('displayOrder',    'display_order'),
+        ('status',          'status'),
+    ]
+    for src, dst in field_map:
+        if src in patch:
+            val = patch[src]
+            if src == 'isPunong':
+                val = bool(val)
+            elif src == 'displayOrder':
+                val = int(val)
+            record[dst] = val
+    try:
+        res = (supabase.table('officials')
+               .update(record).eq('id', official_id).execute())
+        return _row_to_official(res.data[0]) if res.data else None
+    except Exception:
+        return None
+
+
+def _official_delete(official_id):
+    res = supabase.table('officials').delete().eq('id', official_id).execute()
+    return bool(res.data)
+
+
+def _official_bulk_order(order_map):
+    now = datetime.now(timezone.utc).isoformat()
+    for official_id, order in order_map.items():
+        supabase.table('officials').update(
+            {'display_order': order, 'updated_at': now}
+        ).eq('id', official_id).execute()
+
+
+def _official_set_punong(official_id):
+    """Enforce exactly one Punong Barangay: clear all others, set the target."""
+    now = datetime.now(timezone.utc).isoformat()
+    supabase.table('officials').update(
+        {'is_punong': False, 'updated_at': now}
+    ).neq('id', official_id).execute()
+    supabase.table('officials').update(
+        {'is_punong': True, 'updated_at': now}
+    ).eq('id', official_id).execute()
+
+
 # ── Public routes — weather & tide ────────────────────────────────────────────
 @app.route('/api/weather')
 def api_weather():
@@ -1270,6 +1367,110 @@ def admin_upload_form_file():
         'fileType': ext,
         'fileSize': len(data),
     })
+
+
+# ── Officials routes ──────────────────────────────────────────────────────────
+@app.route('/api/officials')
+def api_officials():
+    all_officials = _load_officials()
+    published = [o for o in all_officials if o.get('status') == 'published']
+    published.sort(key=lambda x: x.get('displayOrder', 99))
+    return jsonify({'status': 'ok', 'officials': published})
+
+
+@app.route('/admin/api/officials')
+@admin_required
+def admin_officials_list():
+    all_officials = _load_officials()
+    all_officials.sort(key=lambda x: x.get('displayOrder', 99))
+    return jsonify({'status': 'ok', 'officials': all_officials})
+
+
+@app.route('/admin/api/officials', methods=['POST'])
+@admin_required
+def admin_officials_create():
+    data = request.get_json(silent=True) or {}
+    if not str(data.get('fullName', '')).strip():
+        return jsonify({'error': 'Full name is required.'}), 400
+    if not str(data.get('position', '')).strip():
+        return jsonify({'error': 'Position is required.'}), 400
+    official = _official_create(data)
+    if data.get('isPunong'):
+        _official_set_punong(official['id'])
+        official['isPunong'] = True
+    return jsonify({'status': 'ok', 'official': official}), 201
+
+
+@app.route('/admin/api/officials/reorder', methods=['PUT'])
+@admin_required
+def admin_officials_reorder():
+    data = request.get_json(silent=True) or {}
+    order_map = data.get('order', {})
+    if not isinstance(order_map, dict):
+        return jsonify({'error': 'Invalid order payload'}), 400
+    _official_bulk_order(order_map)
+    return jsonify({'status': 'ok'})
+
+
+@app.route('/admin/api/officials/<official_id>', methods=['PUT'])
+@admin_required
+def admin_officials_update(official_id):
+    data = request.get_json(silent=True) or {}
+    if 'fullName' in data and not str(data['fullName']).strip():
+        return jsonify({'error': 'Full name is required.'}), 400
+    if 'position' in data and not str(data['position']).strip():
+        return jsonify({'error': 'Position is required.'}), 400
+    official = _official_update(official_id, data)
+    if not official:
+        return jsonify({'error': 'Not found'}), 404
+    if data.get('isPunong'):
+        _official_set_punong(official_id)
+        official['isPunong'] = True
+    return jsonify({'status': 'ok', 'official': official})
+
+
+@app.route('/admin/api/officials/<official_id>', methods=['DELETE'])
+@admin_required
+def admin_officials_delete(official_id):
+    try:
+        res = (supabase.table('officials')
+               .select('photo_url').eq('id', official_id).limit(1).execute())
+        if res.data:
+            photo_url = res.data[0].get('photo_url', '')
+            if photo_url and photo_url.startswith('http'):
+                marker = f'/object/public/{STORAGE_BUCKET}/'
+                idx = photo_url.find(marker)
+                if idx != -1:
+                    storage_path = photo_url[idx + len(marker):]
+                    try:
+                        supabase.storage.from_(STORAGE_BUCKET).remove([storage_path])
+                    except Exception:
+                        pass
+    except Exception:
+        pass
+    if not _official_delete(official_id):
+        return jsonify({'error': 'Not found'}), 404
+    return jsonify({'status': 'ok'})
+
+
+@app.route('/admin/api/upload/official-photo', methods=['POST'])
+@admin_required
+def admin_upload_official_photo():
+    f = request.files.get('image')
+    if not f or not f.filename:
+        return jsonify({'error': 'No file selected'}), 400
+    ext = f.filename.rsplit('.', 1)[-1].lower() if '.' in f.filename else ''
+    if ext not in ALLOWED_EXT:
+        return jsonify({'error': 'Invalid file type. Use JPG, PNG, or WebP.'}), 400
+    data = f.read(MAX_BYTES + 1)
+    if len(data) > MAX_BYTES:
+        return jsonify({'error': 'File too large (max 5 MB)'}), 400
+    data, ext = _optimize_image(data, ext)
+    try:
+        url = _upload_to_storage(data, 'officials', ext)
+    except Exception as exc:
+        return jsonify({'error': f'Upload failed: {exc}'}), 500
+    return jsonify({'status': 'ok', 'url': url})
 
 
 # ── Static file serving ───────────────────────────────────────────────────────
