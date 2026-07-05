@@ -20159,6 +20159,53 @@ body[data-page="index.html"] .image-card .prog-banner .ict-banner-label span {
   white-space: normal !important;
 }
 
+/* =====================================================================
+   Targeted fix: Announcement card image spacing refinement only
+   Scope: public Announcements cards.
+   Keeps existing card design, rounded corners, content, backend, and admin unchanged.
+   ===================================================================== */
+body[data-page="announcements.html"] .image-card .ann-img-wrap {
+  padding: 0 !important;
+  margin: 16px 16px 0 !important;
+  width: calc(100% - 32px) !important;
+  border-radius: 24px !important;
+  overflow: hidden !important;
+  line-height: 0 !important;
+  box-sizing: border-box !important;
+}
+
+body[data-page="announcements.html"] .image-card .ann-img-wrap img {
+  width: 100% !important;
+  height: 185px !important;
+  object-fit: cover !important;
+  object-position: center !important;
+  display: block !important;
+  border-radius: 24px !important;
+}
+
+@media (max-width: 768px) {
+  body[data-page="announcements.html"] .image-card .ann-img-wrap {
+    margin: 14px 14px 0 !important;
+    width: calc(100% - 28px) !important;
+  }
+
+  body[data-page="announcements.html"] .image-card .ann-img-wrap img {
+    height: 160px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  body[data-page="announcements.html"] .image-card .ann-img-wrap {
+    margin: 12px 12px 0 !important;
+    width: calc(100% - 24px) !important;
+  }
+
+  body[data-page="announcements.html"] .image-card .ann-img-wrap img {
+    height: 140px !important;
+  }
+}
+
+
 
 
 
