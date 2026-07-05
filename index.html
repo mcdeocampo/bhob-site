@@ -230,7 +230,7 @@
         'Livelihood':'prog-banner--gold','Safety':'prog-banner--blue',
         'Education':'prog-banner--teal','Community Program':'prog-banner--violet','Other':'prog-banner--blue'
       };
-      var HOME_LIMIT = 4;
+      var HOME_LIMIT = 3;
       var delays = ['','delay-1','delay-2','delay-3'];
       fetch('/api/community-initiatives')
         .then(function(r){ return r.json(); })
@@ -253,7 +253,7 @@
               : '<div class="prog-banner '+(bc[p.category]||'prog-banner--blue')+' proj-card-banner bhob-banner" aria-hidden="true"><div class="ict-banner-label"><strong>'+safeCat+'</strong><span>'+safeSub+'</span></div></div>';
             return '<article class="image-card proj-card reveal'+( delay?' '+delay:'')+'">'
               +bannerHtml
-              +'<div class="proj-card-body"><span class="status implemented">'+safeCat+'</span><h3>'+safeT+'</h3><p>'+safeD+'</p></div></article>';
+              +'<div class="proj-card-body"><span class="status ongoing">'+safeCat+'</span><h3>'+safeT+'</h3><p>'+safeD+'</p></div></article>';
           }).join('');
           document.getElementById('home-proj-viewall').style.display = 'block';
           if (window.revealObserver) {
