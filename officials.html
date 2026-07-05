@@ -218,7 +218,7 @@
     fetch('/api/officials')
       .then(function(r) { return r.json(); })
       .then(function(d) {
-        if (!d.ok || !d.officials || d.officials.length === 0) return;
+        if (!d.officials || d.officials.length === 0) return;
         var punong = null;
         var others = [];
         d.officials.forEach(function(o) {
