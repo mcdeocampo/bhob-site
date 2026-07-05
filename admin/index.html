@@ -2166,6 +2166,7 @@ async function saveFormRecord(forceStatus) {
   const title=$('fm-title').value.trim();
   if(!title){toast('Form title is required','err');$('fm-title').focus();return;}
   const status=forceStatus||document.querySelector('input[name="form-status"]:checked')?.value||'draft';
+  if(status==='published' && !SF.fileUrl){toast('Please upload a form file before publishing.','err');return;}
   const body={
     title,
     description:$('fm-desc').value.trim(),

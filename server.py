@@ -691,7 +691,7 @@ def api_community_initiatives():
 @app.route('/api/forms')
 def api_forms():
     all_forms = _load_forms()
-    published = [f for f in all_forms if f.get('status') == 'published']
+    published = [f for f in all_forms if f.get('status') == 'published' and f.get('fileUrl', '')]
     published.sort(key=lambda x: x.get('updatedAt', ''), reverse=True)
     published.sort(key=_order_key)
     return jsonify({'status': 'ok', 'forms': published})
