@@ -1051,7 +1051,7 @@ a{text-decoration:none;color:inherit}
         <div class="field field-full">
           <label>Photo</label>
           <div class="img-area" id="off-drop-area">
-            <img class="img-preview" id="off-img-preview" src="" alt="" style="display:none">
+            <img class="img-preview" id="off-img-preview" src="" alt="" style="display:none;object-fit:contain">
             <div class="img-upload-row">
               <label class="btn-upload-file" for="of-img-file">Upload Photo</label>
               <input type="file" id="of-img-file" accept=".jpg,.jpeg,.png,.webp" style="display:none">
@@ -2414,7 +2414,7 @@ function renderOfficialList() {
   }
   el.innerHTML = items.map((o, i) => {
     const thumb = o.photoUrl
-      ? `<img class="ann-thumb" draggable="false" src="${o.photoUrl.indexOf('http')===0?o.photoUrl:'/'+o.photoUrl}" alt="" onerror="this.style.display='none'">`
+      ? `<img class="ann-thumb" draggable="false" src="${o.photoUrl.indexOf('http')===0?o.photoUrl:'/'+o.photoUrl}" alt="" style="object-fit:contain" onerror="this.style.display='none'">`
       : `<div class="ann-thumb-ph">👤</div>`;
     const punongBadge = o.isPunong ? `<span class="feat-tag">★ Punong</span>` : '';
     return `<div class="ann-card" data-id="${o.id}">
