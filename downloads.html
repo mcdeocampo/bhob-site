@@ -114,8 +114,7 @@
     }
 
     function renderForms(forms) {
-      var hasRealFiles = forms && forms.some(function(f) { return f.fileAvailable && f.fileUrl; });
-      var list = hasRealFiles ? forms : DEFAULT_FORMS;
+      var list = (forms && forms.length > 0) ? forms : DEFAULT_FORMS;
       grid.innerHTML = list.map(function(f) {
         var safeTitle = (f.title || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
         var safeDesc  = (f.description || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
