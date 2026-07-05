@@ -1431,7 +1431,7 @@ function renderList() {
   }
   el.innerHTML = items.map((a, i) => {
     const img = a.imageUrl
-      ? `<img class="ann-thumb" draggable="false" src="/${a.imageUrl}" alt="" onerror="this.style.display='none'">`
+      ? `<img class="ann-thumb" draggable="false" src="${a.imageUrl.indexOf('http')===0?a.imageUrl:'/'+a.imageUrl}" alt="" onerror="this.style.display='none'">`
       : `<div class="ann-thumb-ph">📋</div>`;
     return `<div class="ann-card" data-id="${a.id}">
       <span class="drag-handle" title="Drag to reorder">⠿</span>
@@ -1491,7 +1491,7 @@ function openEdit(id) {
   if(sEl) sEl.checked=true; else $('s-draft').checked=true;
   if(a.featured) $('feat-yes').checked=true; else $('feat-no').checked=true;
   if(a.imageUrl) {
-    $('img-preview').src='/'+a.imageUrl; $('img-preview').style.display='block';
+    $('img-preview').src=(a.imageUrl.indexOf('http')===0?a.imageUrl:'/'+a.imageUrl); $('img-preview').style.display='block';
     $('img-url-note').textContent=a.imageUrl; $('img-url-note').style.display='block';
     document.querySelectorAll('.di-btn').forEach(b=>b.classList.toggle('sel',b.dataset.url===a.imageUrl));
   }
@@ -1515,7 +1515,7 @@ async function doUpload(file) {
     const r=await adminFetch('/admin/api/upload',{method:'POST',body:form});
     const d=await r.json();
     if(!r.ok){toast(d.error||'Upload failed','err');return;}
-    S.imageUrl=d.url; $('img-preview').src='/'+d.url; $('img-preview').style.display='block';
+    S.imageUrl=d.url; $('img-preview').src=(d.url.indexOf('http')===0?d.url:'/'+d.url); $('img-preview').style.display='block';
     $('img-url-note').textContent=d.url; $('img-url-note').style.display='block';
     document.querySelectorAll('.di-btn').forEach(b=>b.classList.remove('sel'));
     toast('Image uploaded','ok');
@@ -1584,7 +1584,7 @@ function openDetail(id){
   const a=S.announcements.find(x=>x.id===id); if(!a) return;
   $('det-title').textContent=a.title||'Announcement';
   const img=$('det-img');
-  if(a.imageUrl){img.src='/'+a.imageUrl;img.style.display='block';}else img.style.display='none';
+  if(a.imageUrl){img.src=(a.imageUrl.indexOf('http')===0?a.imageUrl:'/'+a.imageUrl);img.style.display='block';}else img.style.display='none';
   $('det-meta').innerHTML=`<span class="badge badge-${a.status}">${a.status}</span><span class="ann-date">${esc(fmtDate(a.date))}</span><span class="cat-tag">${esc(a.category)}</span>${a.featured?'<span class="feat-tag">★ Featured</span>':''}`;
   $('det-short-wrap').style.display='none';
   $('det-full-label').style.display='none';

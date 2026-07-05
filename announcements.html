@@ -89,7 +89,7 @@
     function openModal(a) {
       document.getElementById('ann-modal-title').textContent = a.title || '';
       var img = document.getElementById('ann-modal-img');
-      if (a.imageUrl) { img.src = '/' + a.imageUrl; img.style.display = 'block'; }
+      if (a.imageUrl) { img.src = (a.imageUrl.indexOf('http') === 0 ? a.imageUrl : '/' + a.imageUrl); img.style.display = 'block'; }
       else img.style.display = 'none';
       var meta = document.getElementById('ann-modal-meta');
       meta.innerHTML = '<span style="font-size:.75rem;color:#64748b">' + fmtDate(a.date) + '</span>'
@@ -120,7 +120,7 @@
         return;
       }
       grid.innerHTML = announcements.map(function(a, i) {
-        var imgSrc = a.imageUrl ? '/' + a.imageUrl : ('assets/images/announcements/' + CATS[i % 3] + '.jpg');
+        var imgSrc = a.imageUrl ? (a.imageUrl.indexOf('http') === 0 ? a.imageUrl : '/' + a.imageUrl) : ('assets/images/announcements/' + CATS[i % 3] + '.jpg');
         var safeTitle = (a.title||'').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
         var safeDesc  = (a.shortDescription||'').replace(/</g,'&lt;').replace(/>/g,'&gt;');
         return '<article class="image-card reveal" style="display:flex;flex-direction:column;height:100%">'
