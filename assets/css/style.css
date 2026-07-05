@@ -19921,3 +19921,93 @@ body[data-page="announcements.html"] .image-card img {
   display: block !important;
   border-radius: 0 !important;
 }
+
+/* ── Download Forms cards — unique classes, no cascade conflicts ── */
+.dl-forms-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+.dl-form-card {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 24px 28px;
+  box-shadow: 0 8px 28px rgba(15,47,87,.09);
+  position: relative;
+  overflow: hidden;
+  transition: transform .25s ease, box-shadow .25s ease;
+}
+.dl-form-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 16px 40px rgba(15,47,87,.14);
+}
+.dl-form-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 20px;
+  right: 20px;
+  height: 4px;
+  background: linear-gradient(90deg, #0b5ed7, #06b6d4, #22c55e);
+  border-radius: 0 0 6px 6px;
+}
+.dl-form-icon {
+  width: 54px;
+  height: 54px;
+  border-radius: 15px;
+  background: linear-gradient(135deg, rgba(21,94,239,.10), rgba(22,182,135,.13));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.dl-form-content {
+  flex: 1;
+  min-width: 0;
+}
+.dl-form-content h3 {
+  margin: 0 0 6px;
+  font-size: .97rem;
+  font-weight: 700;
+  color: #0f2f57;
+  line-height: 1.25;
+}
+.dl-form-content p {
+  margin: 0;
+  font-size: .85rem;
+  color: #536b8d;
+  line-height: 1.55;
+}
+.dl-form-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border-radius: 999px;
+  padding: 11px 22px;
+  background: linear-gradient(135deg, #0b5ed7, #12a8e8);
+  color: #ffffff;
+  font-size: .84rem;
+  font-weight: 700;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  transition: transform .2s ease, box-shadow .2s ease;
+  white-space: nowrap;
+}
+.dl-form-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(11,94,215,.35);
+}
+@media (max-width: 768px) {
+  .dl-forms-grid { grid-template-columns: 1fr; }
+  .dl-form-card { padding: 20px 22px; gap: 16px; }
+}
+@media (max-width: 480px) {
+  .dl-form-card { flex-wrap: wrap; }
+  .dl-form-btn { width: 100%; justify-content: center; }
+}
