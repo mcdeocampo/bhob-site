@@ -1,6 +1,11 @@
 .env
+# Live data files — never commit, never overwrite on deploy
 data/users.json
 data/audit_logs.json
+data/announcements.json
+data/community-initiatives.json
+data/forms.json
+# Seed templates are in data/seed/ and ARE committed to git
 __pycache__/
 *.pyc
 *.pyo

@@ -1241,24 +1241,25 @@ def static_files(filename):
 # ── Bootstrap ─────────────────────────────────────────────────────────────────
 def _ensure_seed_data():
     """
-    When DATA_ROOT is set (persistent disk), copy seed JSON files from the
-    repo's data/ folder to DATA_DIR on the very first run — but NEVER
-    overwrite an existing file so runtime-created content is never lost.
+    Copy seed JSON files to DATA_DIR on the very first run only.
+    Seeds live in data/seed/ (committed to git) so they are never the same
+    file as the live data and can never accidentally overwrite it.
+    An existing file is NEVER overwritten — runtime-created content is safe.
     """
     import shutil
     os.makedirs(DATA_DIR, exist_ok=True)
-    seed_dir = os.path.join(BASE_DIR, 'data')
+    seed_dir = os.path.join(BASE_DIR, 'data', 'seed')
     for fname in ('announcements.json', 'community-initiatives.json', 'forms.json'):
         dest = os.path.join(DATA_DIR, fname)
         if not os.path.exists(dest):
             src = os.path.join(seed_dir, fname)
             if os.path.exists(src):
                 shutil.copy2(src, dest)
-                print(f'[BHOB] Seeded {fname} → {dest}')
+                print(f'[BHOB] Seeded {fname} -> {dest}')
     if _DATA_ROOT:
         print(f'[BHOB] Persistent storage: {DATA_DIR}')
     else:
-        print(f'[BHOB] Local storage (ephemeral on Render): {DATA_DIR}')
+        print(f'[BHOB] Local storage: {DATA_DIR}')
         print('[BHOB] Set DATA_ROOT env var to a Render persistent disk path to keep data across deploys.')
 
 
