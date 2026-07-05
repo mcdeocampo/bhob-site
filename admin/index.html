@@ -1077,7 +1077,7 @@ async function init() {
   try {
     const r = await fetch('/admin/check');
     const d = await r.json();
-    if (d.logged_in) showAdmin(d.user, d.fullName, d.forcePasswordChange);
+    if (d.ok) showAdmin(d.user.username, d.user.fullName, d.user.forcePasswordChange);
     else showLogin();
   } catch { showLogin(); }
 }
@@ -1134,7 +1134,7 @@ $('btn-login').onclick = async () => {
       body: JSON.stringify({username:user, password:pass})
     });
     const d = await r.json();
-    if (d.ok) { showAdmin(d.user, d.fullName, d.forcePasswordChange); }
+    if (d.ok) { showAdmin(d.user.username, d.user.fullName, d.forcePasswordChange); }
     else { err.textContent = d.error || 'Login failed. Please try again.'; err.style.display='block'; }
   } catch { err.textContent='Connection error. Please try again.'; err.style.display='block'; }
   finally {
@@ -1247,7 +1247,7 @@ function initSessionMonitor() {
       const r = await fetch('/admin/check');
       if (!r.ok) { showLogin(); return; }
       const d = await r.json();
-      if (!d.logged_in) {
+      if (!d.ok) {
         showLogin();
         toast('Your session has expired. Please log in again.', 'info');
       }
