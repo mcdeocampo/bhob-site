@@ -159,5 +159,77 @@
   </footer>
   <button class="back-to-top" aria-label="Back to top">↑</button>
   <script src="assets/js/main.js"></script>
+  <script>
+  (function() {
+    var featureWrap = document.querySelector('.officials-feature-wrap');
+    var councilGrid = document.querySelector('.officials-council-grid');
+    if (!featureWrap || !councilGrid) return;
+
+    function photoSrc(url) {
+      if (!url) return '';
+      return url.indexOf('http') === 0 ? url : '/' + url;
+    }
+
+    function esc(s) {
+      return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    function renderFeatured(o) {
+      var src = photoSrc(o.photoUrl);
+      var imgHtml = src
+        ? '<img src="' + esc(src) + '" alt="' + esc(o.position + ' ' + o.fullName) + '" onerror="this.style.display=\'none\'">'
+        : '';
+      featureWrap.innerHTML =
+        '<article class="official-featured reveal" aria-label="Punong Barangay">' +
+          '<div class="ofc-photo">' + imgHtml + '</div>' +
+          '<div class="ofc-details">' +
+            '<span class="ofc-badge">' + esc(o.position) + '</span>' +
+            '<h2 class="ofc-name">' + esc(o.fullName) + '</h2>' +
+            '<div class="ofc-divider"></div>' +
+            '<p class="ofc-role">' + esc(o.roleDescription) + '</p>' +
+          '</div>' +
+        '</article>';
+    }
+
+    function renderCouncil(others) {
+      var delays = ['', ' delay-1', ' delay-2', ' delay-3'];
+      councilGrid.innerHTML = others.map(function(o, i) {
+        var src = photoSrc(o.photoUrl);
+        var imgHtml = src
+          ? '<img src="' + esc(src) + '" alt="' + esc(o.position + ' ' + o.fullName) + '" onerror="this.style.display=\'none\'">'
+          : '';
+        return '<article class="official-card reveal' + delays[i % 4] + '">' +
+          imgHtml +
+          '<h3>' + esc(o.fullName) + '</h3>' +
+          '<span>' + esc(o.position) + '</span>' +
+          '<p>' + esc(o.roleDescription) + '</p>' +
+        '</article>';
+      }).join('');
+    }
+
+    function reobserve(container) {
+      if (window.revealObserver) {
+        container.querySelectorAll('.reveal').forEach(function(el) {
+          window.revealObserver.observe(el);
+        });
+      }
+    }
+
+    fetch('/api/officials')
+      .then(function(r) { return r.json(); })
+      .then(function(d) {
+        if (!d.ok || !d.officials || d.officials.length === 0) return;
+        var punong = null;
+        var others = [];
+        d.officials.forEach(function(o) {
+          if (o.isPunong && !punong) punong = o;
+          else others.push(o);
+        });
+        if (punong) { renderFeatured(punong); reobserve(featureWrap); }
+        if (others.length) { renderCouncil(others); reobserve(councilGrid); }
+      })
+      .catch(function() { /* silent — static fallback stays */ });
+  })();
+  </script>
 </body>
 </html>
