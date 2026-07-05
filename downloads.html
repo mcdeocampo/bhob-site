@@ -89,12 +89,12 @@
     var grid = document.getElementById('forms-grid');
 
     var DEFAULT_FORMS = [
-      { title: 'Barangay Clearance Form',       description: 'Download and complete this form before visiting the Barangay Hall.' },
-      { title: 'Certificate Request Form',       description: 'Use this form to request any barangay certificate or document.' },
-      { title: 'Complaint Form',                 description: 'Use this form to file a complaint or incident report at the barangay.' },
-      { title: 'Business Clearance Form',        description: 'Required for business permit processing. Complete before submission.' },
-      { title: 'Certificate of Indigency Form',  description: 'For residents requesting indigency certification for assistance programs.' },
-      { title: 'Certificate of Residency Form',  description: 'Proof that you are a registered resident of Barangay Hulo, Obando, Bulacan.' }
+      { title: 'Barangay Clearance Form',       description: 'Download and complete this form before visiting the Barangay Hall.', fileAvailable: true, fileUrl: 'assets/documents/barangay-clearance-form.pdf',      fileType: 'pdf' },
+      { title: 'Certificate Request Form',       description: 'Download and complete this form before visiting the Barangay Hall.', fileAvailable: true, fileUrl: 'assets/documents/certificate-request-form.pdf',       fileType: 'pdf' },
+      { title: 'Complaint Form',                 description: 'Download and complete this form before visiting the Barangay Hall.', fileAvailable: true, fileUrl: 'assets/documents/complaint-form.pdf',                 fileType: 'pdf' },
+      { title: 'Business Clearance Form',        description: 'Download and complete this form before visiting the Barangay Hall.', fileAvailable: true, fileUrl: 'assets/documents/business-clearance-form.pdf',        fileType: 'pdf' },
+      { title: 'Certificate of Indigency Form',  description: 'Download and complete this form before visiting the Barangay Hall.', fileAvailable: true, fileUrl: 'assets/documents/certificate-indigency-form.pdf',     fileType: 'pdf' },
+      { title: 'Certificate of Residency Form',  description: 'Download and complete this form before visiting the Barangay Hall.', fileAvailable: true, fileUrl: 'assets/documents/certificate-residency-form.pdf',     fileType: 'pdf' }
     ];
 
     var DOC_SVG = '<div class=\'dl-form-icon\' aria-hidden=\'true\'>'
@@ -106,7 +106,8 @@
       + '</svg></div>';
 
     function renderForms(forms) {
-      var list = (forms && forms.length) ? forms : DEFAULT_FORMS;
+      var hasRealFiles = forms && forms.some(function(f) { return f.fileAvailable && f.fileUrl; });
+      var list = hasRealFiles ? forms : DEFAULT_FORMS;
       grid.innerHTML = list.map(function(f) {
         var safeTitle = (f.title || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
         var safeDesc  = (f.description || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
