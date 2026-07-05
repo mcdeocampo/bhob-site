@@ -363,5 +363,62 @@
       .catch(function() {});
   })();
   </script>
+  <script>
+  (function() {
+    var card = document.querySelector('.opc-card');
+    if (!card) return;
+
+    var imgEl      = card.querySelector('.opc-photo img');
+    var nameEl     = card.querySelector('.opc-name');
+    var positionEl = card.querySelector('.opc-position');
+    var quoteEl    = card.querySelector('.opc-quote');
+
+    if (!imgEl || !nameEl || !positionEl || !quoteEl) return;
+
+    function photoSrc(url) {
+      if (!url) return '';
+      return url.indexOf('http') === 0 ? url : '/' + url;
+    }
+
+    function escHtml(s) {
+      return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    function safeQuote(s) {
+      return escHtml(s).replace(/\n/g, '<br>');
+    }
+
+    fetch('/api/officials')
+      .then(function(r) { return r.json(); })
+      .then(function(d) {
+        if (!d.officials || d.officials.length === 0) return;
+
+        var sorted = d.officials.slice().sort(function(a, b) {
+          return (a.displayOrder || 9999) - (b.displayOrder || 9999);
+        });
+
+        var punong = null;
+        for (var i = 0; i < sorted.length; i++) {
+          if (sorted[i].isPunong) { punong = sorted[i]; break; }
+        }
+
+        if (!punong) {
+          console.warn('[BHOB] No Punong Barangay found in /api/officials — keeping static content.');
+          return;
+        }
+
+        if (punong.fullName)  nameEl.textContent     = punong.fullName;
+        if (punong.position)  positionEl.textContent = punong.position;
+        if (punong.quote)     quoteEl.innerHTML       = safeQuote(punong.quote);
+
+        var src = photoSrc(punong.photoUrl);
+        if (src) {
+          imgEl.src = src;
+          imgEl.alt = (punong.position || '') + ' ' + (punong.fullName || '');
+        }
+      })
+      .catch(function() { /* silent — static fallback stays */ });
+  })();
+  </script>
 </body>
 </html>
