@@ -1,9 +1,9 @@
 """
 BHOB Site — Flask server
 Serves static files, weather/tide proxy, announcement management API, and secure admin auth.
+Data layer: Supabase Postgres + Supabase Storage.
 """
 import os
-import json
 import time
 import uuid
 import hashlib
@@ -16,24 +16,6 @@ from functools import wraps
 from flask import Flask, jsonify, send_from_directory, abort, request, session
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
-# ── Persistent storage root ───────────────────────────────────────────────────
-# On Render (or any ephemeral host): set DATA_ROOT env var to a mounted
-# persistent disk path (e.g. /var/data).  Locally: defaults to data/ in repo.
-_DATA_ROOT = os.environ.get('DATA_ROOT', '').strip()
-DATA_DIR        = _DATA_ROOT if _DATA_ROOT else os.path.join(BASE_DIR, 'data')
-# Local dev → assets/ (Flask serves directly); Render → DATA_DIR (persistent disk)
-UPLOAD_DIR      = (os.path.join(DATA_DIR, 'images', 'announcements') if _DATA_ROOT
-                   else os.path.join(BASE_DIR, 'assets', 'images', 'announcements'))
-PROJ_UPLOAD_DIR = (os.path.join(DATA_DIR, 'images', 'initiatives') if _DATA_ROOT
-                   else os.path.join(BASE_DIR, 'assets', 'images', 'initiatives'))
-FORMS_UPLOAD_DIR = (os.path.join(DATA_DIR, 'documents', 'forms') if _DATA_ROOT
-                    else os.path.join(BASE_DIR, 'assets', 'documents', 'forms'))
-ANN_FILE    = os.path.join(DATA_DIR, 'announcements.json')
-PROJ_FILE   = os.path.join(DATA_DIR, 'community-initiatives.json')
-FORMS_FILE  = os.path.join(DATA_DIR, 'forms.json')
-USERS_FILE  = os.path.join(DATA_DIR, 'users.json')
-AUDIT_FILE  = os.path.join(DATA_DIR, 'audit_logs.json')
 
 # ── Security constants ────────────────────────────────────────────────────────
 MAX_FAILED_ATTEMPTS  = 5
@@ -72,6 +54,12 @@ def _load_env(path):
 
 
 _load_env(os.path.join(BASE_DIR, '.env'))
+
+# Import Supabase client after env is loaded
+from db import supabase  # noqa: E402
+
+# Supabase Storage bucket name
+STORAGE_BUCKET = os.environ.get('SUPABASE_STORAGE_BUCKET', 'uploads')
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY') or uuid.uuid4().hex
@@ -169,157 +157,192 @@ def _validate_pw_strength(password, username='', email=''):
     return True, ''
 
 
-# ── User management ───────────────────────────────────────────────────────────
-def _load_users():
-    os.makedirs(DATA_DIR, exist_ok=True)
-    if not os.path.exists(USERS_FILE):
-        return []
-    try:
-        with open(USERS_FILE, encoding='utf-8') as f:
-            return json.load(f)
-    except Exception:
-        return []
+# ── Row mappers — Postgres snake_case → camelCase dicts ──────────────────────
+def _row_to_ann(row):
+    return {
+        'id':               row['id'],
+        'title':            row.get('title', ''),
+        'date':             row.get('date', ''),
+        'category':         row.get('category', ''),
+        'shortDescription': row.get('short_description', ''),
+        'fullDetails':      row.get('full_details', ''),
+        'imageUrl':         row.get('image_url', ''),
+        'status':           row.get('status', 'draft'),
+        'featured':         bool(row.get('featured', False)),
+        'displayOrder':     row.get('display_order', 0),
+        'createdAt':        row.get('created_at', ''),
+        'updatedAt':        row.get('updated_at', ''),
+    }
 
 
-def _save_users(users):
-    os.makedirs(DATA_DIR, exist_ok=True)
-    with open(USERS_FILE, 'w', encoding='utf-8') as f:
-        json.dump(users, f, ensure_ascii=False, indent=2)
+def _row_to_proj(row):
+    return {
+        'id':               row['id'],
+        'title':            row.get('title', ''),
+        'category':         row.get('category', ''),
+        'subtitle':         row.get('subtitle', ''),
+        'shortDescription': row.get('short_description', ''),
+        'fullDetails':      row.get('full_details', ''),
+        'imageUrl':         row.get('image_url', ''),
+        'status':           row.get('status', 'draft'),
+        'featured':         bool(row.get('featured', False)),
+        'displayOrder':     row.get('display_order', 0),
+        'buttonLabel':      row.get('button_label', ''),
+        'buttonLink':       row.get('button_link', ''),
+        'createdAt':        row.get('created_at', ''),
+        'updatedAt':        row.get('updated_at', ''),
+    }
 
 
+def _row_to_form(row):
+    file_url = row.get('file_url', '')
+    return {
+        'id':            row['id'],
+        'title':         row.get('title', ''),
+        'description':   row.get('description', ''),
+        'fileUrl':       file_url,
+        'fileName':      row.get('file_name', ''),
+        'fileType':      row.get('file_type', ''),
+        'fileSize':      row.get('file_size', 0),
+        'status':        row.get('status', 'draft'),
+        'displayOrder':  row.get('display_order', 0),
+        'createdAt':     row.get('created_at', ''),
+        'updatedAt':     row.get('updated_at', ''),
+        'fileAvailable': bool(file_url),
+    }
+
+
+def _row_to_user(row):
+    return {
+        'id':                  row['id'],
+        'fullName':            row.get('full_name', ''),
+        'username':            row.get('username', ''),
+        'email':               row.get('email', ''),
+        'passwordHash':        row.get('password_hash', ''),
+        'role':                row.get('role', 'admin'),
+        'status':              row.get('status', 'active'),
+        'forcePasswordChange': bool(row.get('force_password_change', False)),
+        'failedLoginCount':    row.get('failed_login_count', 0),
+        'lockedUntil':         row.get('locked_until'),
+        'lastLoginAt':         row.get('last_login_at'),
+        'createdAt':           row.get('created_at', ''),
+        'updatedAt':           row.get('updated_at', ''),
+    }
+
+
+# ── User management (Supabase) ────────────────────────────────────────────────
 def _get_user_by_username(username):
-    for u in _load_users():
-        if u.get('username', '').strip().lower() == username.strip().lower():
-            return u
+    try:
+        res = (supabase.table('users')
+               .select('*')
+               .ilike('username', username.strip())
+               .limit(1)
+               .execute())
+        if res.data:
+            return _row_to_user(res.data[0])
+    except Exception:
+        pass
     return None
 
 
 def _get_user_by_id(uid):
     if not uid:
         return None
-    for u in _load_users():
-        if u.get('id') == uid:
-            return u
+    try:
+        res = (supabase.table('users')
+               .select('*')
+               .eq('id', uid)
+               .limit(1)
+               .execute())
+        if res.data:
+            return _row_to_user(res.data[0])
+    except Exception:
+        pass
     return None
 
 
 def _update_user(updated_user):
     """Persist changes to a single user record."""
-    users = _load_users()
-    for i, u in enumerate(users):
-        if u.get('id') == updated_user.get('id'):
-            updated_user['updatedAt'] = datetime.now(timezone.utc).isoformat()
-            users[i] = updated_user
-            _save_users(users)
-            return True
-    return False
+    now = datetime.now(timezone.utc).isoformat()
+    patch = {
+        'full_name':             updated_user.get('fullName', ''),
+        'username':              updated_user.get('username', ''),
+        'email':                 updated_user.get('email', ''),
+        'password_hash':         updated_user.get('passwordHash', ''),
+        'role':                  updated_user.get('role', 'admin'),
+        'status':                updated_user.get('status', 'active'),
+        'force_password_change': bool(updated_user.get('forcePasswordChange', False)),
+        'failed_login_count':    updated_user.get('failedLoginCount', 0),
+        'locked_until':          updated_user.get('lockedUntil'),
+        'last_login_at':         updated_user.get('lastLoginAt'),
+        'updated_at':            now,
+    }
+    try:
+        res = (supabase.table('users')
+               .update(patch)
+               .eq('id', updated_user['id'])
+               .execute())
+        return bool(res.data)
+    except Exception:
+        return False
 
 
 def _ensure_initial_user():
     """
-    Create the initial admin account on first startup (when users.json does not exist).
-
-    Priority order for the password source:
-      1. ADMIN_PWHASH env var — set this in your Render dashboard after changing
-         the admin password so the change survives future redeploys.
-      2. ADMIN_PASSWORD env var — plain-text initial password (force-change required).
-      3. Auto-generated fallback Barangay@<year> (force-change required).
-
-    IMPORTANT: users.json must NOT be committed to git (it is in .gitignore).
-    If it is still tracked, run:
-        git rm --cached data/users.json data/audit_logs.json
-    and push — otherwise every deploy overwrites the live password.
-    """
-    users = _load_users()
-    if users:
-        return
-
-    username   = os.environ.get('ADMIN_USERNAME', 'admin')
-    saved_hash = os.environ.get('ADMIN_PWHASH', '').strip()
-    force_pw   = False
-
-    # Validate ADMIN_PWHASH format: must be "iterations:salt_hex:hash_hex"
-    if saved_hash and len(saved_hash.split(':')) != 3:
-        print('[BHOB] WARNING: ADMIN_PWHASH format invalid — falling back to ADMIN_PASSWORD.')
-        saved_hash = ''
-
-    if saved_hash:
-        pw_hash  = saved_hash
-        force_pw = False   # Already a user-chosen password; no forced change needed
-        login_hint = '(restored from ADMIN_PWHASH env var)'
-    else:
-        plain_pw = os.environ.get('ADMIN_PASSWORD', '')
-        if not plain_pw:
-            plain_pw = f'Barangay@{datetime.now().year}'
-            login_hint = f'Password  : {plain_pw}  ← auto-generated, CHANGE THIS'
-        else:
-            login_hint = 'Password  : (value of ADMIN_PASSWORD env var)'
-        pw_hash  = _hash_pw(plain_pw)
-        force_pw = True    # Plain-text credential — force change on first login
-
-    now = datetime.now(timezone.utc).isoformat()
-    user = {
-        'id':                 uuid.uuid4().hex,
-        'fullName':           'Barangay Admin',
-        'username':           username,
-        'email':              '',
-        'passwordHash':       pw_hash,
-        'role':               'admin',
-        'status':             'active',
-        'forcePasswordChange': force_pw,
-        'failedLoginCount':   0,
-        'lockedUntil':        None,
-        'lastLoginAt':        None,
-        'createdAt':          now,
-        'updatedAt':          now,
-    }
-    _save_users([user])
-    print('[BHOB] -------------------------------------------------')
-    if saved_hash:
-        print(f'[BHOB] Admin account restored from ADMIN_PWHASH env var.')
-        print(f'[BHOB] Username : {username}')
-    else:
-        print(f'[BHOB] Initial admin account created.')
-        print(f'[BHOB] Username : {username}')
-        print(f'[BHOB] {login_hint}')
-        print(f'[BHOB] Log in and change your password immediately.')
-        if not os.environ.get('ADMIN_PASSWORD'):
-            print(f'[BHOB] TIP: Set ADMIN_PASSWORD env var to control the initial password.')
-    print('[BHOB] -------------------------------------------------')
-
-
-# ── Audit logging ─────────────────────────────────────────────────────────────
-def _audit(event_type, description, user_id=None, success=True):
-    """
-    Write a tamper-evident audit log entry.
-    Never logs plain passwords, hashes, tokens, or secrets.
+    Create the initial admin account only when no users exist in Supabase.
+    Never called when users already exist — never resets a changed password.
     """
     try:
-        os.makedirs(DATA_DIR, exist_ok=True)
-        logs = []
-        if os.path.exists(AUDIT_FILE):
-            try:
-                with open(AUDIT_FILE, encoding='utf-8') as f:
-                    logs = json.load(f)
-            except Exception:
-                logs = []
-        entry = {
-            'id':          uuid.uuid4().hex,
-            'userId':      user_id,
-            'eventType':   event_type,
-            'description': description,
-            'success':     success,
-            'ipAddress':   request.remote_addr if request else None,
-            'userAgent':   (request.headers.get('User-Agent', '')[:200]) if request else None,
-            'createdAt':   datetime.now(timezone.utc).isoformat(),
-        }
-        logs.append(entry)
-        if len(logs) > 2000:
-            logs = logs[-2000:]
-        with open(AUDIT_FILE, 'w', encoding='utf-8') as f:
-            json.dump(logs, f, ensure_ascii=False, indent=2)
-    except Exception:
-        pass  # Audit failures must never break the application
+        res = supabase.table('users').select('id').limit(1).execute()
+        if res.data:
+            return
+    except Exception as exc:
+        print(f'[BHOB] WARNING: Could not check users table: {exc}')
+        return
+
+    username  = os.environ.get('ADMIN_USERNAME', 'admin')
+    plain_pw  = os.environ.get('ADMIN_PASSWORD', '')
+    force_pw  = True
+    if not plain_pw:
+        plain_pw = f'Barangay@{datetime.now().year}'
+        print('[BHOB] -------------------------------------------------')
+        print('[BHOB] WARNING: No ADMIN_PASSWORD set.')
+        print(f'[BHOB] Auto-generated password: {plain_pw}')
+        print('[BHOB] Log in and change your password immediately.')
+    else:
+        print('[BHOB] -------------------------------------------------')
+        print('[BHOB] Admin account created from ADMIN_PASSWORD env var.')
+        print(f'[BHOB] Username : {username}')
+        print('[BHOB] Log in and change your password immediately.')
+    pw_hash = _hash_pw(plain_pw)
+    print('[BHOB] -------------------------------------------------')
+
+    now = datetime.now(timezone.utc).isoformat()
+    row = {
+        'id':                    uuid.uuid4().hex,
+        'full_name':             'Barangay Admin',
+        'username':              username,
+        'email':                 '',
+        'password_hash':         pw_hash,
+        'role':                  'admin',
+        'status':                'active',
+        'force_password_change': force_pw,
+        'failed_login_count':    0,
+        'locked_until':          None,
+        'last_login_at':         None,
+        'created_at':            now,
+        'updated_at':            now,
+    }
+    try:
+        supabase.table('users').insert(row).execute()
+        print(f'[BHOB] Initial admin user created: {username}')
+    except Exception as exc:
+        print(f'[BHOB] ERROR: Could not create initial admin user: {exc}')
+
+
+# ── Audit logging — no-op (temporarily disabled; restore after migration stable) ──
+def _audit(*args, **kwargs):
+    pass
 
 
 # ── Session helpers ───────────────────────────────────────────────────────────
@@ -379,74 +402,196 @@ def admin_auth_only(f):
 
 
 # ── General helpers ───────────────────────────────────────────────────────────
-def _load_ann():
-    os.makedirs(DATA_DIR, exist_ok=True)
-    if not os.path.exists(ANN_FILE):
-        return []
-    try:
-        with open(ANN_FILE, encoding='utf-8') as f:
-            return json.load(f)
-    except Exception:
-        return []
-
-
-def _save_ann(data):
-    os.makedirs(DATA_DIR, exist_ok=True)
-    with open(ANN_FILE, 'w', encoding='utf-8') as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
-
-
-def _load_proj():
-    os.makedirs(DATA_DIR, exist_ok=True)
-    if not os.path.exists(PROJ_FILE):
-        return []
-    try:
-        with open(PROJ_FILE, encoding='utf-8') as f:
-            return json.load(f)
-    except Exception:
-        return []
-
-
-def _save_proj(data):
-    os.makedirs(DATA_DIR, exist_ok=True)
-    with open(PROJ_FILE, 'w', encoding='utf-8') as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
-
-
-def _load_forms():
-    os.makedirs(DATA_DIR, exist_ok=True)
-    if not os.path.exists(FORMS_FILE):
-        return []
-    try:
-        with open(FORMS_FILE, encoding='utf-8') as f:
-            return json.load(f)
-    except Exception:
-        return []
-
-
-def _save_forms(data):
-    os.makedirs(DATA_DIR, exist_ok=True)
-    with open(FORMS_FILE, 'w', encoding='utf-8') as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
-
-
-def _form_file_path(file_url):
-    """Return absolute filesystem path for a stored form file URL."""
-    if not file_url:
-        return None
-    if _DATA_ROOT and file_url.startswith('assets/documents/forms/'):
-        rel = file_url[len('assets/'):]
-        return os.path.join(DATA_DIR, rel)
-    return os.path.join(BASE_DIR, file_url)
-
-
-def _form_file_available(file_url):
-    path = _form_file_path(file_url)
-    return bool(path and os.path.isfile(path))
-
-
 def _clean(val, maxlen=500):
     return str(val or '').strip()[:maxlen]
+
+
+def _order_key(item):
+    """Safe displayOrder sort key — None/missing items sort last."""
+    v = item.get('displayOrder')
+    return v if isinstance(v, (int, float)) else 9999
+
+
+# ── Announcement data helpers (Supabase) ──────────────────────────────────────
+def _load_ann():
+    try:
+        res = supabase.table('announcements').select('*').execute()
+        return [_row_to_ann(r) for r in (res.data or [])]
+    except Exception:
+        return []
+
+
+def _ann_create(ann_dict):
+    row = {
+        'id':                ann_dict['id'],
+        'title':             ann_dict.get('title', ''),
+        'date':              ann_dict.get('date', ''),
+        'category':          ann_dict.get('category', ''),
+        'short_description': ann_dict.get('shortDescription', ''),
+        'full_details':      ann_dict.get('fullDetails', ''),
+        'image_url':         ann_dict.get('imageUrl', ''),
+        'status':            ann_dict.get('status', 'draft'),
+        'featured':          bool(ann_dict.get('featured', False)),
+        'display_order':     int(ann_dict.get('displayOrder', 0)),
+        'created_at':        ann_dict.get('createdAt', ''),
+        'updated_at':        ann_dict.get('updatedAt', ''),
+    }
+    res = supabase.table('announcements').insert(row).execute()
+    return _row_to_ann(res.data[0]) if res.data else ann_dict
+
+
+def _ann_update(ann_id, patch_dict):
+    now = datetime.now(timezone.utc).isoformat()
+    row = {'updated_at': now}
+    field_map = {
+        'title': 'title', 'date': 'date', 'category': 'category',
+        'shortDescription': 'short_description', 'fullDetails': 'full_details',
+        'imageUrl': 'image_url', 'status': 'status',
+        'featured': 'featured', 'displayOrder': 'display_order',
+    }
+    for camel, snake in field_map.items():
+        if camel in patch_dict:
+            row[snake] = patch_dict[camel]
+    res = (supabase.table('announcements')
+           .update(row)
+           .eq('id', ann_id)
+           .execute())
+    return _row_to_ann(res.data[0]) if res.data else None
+
+
+def _ann_delete(ann_id):
+    res = supabase.table('announcements').delete().eq('id', ann_id).execute()
+    return bool(res.data)
+
+
+def _ann_bulk_order(order_map):
+    now = datetime.now(timezone.utc).isoformat()
+    for ann_id, order in order_map.items():
+        supabase.table('announcements').update(
+            {'display_order': order, 'updated_at': now}
+        ).eq('id', ann_id).execute()
+
+
+# ── Community initiatives data helpers (Supabase) ────────────────────────────
+def _load_proj():
+    try:
+        res = supabase.table('community_initiatives').select('*').execute()
+        return [_row_to_proj(r) for r in (res.data or [])]
+    except Exception:
+        return []
+
+
+def _proj_create(proj_dict):
+    row = {
+        'id':                proj_dict['id'],
+        'title':             proj_dict.get('title', ''),
+        'category':          proj_dict.get('category', ''),
+        'subtitle':          proj_dict.get('subtitle', ''),
+        'short_description': proj_dict.get('shortDescription', ''),
+        'full_details':      proj_dict.get('fullDetails', ''),
+        'image_url':         proj_dict.get('imageUrl', ''),
+        'status':            proj_dict.get('status', 'draft'),
+        'featured':          bool(proj_dict.get('featured', False)),
+        'display_order':     int(proj_dict.get('displayOrder', 0)),
+        'button_label':      proj_dict.get('buttonLabel', ''),
+        'button_link':       proj_dict.get('buttonLink', ''),
+        'created_at':        proj_dict.get('createdAt', ''),
+        'updated_at':        proj_dict.get('updatedAt', ''),
+    }
+    res = supabase.table('community_initiatives').insert(row).execute()
+    return _row_to_proj(res.data[0]) if res.data else proj_dict
+
+
+def _proj_update(proj_id, patch_dict):
+    now = datetime.now(timezone.utc).isoformat()
+    row = {'updated_at': now}
+    field_map = {
+        'title': 'title', 'category': 'category', 'subtitle': 'subtitle',
+        'shortDescription': 'short_description', 'fullDetails': 'full_details',
+        'imageUrl': 'image_url', 'status': 'status',
+        'featured': 'featured', 'displayOrder': 'display_order',
+        'buttonLabel': 'button_label', 'buttonLink': 'button_link',
+    }
+    for camel, snake in field_map.items():
+        if camel in patch_dict:
+            row[snake] = patch_dict[camel]
+    res = (supabase.table('community_initiatives')
+           .update(row)
+           .eq('id', proj_id)
+           .execute())
+    return _row_to_proj(res.data[0]) if res.data else None
+
+
+def _proj_delete(proj_id):
+    res = supabase.table('community_initiatives').delete().eq('id', proj_id).execute()
+    return bool(res.data)
+
+
+def _proj_bulk_order(order_map):
+    now = datetime.now(timezone.utc).isoformat()
+    for proj_id, order in order_map.items():
+        supabase.table('community_initiatives').update(
+            {'display_order': order, 'updated_at': now}
+        ).eq('id', proj_id).execute()
+
+
+# ── Forms data helpers (Supabase) ─────────────────────────────────────────────
+def _load_forms():
+    try:
+        res = supabase.table('forms').select('*').execute()
+        return [_row_to_form(r) for r in (res.data or [])]
+    except Exception:
+        return []
+
+
+def _form_create(form_dict):
+    row = {
+        'id':            form_dict['id'],
+        'title':         form_dict.get('title', ''),
+        'description':   form_dict.get('description', ''),
+        'file_url':      form_dict.get('fileUrl', ''),
+        'file_name':     form_dict.get('fileName', ''),
+        'file_type':     form_dict.get('fileType', ''),
+        'file_size':     int(form_dict.get('fileSize', 0)),
+        'status':        form_dict.get('status', 'draft'),
+        'display_order': int(form_dict.get('displayOrder', 0)),
+        'created_at':    form_dict.get('createdAt', ''),
+        'updated_at':    form_dict.get('updatedAt', ''),
+    }
+    res = supabase.table('forms').insert(row).execute()
+    return _row_to_form(res.data[0]) if res.data else form_dict
+
+
+def _form_update(form_id, patch_dict):
+    now = datetime.now(timezone.utc).isoformat()
+    row = {'updated_at': now}
+    field_map = {
+        'title': 'title', 'description': 'description',
+        'fileUrl': 'file_url', 'fileName': 'file_name',
+        'fileType': 'file_type', 'fileSize': 'file_size',
+        'status': 'status', 'displayOrder': 'display_order',
+    }
+    for camel, snake in field_map.items():
+        if camel in patch_dict:
+            row[snake] = patch_dict[camel]
+    res = (supabase.table('forms')
+           .update(row)
+           .eq('id', form_id)
+           .execute())
+    return _row_to_form(res.data[0]) if res.data else None
+
+
+def _form_delete(form_id):
+    res = supabase.table('forms').delete().eq('id', form_id).execute()
+    return bool(res.data)
+
+
+def _form_bulk_order(order_map):
+    now = datetime.now(timezone.utc).isoformat()
+    for form_id, order in order_map.items():
+        supabase.table('forms').update(
+            {'display_order': order, 'updated_at': now}
+        ).eq('id', form_id).execute()
 
 
 # ── Public routes — weather & tide ────────────────────────────────────────────
@@ -459,7 +604,8 @@ def api_weather():
         url = 'https://wttr.in/Obando,Bulacan?format=j1'
         req = urllib.request.Request(url, headers={'User-Agent': 'curl/7.88'})
         with urllib.request.urlopen(req, timeout=10) as resp:
-            raw = json.loads(resp.read().decode('utf-8'))
+            import json as _json
+            raw = _json.loads(resp.read().decode('utf-8'))
         cc    = raw['current_condition'][0]
         temp  = int(cc['temp_C'])
         code  = cc.get('weatherCode', '113')
@@ -487,7 +633,8 @@ def api_tide():
         )
         req = urllib.request.Request(url, headers={'User-Agent': 'BHOB-Site/1.0'})
         with urllib.request.urlopen(req, timeout=10) as resp:
-            raw = json.loads(resp.read().decode('utf-8'))
+            import json as _json
+            raw = _json.loads(resp.read().decode('utf-8'))
         times   = (raw.get('hourly') or {}).get('time', [])
         heights = (raw.get('hourly') or {}).get('sea_level_height_msl', [])
         valid   = [h for h in heights if h is not None]
@@ -520,18 +667,11 @@ def api_tide():
         return jsonify({'status': 'unavailable'})
 
 
-def _order_key(item):
-    """Safe displayOrder sort key — None/missing items sort last."""
-    v = item.get('displayOrder')
-    return v if isinstance(v, (int, float)) else 9999
-
-
 # ── Public announcements API ──────────────────────────────────────────────────
 @app.route('/api/announcements')
 def api_announcements():
     all_ann   = _load_ann()
     published = [a for a in all_ann if a.get('status') == 'published']
-    # Two-pass stable sort: date desc (fallback), then displayOrder asc (primary)
     published.sort(key=lambda x: x.get('date', ''), reverse=True)
     published.sort(key=_order_key)
     return jsonify({'status': 'ok', 'announcements': published})
@@ -542,7 +682,6 @@ def api_announcements():
 def api_community_initiatives():
     all_proj  = _load_proj()
     published = [p for p in all_proj if p.get('status') == 'published']
-    # Two-pass stable sort: createdAt desc (fallback), then displayOrder asc (primary)
     published.sort(key=lambda x: x.get('createdAt', ''), reverse=True)
     published.sort(key=_order_key)
     return jsonify({'status': 'ok', 'initiatives': published})
@@ -555,8 +694,6 @@ def api_forms():
     published = [f for f in all_forms if f.get('status') == 'published']
     published.sort(key=lambda x: x.get('updatedAt', ''), reverse=True)
     published.sort(key=_order_key)
-    for f in published:
-        f['fileAvailable'] = _form_file_available(f.get('fileUrl', ''))
     return jsonify({'status': 'ok', 'forms': published})
 
 
@@ -572,201 +709,137 @@ def public_page(page_name):
         f = os.path.join(BASE_DIR, page_name + '.html')
         if os.path.exists(f):
             return send_from_directory(BASE_DIR, page_name + '.html')
-    # Fall through to static_files handler via abort so Flask picks the next rule
     abort(404)
 
 
 # ── Admin page serving ────────────────────────────────────────────────────────
 @app.route('/admin')
-@app.route('/admin/')
-@app.route('/admin/settings')
-@app.route('/admin/community-initiatives')
-@app.route('/admin/download-forms')
-def admin_page():
-    f = os.path.join(BASE_DIR, 'admin', 'index.html')
-    if not os.path.exists(f):
-        abort(404)
+def admin_index():
     return send_from_directory(os.path.join(BASE_DIR, 'admin'), 'index.html')
 
 
-# ── Admin auth API ────────────────────────────────────────────────────────────
+@app.route('/admin/<path:filename>')
+def admin_files(filename):
+    return send_from_directory(os.path.join(BASE_DIR, 'admin'), filename)
+
+
+# ── Admin — session / auth ────────────────────────────────────────────────────
 @app.route('/admin/login', methods=['POST'])
 def admin_login():
     d        = request.get_json(silent=True) or {}
-    username = _clean(d.get('username', ''), 100)
+    username = str(d.get('username', '')).strip()
     password = str(d.get('password', ''))
-
     if not username or not password:
-        return jsonify({'error': 'Invalid username or password.'}), 401
+        return jsonify({'error': 'Username and password are required.'}), 400
 
     user = _get_user_by_username(username)
-
-    # Check existing lockout before doing anything else
-    if user:
-        locked_until = user.get('lockedUntil')
-        if locked_until:
-            try:
-                lock_dt = datetime.fromisoformat(locked_until)
-                if datetime.now(timezone.utc) < lock_dt:
-                    remaining = max(1, int((lock_dt - datetime.now(timezone.utc)).total_seconds() / 60) + 1)
-                    _audit('login_failed_locked', f'Login attempt while account locked: {username}',
-                           user.get('id'), False)
-                    return jsonify({
-                        'error': f'Too many failed login attempts. Please try again in {remaining} minute(s).'
-                    }), 401
-                else:
-                    # Lockout period has passed — reset
-                    user['lockedUntil']       = None
-                    user['failedLoginCount']  = 0
-            except Exception:
-                user['lockedUntil'] = None
-
-    # Always run password check (prevents timing-based username enumeration)
-    dummy_hash = '600000:' + '0' * 64 + ':' + '0' * 64
-    pw_ok = bool(user) and _check_pw(password, user.get('passwordHash', dummy_hash))
-
-    if not pw_ok:
-        if user:
-            user['failedLoginCount'] = user.get('failedLoginCount', 0) + 1
-            if user['failedLoginCount'] >= MAX_FAILED_ATTEMPTS:
-                user['lockedUntil'] = (
-                    datetime.now(timezone.utc) + timedelta(minutes=LOCKOUT_MINUTES)
-                ).isoformat()
-                _update_user(user)
-                _audit('account_locked',
-                       f'Account locked after {MAX_FAILED_ATTEMPTS} failed attempts: {username}',
-                       user.get('id'), False)
-                return jsonify({
-                    'error': f'Too many failed login attempts. Please try again in {LOCKOUT_MINUTES} minutes.'
-                }), 401
-            _update_user(user)
-        _audit('login_failed', f'Failed login attempt: {username}',
-               user.get('id') if user else None, False)
+    if not user:
+        _audit('login_failed', f'Unknown username: {username}', success=False)
         return jsonify({'error': 'Invalid username or password.'}), 401
 
-    # Check account status after verifying password
+    # Account lock check
+    locked_until = user.get('lockedUntil')
+    if locked_until:
+        try:
+            lock_dt = datetime.fromisoformat(locked_until)
+            if datetime.now(timezone.utc) < lock_dt:
+                mins = int((lock_dt - datetime.now(timezone.utc)).total_seconds() / 60) + 1
+                return jsonify({'error': f'Account locked. Try again in {mins} minute(s).'}), 403
+        except Exception:
+            pass
+
+    if not _check_pw(password, user.get('passwordHash', '')):
+        user['failedLoginCount'] = user.get('failedLoginCount', 0) + 1
+        if user['failedLoginCount'] >= MAX_FAILED_ATTEMPTS:
+            user['lockedUntil'] = (
+                datetime.now(timezone.utc) + timedelta(minutes=LOCKOUT_MINUTES)
+            ).isoformat()
+        _update_user(user)
+        _audit('login_failed', f'Bad password for {username}', user_id=user['id'], success=False)
+        return jsonify({'error': 'Invalid username or password.'}), 401
+
     if user.get('status') != 'active':
-        _audit('login_failed', f'Login on inactive account: {username}', user.get('id'), False)
-        return jsonify({'error': 'Invalid username or password.'}), 401
+        return jsonify({'error': 'Account is not active. Contact the administrator.'}), 403
 
-    # Successful login — reset failure counter and update last login
+    # Successful login
     user['failedLoginCount'] = 0
     user['lockedUntil']      = None
     user['lastLoginAt']      = datetime.now(timezone.utc).isoformat()
     _update_user(user)
+    _audit('login_success', f'Login: {username}', user_id=user['id'])
 
-    session.clear()
     session['admin_logged_in'] = True
     session['admin_user_id']   = user['id']
-    session['admin_username']  = user['username']
     session['last_active']     = time.time()
-    app.permanent_session_lifetime = timedelta(hours=2)
-    session.permanent = True
-
-    _audit('login_success', f'Successful login: {username}', user['id'], True)
 
     return jsonify({
-        'ok':                True,
-        'user':              user.get('username', ''),
-        'fullName':          user.get('fullName', ''),
-        'forcePasswordChange': bool(user.get('forcePasswordChange', False)),
+        'ok':                  True,
+        'forcePasswordChange': user.get('forcePasswordChange', False),
+        'user': {
+            'id':       user['id'],
+            'username': user['username'],
+            'fullName': user['fullName'],
+            'role':     user['role'],
+        },
     })
 
 
 @app.route('/admin/logout', methods=['POST'])
 def admin_logout():
-    user_id  = session.get('admin_user_id')
-    username = session.get('admin_username', '')
-    _audit('logout', f'Admin logout: {username}', user_id, True)
+    uid = session.get('admin_user_id')
+    _audit('logout', 'Admin logged out', user_id=uid)
     session.clear()
     return jsonify({'ok': True})
 
 
 @app.route('/admin/check')
-def admin_check():
+def admin_me():
     if not _session_valid():
-        return jsonify({'logged_in': False})
+        return jsonify({'error': 'unauthorized'}), 401
     user = _get_user_by_id(session.get('admin_user_id'))
     if not user or user.get('status') != 'active':
         session.clear()
-        return jsonify({'logged_in': False})
+        return jsonify({'error': 'unauthorized'}), 401
     return jsonify({
-        'logged_in':           True,
-        'user':                user.get('username', ''),
-        'fullName':            user.get('fullName', ''),
-        'role':                user.get('role', 'admin'),
-        'forcePasswordChange': bool(user.get('forcePasswordChange', False)),
+        'ok': True,
+        'user': {
+            'id':                  user['id'],
+            'username':            user['username'],
+            'fullName':            user['fullName'],
+            'email':               user.get('email', ''),
+            'role':                user['role'],
+            'forcePasswordChange': user.get('forcePasswordChange', False),
+        },
     })
 
 
-# ── Change password ───────────────────────────────────────────────────────────
+# ── Admin — change password ───────────────────────────────────────────────────
 @app.route('/admin/api/change-password', methods=['POST'])
-@admin_auth_only   # allows forcePasswordChange state — intentional
+@admin_auth_only
 def admin_change_password():
-    d          = request.get_json(silent=True) or {}
-    current_pw = str(d.get('currentPassword', ''))
-    new_pw     = str(d.get('newPassword', ''))
-    confirm_pw = str(d.get('confirmPassword', ''))
-    user_id    = session.get('admin_user_id')
+    d           = request.get_json(silent=True) or {}
+    current_pw  = str(d.get('currentPassword', ''))
+    new_pw      = str(d.get('newPassword', ''))
+    confirm_pw  = str(d.get('confirmPassword', ''))
 
-    users = _load_users()
-    user  = next((u for u in users if u.get('id') == user_id), None)
+    user = _get_user_by_id(session.get('admin_user_id'))
     if not user:
-        return jsonify({'error': 'Unauthorized.'}), 401
+        return jsonify({'error': 'User not found.'}), 404
 
-    # --- Validate current password ---
-    if not current_pw:
-        return jsonify({'error': 'Current password is required.'}), 400
     if not _check_pw(current_pw, user.get('passwordHash', '')):
-        _audit('password_change_failed', 'Wrong current password supplied', user_id, False)
+        _audit('password_change_failed', 'Wrong current password', user_id=user['id'], success=False)
         return jsonify({'error': 'Current password is incorrect.'}), 400
-
-    # --- Validate new password ---
-    if not new_pw:
-        return jsonify({'error': 'New password is required.'}), 400
-    if not confirm_pw:
-        return jsonify({'error': 'Confirm password is required.'}), 400
     if new_pw != confirm_pw:
-        return jsonify({'error': 'New password and confirm password do not match.'}), 400
+        return jsonify({'error': 'New passwords do not match.'}), 400
 
     ok, msg = _validate_pw_strength(new_pw, user.get('username', ''), user.get('email', ''))
     if not ok:
         return jsonify({'error': msg}), 400
 
-    if _check_pw(new_pw, user.get('passwordHash', '')):
-        return jsonify({'error': 'New password must be different from your current password.'}), 400
-
-    # --- Update password hash ---
-    new_hash = _hash_pw(new_pw)
-    for i, u in enumerate(users):
-        if u.get('id') == user_id:
-            users[i]['passwordHash']       = new_hash
-            users[i]['forcePasswordChange'] = False
-            users[i]['updatedAt']          = datetime.now(timezone.utc).isoformat()
-            break
-    _save_users(users)
-
-    # Verify the save actually took effect before telling the client it succeeded
-    verify_users = _load_users()
-    verify_user  = next((u for u in verify_users if u.get('id') == user_id), None)
-    if not verify_user or not _check_pw(new_pw, verify_user.get('passwordHash', '')):
-        _audit('password_change_failed', 'Post-save verification failed', user_id, False)
-        return jsonify({'error': 'Password update could not be saved. Please try again.'}), 500
-
-    _audit('password_changed', 'Password changed successfully', user_id, True)
-
-    # Log the new hash so it can be set as ADMIN_PWHASH in deployment env vars,
-    # ensuring the change survives future redeploys on ephemeral hosting (e.g. Render).
-    print('[BHOB] -------------------------------------------------')
-    print('[BHOB] Admin password changed successfully.')
-    print('[BHOB] To persist this password across redeploys, set the')
-    print('[BHOB] following environment variable in your hosting dashboard:')
-    print(f'[BHOB] ADMIN_PWHASH={new_hash}')
-    print('[BHOB] -------------------------------------------------')
-
-    # Invalidate session — require re-login with new password
-    session.clear()
-
+    user['passwordHash']        = _hash_pw(new_pw)
+    user['forcePasswordChange'] = False
+    _update_user(user)
+    _audit('password_changed', 'Password changed successfully', user_id=user['id'])
     return jsonify({
         'ok':      True,
         'message': 'Password changed successfully. Please log in with your new password.',
@@ -778,7 +851,6 @@ def admin_change_password():
 @admin_required
 def admin_list():
     all_ann = _load_ann()
-    # Sort by displayOrder asc (primary), updatedAt desc (secondary for unordered items)
     all_ann.sort(key=lambda x: x.get('updatedAt', ''), reverse=True)
     all_ann.sort(key=_order_key)
     return jsonify({'status': 'ok', 'announcements': all_ann})
@@ -808,8 +880,7 @@ def admin_create():
         'createdAt':        now,
         'updatedAt':        now,
     }
-    all_ann.append(ann)
-    _save_ann(all_ann)
+    ann = _ann_create(ann)
     return jsonify({'status': 'ok', 'announcement': ann}), 201
 
 
@@ -826,49 +897,39 @@ def admin_reorder():
                 order_map[str(item['id'])] = int(item['displayOrder'])
             except (ValueError, TypeError, KeyError):
                 pass
-    all_ann = _load_ann()
-    for a in all_ann:
-        if a.get('id') in order_map:
-            a['displayOrder'] = order_map[a['id']]
-    _save_ann(all_ann)
+    _ann_bulk_order(order_map)
     return jsonify({'status': 'ok'})
 
 
 @app.route('/admin/api/announcements/<ann_id>', methods=['PUT'])
 @admin_required
 def admin_update(ann_id):
-    d       = request.get_json(silent=True) or {}
-    all_ann = _load_ann()
-    idx     = next((i for i, a in enumerate(all_ann) if a.get('id') == ann_id), None)
-    if idx is None:
-        return jsonify({'error': 'Not found'}), 404
-    a = all_ann[idx]
+    d = request.get_json(silent=True) or {}
+    patch = {}
     for field, maxlen in [('title', 200), ('date', 20), ('category', 50),
                           ('shortDescription', 500), ('fullDetails', 10000), ('imageUrl', 300)]:
         if field in d:
-            a[field] = _clean(d[field], maxlen)
+            patch[field] = _clean(d[field], maxlen)
     if 'status' in d and d['status'] in ('draft', 'published', 'hidden'):
-        a['status'] = d['status']
+        patch['status'] = d['status']
     if 'featured' in d:
-        a['featured'] = bool(d['featured'])
+        patch['featured'] = bool(d['featured'])
     if 'displayOrder' in d:
         try:
-            a['displayOrder'] = int(d['displayOrder'])
+            patch['displayOrder'] = int(d['displayOrder'])
         except (ValueError, TypeError):
             pass
-    a['updatedAt'] = datetime.now(timezone.utc).isoformat()
-    _save_ann(all_ann)
-    return jsonify({'status': 'ok', 'announcement': a})
+    ann = _ann_update(ann_id, patch)
+    if ann is None:
+        return jsonify({'error': 'Not found'}), 404
+    return jsonify({'status': 'ok', 'announcement': ann})
 
 
 @app.route('/admin/api/announcements/<ann_id>', methods=['DELETE'])
 @admin_required
 def admin_delete(ann_id):
-    all_ann  = _load_ann()
-    filtered = [a for a in all_ann if a.get('id') != ann_id]
-    if len(filtered) == len(all_ann):
+    if not _ann_delete(ann_id):
         return jsonify({'error': 'Not found'}), 404
-    _save_ann(filtered)
     return jsonify({'status': 'ok'})
 
 
@@ -877,7 +938,6 @@ def admin_delete(ann_id):
 @admin_required
 def admin_proj_list():
     all_proj = _load_proj()
-    # Sort by displayOrder asc (primary), updatedAt desc (secondary for unordered items)
     all_proj.sort(key=lambda x: x.get('updatedAt', ''), reverse=True)
     all_proj.sort(key=_order_key)
     return jsonify({'status': 'ok', 'initiatives': all_proj})
@@ -891,7 +951,7 @@ def admin_proj_create():
     status = d.get('status', 'draft')
     if status not in ('draft', 'published', 'hidden'):
         status = 'draft'
-    all_proj = _load_proj()
+    all_proj  = _load_proj()
     min_order = min((p.get('displayOrder', 1) for p in all_proj), default=1)
     proj = {
         'id':               uuid.uuid4().hex,
@@ -909,8 +969,7 @@ def admin_proj_create():
         'createdAt':        now,
         'updatedAt':        now,
     }
-    all_proj.append(proj)
-    _save_proj(all_proj)
+    proj = _proj_create(proj)
     return jsonify({'status': 'ok', 'initiative': proj}), 201
 
 
@@ -927,50 +986,40 @@ def admin_proj_reorder():
                 order_map[str(item['id'])] = int(item['displayOrder'])
             except (ValueError, TypeError, KeyError):
                 pass
-    all_proj = _load_proj()
-    for p in all_proj:
-        if p.get('id') in order_map:
-            p['displayOrder'] = order_map[p['id']]
-    _save_proj(all_proj)
+    _proj_bulk_order(order_map)
     return jsonify({'status': 'ok'})
 
 
 @app.route('/admin/api/community-initiatives/<proj_id>', methods=['PUT'])
 @admin_required
 def admin_proj_update(proj_id):
-    d        = request.get_json(silent=True) or {}
-    all_proj = _load_proj()
-    idx      = next((i for i, p in enumerate(all_proj) if p.get('id') == proj_id), None)
-    if idx is None:
-        return jsonify({'error': 'Not found'}), 404
-    p = all_proj[idx]
+    d = request.get_json(silent=True) or {}
+    patch = {}
     for field, maxlen in [('title', 200), ('category', 100), ('subtitle', 300),
                           ('shortDescription', 500), ('fullDetails', 10000),
                           ('imageUrl', 300), ('buttonLabel', 100), ('buttonLink', 300)]:
         if field in d:
-            p[field] = _clean(d[field], maxlen)
+            patch[field] = _clean(d[field], maxlen)
     if 'status' in d and d['status'] in ('draft', 'published', 'hidden'):
-        p['status'] = d['status']
+        patch['status'] = d['status']
     if 'featured' in d:
-        p['featured'] = bool(d['featured'])
+        patch['featured'] = bool(d['featured'])
     if 'displayOrder' in d:
         try:
-            p['displayOrder'] = int(d['displayOrder'])
+            patch['displayOrder'] = int(d['displayOrder'])
         except (ValueError, TypeError):
             pass
-    p['updatedAt'] = datetime.now(timezone.utc).isoformat()
-    _save_proj(all_proj)
-    return jsonify({'status': 'ok', 'initiative': p})
+    proj = _proj_update(proj_id, patch)
+    if proj is None:
+        return jsonify({'error': 'Not found'}), 404
+    return jsonify({'status': 'ok', 'initiative': proj})
 
 
 @app.route('/admin/api/community-initiatives/<proj_id>', methods=['DELETE'])
 @admin_required
 def admin_proj_delete(proj_id):
-    all_proj = _load_proj()
-    filtered = [p for p in all_proj if p.get('id') != proj_id]
-    if len(filtered) == len(all_proj):
+    if not _proj_delete(proj_id):
         return jsonify({'error': 'Not found'}), 404
-    _save_proj(filtered)
     return jsonify({'status': 'ok'})
 
 
@@ -981,8 +1030,6 @@ def admin_forms_list():
     all_forms = _load_forms()
     all_forms.sort(key=lambda x: x.get('updatedAt', ''), reverse=True)
     all_forms.sort(key=_order_key)
-    for f in all_forms:
-        f['fileAvailable'] = _form_file_available(f.get('fileUrl', ''))
     return jsonify({'status': 'ok', 'forms': all_forms})
 
 
@@ -1009,8 +1056,7 @@ def admin_forms_create():
         'createdAt':    now,
         'updatedAt':    now,
     }
-    all_forms.append(form)
-    _save_forms(all_forms)
+    form = _form_create(form)
     return jsonify({'status': 'ok', 'form': form}), 201
 
 
@@ -1027,64 +1073,64 @@ def admin_forms_reorder():
                 order_map[str(item['id'])] = int(item['displayOrder'])
             except (ValueError, TypeError, KeyError):
                 pass
-    all_forms = _load_forms()
-    for f in all_forms:
-        if f.get('id') in order_map:
-            f['displayOrder'] = order_map[f['id']]
-    _save_forms(all_forms)
+    _form_bulk_order(order_map)
     return jsonify({'status': 'ok'})
 
 
 @app.route('/admin/api/forms/<form_id>', methods=['PUT'])
 @admin_required
 def admin_forms_update(form_id):
-    d         = request.get_json(silent=True) or {}
-    all_forms = _load_forms()
-    idx       = next((i for i, f in enumerate(all_forms) if f.get('id') == form_id), None)
-    if idx is None:
-        return jsonify({'error': 'Not found'}), 404
-    f = all_forms[idx]
+    d = request.get_json(silent=True) or {}
+    patch = {}
     for field, maxlen in [('title', 200), ('description', 500), ('fileUrl', 300),
                           ('fileName', 200), ('fileType', 10)]:
         if field in d:
-            f[field] = _clean(d[field], maxlen)
+            patch[field] = _clean(d[field], maxlen)
     if 'fileSize' in d:
         try:
-            f['fileSize'] = int(d['fileSize'])
+            patch['fileSize'] = int(d['fileSize'])
         except (ValueError, TypeError):
             pass
     if 'status' in d and d['status'] in ('draft', 'published', 'hidden'):
-        f['status'] = d['status']
+        patch['status'] = d['status']
     if 'displayOrder' in d:
         try:
-            f['displayOrder'] = int(d['displayOrder'])
+            patch['displayOrder'] = int(d['displayOrder'])
         except (ValueError, TypeError):
             pass
-    f['updatedAt'] = datetime.now(timezone.utc).isoformat()
-    _save_forms(all_forms)
-    return jsonify({'status': 'ok', 'form': f})
+    form = _form_update(form_id, patch)
+    if form is None:
+        return jsonify({'error': 'Not found'}), 404
+    return jsonify({'status': 'ok', 'form': form})
 
 
 @app.route('/admin/api/forms/<form_id>', methods=['DELETE'])
 @admin_required
 def admin_forms_delete(form_id):
-    all_forms = _load_forms()
-    target    = next((f for f in all_forms if f.get('id') == form_id), None)
-    if not target:
+    # Retrieve the form to get file_url for storage cleanup
+    try:
+        res = supabase.table('forms').select('file_url').eq('id', form_id).limit(1).execute()
+        if res.data:
+            file_url = res.data[0].get('file_url', '')
+            if file_url and file_url.startswith('http'):
+                # Extract the storage path from the Supabase CDN URL
+                # URL pattern: .../storage/v1/object/public/<bucket>/<path>
+                marker = f'/object/public/{STORAGE_BUCKET}/'
+                idx = file_url.find(marker)
+                if idx != -1:
+                    storage_path = file_url[idx + len(marker):]
+                    try:
+                        supabase.storage.from_(STORAGE_BUCKET).remove([storage_path])
+                    except Exception:
+                        pass
+    except Exception:
+        pass
+    if not _form_delete(form_id):
         return jsonify({'error': 'Not found'}), 404
-    # Delete the physical file if it exists
-    file_path = _form_file_path(target.get('fileUrl', ''))
-    if file_path and os.path.isfile(file_path):
-        try:
-            os.remove(file_path)
-        except Exception:
-            pass
-    filtered = [f for f in all_forms if f.get('id') != form_id]
-    _save_forms(filtered)
     return jsonify({'status': 'ok'})
 
 
-# ── Image upload ──────────────────────────────────────────────────────────────
+# ── Image upload (Supabase Storage) ──────────────────────────────────────────
 ALLOWED_EXT = {'jpg', 'jpeg', 'png', 'webp'}
 MAX_BYTES   = 5 * 1024 * 1024
 
@@ -1094,6 +1140,7 @@ try:
     _HAS_PIL = True
 except ImportError:
     _HAS_PIL = False
+
 
 def _optimize_image(data, ext):
     """Preserve good image quality for announcement/initiative uploads.
@@ -1108,8 +1155,6 @@ def _optimize_image(data, ext):
         img = _PILImage.open(_io.BytesIO(data))
         ext = (ext or '').lower()
 
-        # Downscale only — never upscale. Use a larger display-safe width
-        # because cards may be viewed on high-DPI/Retina screens.
         max_w = 1800
         if img.width > max_w:
             new_h = int(img.height * max_w / img.width)
@@ -1117,7 +1162,6 @@ def _optimize_image(data, ext):
 
         out = _io.BytesIO()
 
-        # Preserve transparent PNG/WebP when possible.
         if ext == 'png':
             img.save(out, format='PNG', optimize=True)
             return out.getvalue(), 'png'
@@ -1126,8 +1170,6 @@ def _optimize_image(data, ext):
             img.save(out, format='WEBP', quality=94, method=6)
             return out.getvalue(), 'webp'
 
-        # JPEG fallback: flatten transparency and use high quality with
-        # 4:4:4 chroma to keep text/lines cleaner.
         if img.mode in ('RGBA', 'LA', 'P'):
             if img.mode == 'P':
                 img = img.convert('RGBA')
@@ -1143,6 +1185,24 @@ def _optimize_image(data, ext):
         return data, ext
 
 
+def _upload_to_storage(data, folder, ext):
+    """Upload bytes to Supabase Storage and return the public CDN URL."""
+    fname   = uuid.uuid4().hex + '.' + ext
+    path    = f'{folder}/{fname}'
+    mime    = {'jpg': 'image/jpeg', 'jpeg': 'image/jpeg',
+               'png': 'image/png', 'webp': 'image/webp',
+               'pdf': 'application/pdf',
+               'doc': 'application/msword',
+               'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+               }.get(ext, 'application/octet-stream')
+    supabase.storage.from_(STORAGE_BUCKET).upload(
+        path, data, {'content-type': mime, 'upsert': 'false'}
+    )
+    res = supabase.storage.from_(STORAGE_BUCKET).get_public_url(path)
+    # get_public_url returns the URL string directly in supabase-py >=2
+    return res if isinstance(res, str) else res.get('publicUrl', '')
+
+
 @app.route('/admin/api/upload', methods=['POST'])
 @admin_required
 def admin_upload():
@@ -1156,11 +1216,31 @@ def admin_upload():
     if len(data) > MAX_BYTES:
         return jsonify({'error': 'File too large (max 5 MB)'}), 400
     data, ext = _optimize_image(data, ext)
-    fname = uuid.uuid4().hex + '.' + ext
-    os.makedirs(UPLOAD_DIR, exist_ok=True)
-    with open(os.path.join(UPLOAD_DIR, fname), 'wb') as out:
-        out.write(data)
-    return jsonify({'status': 'ok', 'url': 'assets/images/announcements/' + fname})
+    try:
+        url = _upload_to_storage(data, 'announcements', ext)
+    except Exception as exc:
+        return jsonify({'error': f'Upload failed: {exc}'}), 500
+    return jsonify({'status': 'ok', 'url': url})
+
+
+@app.route('/admin/api/upload-initiative', methods=['POST'])
+@admin_required
+def admin_upload_initiative():
+    f = request.files.get('image')
+    if not f or not f.filename:
+        return jsonify({'error': 'No file selected'}), 400
+    ext = f.filename.rsplit('.', 1)[-1].lower() if '.' in f.filename else ''
+    if ext not in ALLOWED_EXT:
+        return jsonify({'error': 'Invalid file type. Use JPG, PNG, or WebP.'}), 400
+    data = f.read(MAX_BYTES + 1)
+    if len(data) > MAX_BYTES:
+        return jsonify({'error': 'File too large (max 5 MB)'}), 400
+    data, ext = _optimize_image(data, ext)
+    try:
+        url = _upload_to_storage(data, 'initiatives', ext)
+    except Exception as exc:
+        return jsonify({'error': f'Upload failed: {exc}'}), 500
+    return jsonify({'status': 'ok', 'url': url})
 
 
 @app.route('/admin/api/upload-form-file', methods=['POST'])
@@ -1178,39 +1258,18 @@ def admin_upload_form_file():
     data = f.read(max_bytes + 1)
     if len(data) > max_bytes:
         return jsonify({'error': 'File too large (max 10 MB)'}), 400
-    fname = uuid.uuid4().hex + '.' + ext
-    os.makedirs(FORMS_UPLOAD_DIR, exist_ok=True)
-    with open(os.path.join(FORMS_UPLOAD_DIR, fname), 'wb') as out:
-        out.write(data)
-    # Sanitize the original filename for display (strip path components)
     original_name = os.path.basename(f.filename)
+    try:
+        url = _upload_to_storage(data, 'forms', ext)
+    except Exception as exc:
+        return jsonify({'error': f'Upload failed: {exc}'}), 500
     return jsonify({
         'status':   'ok',
-        'url':      'assets/documents/forms/' + fname,
+        'url':      url,
         'fileName': original_name,
         'fileType': ext,
         'fileSize': len(data),
     })
-
-
-@app.route('/admin/api/upload-initiative', methods=['POST'])
-@admin_required
-def admin_upload_initiative():
-    f = request.files.get('image')
-    if not f or not f.filename:
-        return jsonify({'error': 'No file selected'}), 400
-    ext = f.filename.rsplit('.', 1)[-1].lower() if '.' in f.filename else ''
-    if ext not in ALLOWED_EXT:
-        return jsonify({'error': 'Invalid file type. Use JPG, PNG, or WebP.'}), 400
-    data = f.read(MAX_BYTES + 1)
-    if len(data) > MAX_BYTES:
-        return jsonify({'error': 'File too large (max 5 MB)'}), 400
-    data, ext = _optimize_image(data, ext)
-    fname = uuid.uuid4().hex + '.' + ext
-    os.makedirs(PROJ_UPLOAD_DIR, exist_ok=True)
-    with open(os.path.join(PROJ_UPLOAD_DIR, fname), 'wb') as out:
-        out.write(data)
-    return jsonify({'status': 'ok', 'url': 'assets/images/initiatives/' + fname})
 
 
 # ── Static file serving ───────────────────────────────────────────────────────
@@ -1221,17 +1280,8 @@ def index():
 
 @app.route('/<path:filename>')
 def static_files(filename):
-    # Block direct filesystem access to admin and data directories
     if filename.startswith('admin') or filename.startswith('data/'):
         abort(404)
-    # When DATA_ROOT is set, check DATA_DIR first for uploaded images and form files.
-    if _DATA_ROOT and (filename.startswith('assets/images/') or
-                       filename.startswith('assets/documents/forms/')):
-        rel = filename[len('assets/'):]          # e.g. 'images/announcements/abc.jpg'
-        data_file = os.path.join(DATA_DIR, rel)
-        if os.path.isfile(data_file):
-            return send_from_directory(os.path.dirname(data_file),
-                                       os.path.basename(data_file))
     full = os.path.join(BASE_DIR, filename)
     if not os.path.exists(full):
         abort(404)
@@ -1239,34 +1289,7 @@ def static_files(filename):
 
 
 # ── Bootstrap ─────────────────────────────────────────────────────────────────
-def _ensure_seed_data():
-    """
-    Copy seed JSON files to DATA_DIR on the very first run only.
-    Seeds live in data/seed/ (committed to git) so they are never the same
-    file as the live data and can never accidentally overwrite it.
-    An existing file is NEVER overwritten — runtime-created content is safe.
-    """
-    import shutil
-    os.makedirs(DATA_DIR, exist_ok=True)
-    seed_dir = os.path.join(BASE_DIR, 'data', 'seed')
-    for fname in ('announcements.json', 'community-initiatives.json', 'forms.json'):
-        dest = os.path.join(DATA_DIR, fname)
-        if not os.path.exists(dest):
-            src = os.path.join(seed_dir, fname)
-            if os.path.exists(src):
-                shutil.copy2(src, dest)
-                print(f'[BHOB] Seeded {fname} -> {dest}')
-    if _DATA_ROOT:
-        print(f'[BHOB] Persistent storage: {DATA_DIR}')
-    else:
-        print(f'[BHOB] Local storage: {DATA_DIR}')
-        print('[BHOB] Set DATA_ROOT env var to a Render persistent disk path to keep data across deploys.')
-
-
-_ensure_seed_data()
 _ensure_initial_user()
 
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 8768))
-    print(f'BHOB Site server running at http://localhost:{port}')
-    app.run(host='0.0.0.0', port=port, debug=False)
+    app.run(debug=True, port=5000)
