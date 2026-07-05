@@ -521,10 +521,9 @@ a{text-decoration:none;color:inherit}
         Community Initiatives
       </button>
       <div class="nav-label">Manage</div>
-      <button class="nav-item" disabled>
+      <button class="nav-item" data-sec="officials">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
         Officials
-        <span class="soon-badge">Soon</span>
       </button>
       <button class="nav-item" data-sec="forms">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -673,6 +672,37 @@ a{text-decoration:none;color:inherit}
         <button class="btn-save-order" onclick="saveFormOrder()">Save Order</button>
       </div>
       <div class="ann-list" id="form-list"><div class="loading">Loading…</div></div>
+    </section>
+
+    <!-- Officials -->
+    <section id="sec-officials" style="display:none">
+      <div class="page-hdr">
+        <div>
+          <h2>Officials Management</h2>
+          <p>Manage barangay officials shown on the Officials page and Home Leadership section.</p>
+        </div>
+        <button class="btn-new" id="btn-new-off">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          New Official
+        </button>
+      </div>
+      <div class="toolbar">
+        <div class="search-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input class="search-input" id="off-search" type="search" placeholder="Search officials…">
+        </div>
+        <div class="tabs" id="off-tabs">
+          <button class="tab active" data-of="all">All</button>
+          <button class="tab" data-of="published">Published</button>
+          <button class="tab" data-of="draft">Draft</button>
+          <button class="tab" data-of="hidden">Hidden</button>
+        </div>
+      </div>
+      <div class="save-order-bar" id="off-save-order-bar">
+        <p>⠿ Drag items to reorder, then save.</p>
+        <button class="btn-save-order" onclick="saveOfficialOrder()">Save Order</button>
+      </div>
+      <div class="ann-list" id="off-list"><div class="loading">Loading…</div></div>
     </section>
 
     <!-- Settings -->
@@ -991,6 +1021,77 @@ a{text-decoration:none;color:inherit}
   </div>
 </div>
 
+<!-- ══════════════════ OFFICIALS MODAL ══════════════════ -->
+<div class="overlay" id="off-form-overlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="off-modal-title">New Official</h3>
+      <button class="btn-close" id="btn-close-off-form">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-section-label">Identity</div>
+        <div class="field field-full">
+          <label>Full Name <span style="color:#ef4444">*</span></label>
+          <input type="text" id="of-name" maxlength="200" placeholder="e.g. Hon. Juan dela Cruz">
+        </div>
+        <div class="field">
+          <label>Position <span style="color:#ef4444">*</span></label>
+          <input type="text" id="of-position" maxlength="200" placeholder="e.g. Punong Barangay">
+        </div>
+        <div class="field">
+          <label>Role Description <span style="color:#94a3b8;font-size:.68rem">(shown below position)</span></label>
+          <input type="text" id="of-role" maxlength="200" placeholder="e.g. Overall Barangay Leadership">
+        </div>
+        <div class="field field-full">
+          <label>Quote <span style="color:#94a3b8;font-size:.68rem">(optional — shown on Home page for Punong Barangay)</span></label>
+          <textarea id="of-quote" rows="2" maxlength="300" placeholder="e.g. Serving with integrity and dedication."></textarea>
+        </div>
+        <div class="form-section-label">Photo</div>
+        <div class="field field-full">
+          <label>Photo</label>
+          <div class="img-area" id="off-drop-area">
+            <img class="img-preview" id="off-img-preview" src="" alt="" style="display:none">
+            <div class="img-upload-row">
+              <label class="btn-upload-file" for="of-img-file">Upload Photo</label>
+              <input type="file" id="of-img-file" accept=".jpg,.jpeg,.png,.webp" style="display:none">
+            </div>
+            <div class="img-url-note" id="off-img-url-note" style="display:none;font-size:.72rem;color:#64748b;word-break:break-all;margin-top:4px"></div>
+            <div class="img-hint">JPG, PNG, WebP — max 5 MB.</div>
+          </div>
+        </div>
+        <div class="form-section-label">Settings</div>
+        <div class="field">
+          <label>Status</label>
+          <div class="radio-row">
+            <div class="rc"><input type="radio" name="off-status" id="os-draft" value="draft" checked><label for="os-draft">Draft</label></div>
+            <div class="rc"><input type="radio" name="off-status" id="os-published" value="published"><label for="os-published">Published</label></div>
+            <div class="rc"><input type="radio" name="off-status" id="os-hidden" value="hidden"><label for="os-hidden">Hidden</label></div>
+          </div>
+        </div>
+        <div class="field">
+          <label>Display Order</label>
+          <input type="number" id="of-order" min="1" max="999" value="99" style="width:100px">
+        </div>
+        <div class="field field-full">
+          <label>
+            <input type="checkbox" id="of-punong" style="width:auto;margin-right:6px">
+            Punong Barangay <span style="color:#94a3b8;font-size:.68rem">(featured position — backend enforces only one)</span>
+          </label>
+          <div id="off-punong-warn" style="display:none;margin-top:6px;padding:8px 10px;background:#fef3c7;border:1px solid #fcd34d;border-radius:6px;font-size:.75rem;color:#92400e">
+            ⚠ Saving will remove the Punong Barangay designation from the current holder.
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-cancel" id="btn-cancel-off">Cancel</button>
+      <button class="btn-draft" id="btn-off-draft">Save Draft</button>
+      <button class="btn-publish" id="btn-off-pub">Publish</button>
+    </div>
+  </div>
+</div>
+
 <!-- ══════════════════ CONFIRM DELETE ══════════════════ -->
 <div class="confirm-overlay" id="confirm-overlay">
   <div class="confirm-box">
@@ -1276,7 +1377,7 @@ async function adminFetch(url, opts) {
 
 // ── Nav ────────────────────────────────────────────────────────────────────
 function showSection(name) {
-  ['dashboard','announcements','initiatives','forms','settings'].forEach(s => {
+  ['dashboard','announcements','initiatives','forms','officials','settings'].forEach(s => {
     $('sec-'+s).style.display = s===name ? 'block' : 'none';
   });
   document.querySelectorAll('.nav-item[data-sec]').forEach(b => {
@@ -1285,6 +1386,7 @@ function showSection(name) {
   if (name==='announcements') renderList();
   if (name==='initiatives') renderInitList();
   if (name==='forms') renderFormList();
+  if (name==='officials') renderOfficialList();
   if (name==='settings') resetSettingsForm();
 }
 
@@ -1325,6 +1427,7 @@ async function loadAll() {
       if ($('sec-forms').style.display !== 'none') renderFormList();
     }
   } catch {}
+  try { await loadOfficials(); } catch {}
 }
 
 function updateStats() {
@@ -1635,6 +1738,7 @@ document.addEventListener('keydown', e => {
     $('form-overlay').classList.remove('open');
     $('detail-overlay').classList.remove('open');
     $('confirm-overlay').classList.remove('open');
+    $('off-form-overlay').classList.remove('open');
     // force-pw-overlay intentionally NOT closeable with Escape
     // init-form-overlay handled in CI section
   }
@@ -2215,6 +2319,270 @@ function confirmFormDel(id, title) {
       await loadForms(); toast('Form deleted','ok');
     } catch(e){ if(e.message!=='unauthorized') toast('Delete error','err'); }
     pendingFormDelId=null;
+  };
+}
+
+// ══════════════════ OFFICIALS ══════════════════
+
+const SO = { officials:[], filter:'all', search:'', editingId:null, photoUrl:'' };
+
+async function loadOfficials() {
+  const r = await adminFetch('/admin/api/officials');
+  if (!r.ok) return;
+  const d = await r.json();
+  SO.officials = d.officials || [];
+  if ($('sec-officials').style.display !== 'none') renderOfficialList();
+}
+
+function showOffSaveBar(show) {
+  $('off-save-order-bar').classList.toggle('visible', show);
+}
+
+let offDragSrc = null;
+
+function enableOffDrag(listEl) {
+  listEl.addEventListener('dragover', e => e.preventDefault());
+  listEl.querySelectorAll('.ann-card[data-id]').forEach(card => {
+    card.setAttribute('draggable', 'true');
+    card.addEventListener('dragstart', e => {
+      offDragSrc = card;
+      e.dataTransfer.effectAllowed = 'move';
+      setTimeout(() => card.classList.add('dragging'), 0);
+    });
+    card.addEventListener('dragend', () => {
+      card.classList.remove('dragging');
+      listEl.querySelectorAll('.ann-card').forEach(c => c.classList.remove('drag-over-card'));
+      offDragSrc = null;
+    });
+    card.addEventListener('dragover', e => {
+      e.preventDefault(); e.stopPropagation();
+      if (!offDragSrc || offDragSrc === card) return;
+      listEl.querySelectorAll('.ann-card').forEach(c => c.classList.remove('drag-over-card'));
+      card.classList.add('drag-over-card');
+    });
+    card.addEventListener('dragleave', e => {
+      if (!card.contains(e.relatedTarget)) card.classList.remove('drag-over-card');
+    });
+    card.addEventListener('drop', e => {
+      e.preventDefault(); e.stopPropagation();
+      listEl.querySelectorAll('.ann-card').forEach(c => c.classList.remove('drag-over-card'));
+      if (!offDragSrc || offDragSrc === card) return;
+      const allCards = [...listEl.querySelectorAll('.ann-card[data-id]')];
+      const srcIdx = allCards.indexOf(offDragSrc);
+      const dstIdx = allCards.indexOf(card);
+      if (srcIdx < dstIdx) listEl.insertBefore(offDragSrc, card.nextSibling);
+      else listEl.insertBefore(offDragSrc, card);
+      [...listEl.querySelectorAll('.ann-card[data-id]')].forEach((c, idx) => {
+        const off = SO.officials.find(x => x.id === c.dataset.id);
+        if (off) off.displayOrder = idx + 1;
+      });
+      showOffSaveBar(true);
+    });
+  });
+}
+
+async function saveOfficialOrder() {
+  const order = {};
+  SO.officials.forEach(o => { order[o.id] = o.displayOrder; });
+  try {
+    const r = await adminFetch('/admin/api/officials/reorder', {
+      method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ order })
+    });
+    if (!r.ok) { toast('Failed to save order', 'err'); return; }
+    showOffSaveBar(false);
+    toast('Display order saved', 'ok');
+  } catch(e) { if (e.message !== 'unauthorized') toast('Save error', 'err'); }
+}
+
+function renderOfficialList() {
+  let items = [...SO.officials];
+  items.sort((a, b) => (a.displayOrder ?? 9999) - (b.displayOrder ?? 9999));
+  if (SO.filter !== 'all') items = items.filter(o => o.status === SO.filter);
+  if (SO.search) {
+    const q = SO.search.toLowerCase();
+    items = items.filter(o =>
+      (o.fullName||'').toLowerCase().includes(q) ||
+      (o.position||'').toLowerCase().includes(q) ||
+      (o.roleDescription||'').toLowerCase().includes(q)
+    );
+  }
+  const el = $('off-list');
+  showOffSaveBar(false);
+  if (!items.length) {
+    el.innerHTML = `<div class="empty-state"><div class="es-icon">👤</div><h3>No officials found</h3><p>${SO.filter==='all'?'Click "+ New Official" to add one.':'No '+SO.filter+' officials.'}</p></div>`;
+    return;
+  }
+  el.innerHTML = items.map((o, i) => {
+    const thumb = o.photoUrl
+      ? `<img class="ann-thumb" draggable="false" src="${o.photoUrl.indexOf('http')===0?o.photoUrl:'/'+o.photoUrl}" alt="" onerror="this.style.display='none'">`
+      : `<div class="ann-thumb-ph">👤</div>`;
+    const punongBadge = o.isPunong ? `<span class="feat-tag">★ Punong</span>` : '';
+    return `<div class="ann-card" data-id="${o.id}">
+      <span class="drag-handle" title="Drag to reorder">⠿</span>
+      <span class="order-badge">${i+1}</span>
+      ${thumb}
+      <div class="ann-body">
+        <div class="ann-meta">
+          <span class="badge badge-${o.status}">${o.status}</span>
+          ${punongBadge}
+          <span class="cat-tag">${esc(o.position||'')}</span>
+        </div>
+        <div class="ann-title">${esc(o.fullName||'(no name)')}</div>
+        <div class="ann-desc">${esc(o.roleDescription||'')}</div>
+      </div>
+      <div class="ann-actions">
+        <button class="btn-act" onclick="openOfficialEdit('${o.id}')">Edit</button>
+        <button class="btn-act" onclick="toggleOfficialStatus('${o.id}','${o.status}')">${o.status==='hidden'?'Show':'Hide'}</button>
+        <button class="btn-act danger" onclick="confirmOfficialDel('${o.id}','${esc(o.fullName||'')}')">Delete</button>
+      </div>
+    </div>`;
+  }).join('');
+  enableOffDrag(el);
+}
+
+$('off-search').addEventListener('input', e => { SO.search = e.target.value; renderOfficialList(); });
+document.querySelectorAll('#off-tabs .tab').forEach(t => {
+  t.onclick = () => {
+    document.querySelectorAll('#off-tabs .tab').forEach(x => x.classList.remove('active'));
+    t.classList.add('active'); SO.filter = t.dataset.of; renderOfficialList();
+  };
+});
+$('btn-new-off').onclick = openOfficialNew;
+
+function resetOfficialForm() {
+  SO.editingId = null; SO.photoUrl = '';
+  $('of-name').value = ''; $('of-position').value = ''; $('of-role').value = ''; $('of-quote').value = '';
+  $('os-draft').checked = true; $('of-order').value = '99'; $('of-punong').checked = false;
+  $('off-punong-warn').style.display = 'none';
+  $('off-img-preview').style.display = 'none'; $('off-img-preview').src = '';
+  $('off-img-url-note').style.display = 'none'; $('off-img-url-note').textContent = '';
+}
+
+function openOfficialNew() {
+  resetOfficialForm();
+  $('off-modal-title').textContent = 'New Official';
+  $('off-form-overlay').classList.add('open');
+  $('of-name').focus();
+}
+
+function openOfficialEdit(id) {
+  const o = SO.officials.find(x => x.id === id); if (!o) return;
+  resetOfficialForm(); SO.editingId = id; SO.photoUrl = o.photoUrl || '';
+  $('off-modal-title').textContent = 'Edit Official';
+  $('of-name').value = o.fullName || '';
+  $('of-position').value = o.position || '';
+  $('of-role').value = o.roleDescription || '';
+  $('of-quote').value = o.quote || '';
+  $('of-order').value = o.displayOrder || 99;
+  $('of-punong').checked = !!o.isPunong;
+  const sEl = document.getElementById('os-' + o.status);
+  if (sEl) sEl.checked = true; else $('os-draft').checked = true;
+  if (o.photoUrl) {
+    $('off-img-preview').src = o.photoUrl.indexOf('http') === 0 ? o.photoUrl : '/' + o.photoUrl;
+    $('off-img-preview').style.display = 'block';
+    $('off-img-url-note').textContent = o.photoUrl;
+    $('off-img-url-note').style.display = 'block';
+  }
+  $('off-form-overlay').classList.add('open');
+  $('of-name').focus();
+}
+
+function closeOfficialForm() { $('off-form-overlay').classList.remove('open'); }
+$('btn-close-off-form').onclick = closeOfficialForm;
+$('btn-cancel-off').onclick = closeOfficialForm;
+$('off-form-overlay').onclick = e => { if (e.target === $('off-form-overlay')) closeOfficialForm(); };
+
+$('of-punong').onchange = function() {
+  const alreadyPunong = SO.editingId && (SO.officials.find(x => x.id === SO.editingId) || {}).isPunong;
+  $('off-punong-warn').style.display = (this.checked && !alreadyPunong) ? 'block' : 'none';
+};
+
+async function uploadOfficialPhoto(file) {
+  const form = new FormData(); form.append('image', file);
+  try {
+    const r = await adminFetch('/admin/api/upload/official-photo', { method: 'POST', body: form });
+    const d = await r.json();
+    if (!r.ok) { toast(d.error || 'Upload failed', 'err'); return; }
+    SO.photoUrl = d.url;
+    $('off-img-preview').src = d.url.indexOf('http') === 0 ? d.url : '/' + d.url;
+    $('off-img-preview').style.display = 'block';
+    $('off-img-url-note').textContent = d.url;
+    $('off-img-url-note').style.display = 'block';
+    toast('Photo uploaded', 'ok');
+  } catch(e) { if (e.message !== 'unauthorized') toast('Upload error', 'err'); }
+}
+
+$('of-img-file').onchange = async e => {
+  const f = e.target.files[0]; if (!f) return;
+  await uploadOfficialPhoto(f); e.target.value = '';
+};
+
+const offDropArea = $('off-drop-area');
+offDropArea.addEventListener('dragover', e => { e.preventDefault(); offDropArea.classList.add('drag-over'); });
+offDropArea.addEventListener('dragleave', () => offDropArea.classList.remove('drag-over'));
+offDropArea.addEventListener('drop', async e => {
+  e.preventDefault(); offDropArea.classList.remove('drag-over');
+  const f = e.dataTransfer.files[0]; if (!f) return;
+  await uploadOfficialPhoto(f);
+});
+
+async function saveOfficialForm(forceStatus) {
+  const name = $('of-name').value.trim();
+  const pos  = $('of-position').value.trim();
+  if (!name) { toast('Full name is required', 'err'); $('of-name').focus(); return; }
+  if (!pos)  { toast('Position is required', 'err'); $('of-position').focus(); return; }
+  const status = forceStatus || document.querySelector('input[name="off-status"]:checked')?.value || 'draft';
+  const body = {
+    fullName: name,
+    position: pos,
+    roleDescription: $('of-role').value.trim(),
+    quote: $('of-quote').value.trim(),
+    photoUrl: SO.photoUrl,
+    isPunong: $('of-punong').checked,
+    displayOrder: parseInt($('of-order').value) || 99,
+    status
+  };
+  const url    = SO.editingId ? `/admin/api/officials/${SO.editingId}` : '/admin/api/officials';
+  const method = SO.editingId ? 'PUT' : 'POST';
+  try {
+    const r = await adminFetch(url, { method, headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
+    const d = await r.json();
+    if (!r.ok) { toast(d.error || 'Save failed', 'err'); return; }
+    closeOfficialForm(); await loadOfficials();
+    toast(SO.editingId ? 'Official updated' : `Official ${status==='published'?'published':'saved as draft'}`, 'ok');
+  } catch(e) { if (e.message !== 'unauthorized') toast('Save error', 'err'); }
+}
+
+$('btn-off-draft').onclick = () => saveOfficialForm('draft');
+$('btn-off-pub').onclick   = () => saveOfficialForm('published');
+
+async function toggleOfficialStatus(id, cur) {
+  const nxt = cur === 'hidden' ? 'published' : 'hidden';
+  try {
+    const r = await adminFetch(`/admin/api/officials/${id}`, {
+      method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ status: nxt })
+    });
+    if (!r.ok) { toast('Update failed', 'err'); return; }
+    await loadOfficials();
+    toast(nxt === 'hidden' ? 'Official hidden from public' : 'Official is now visible', 'ok');
+  } catch(e) { if (e.message !== 'unauthorized') toast('Update error', 'err'); }
+}
+
+let pendingOffDelId = null;
+function confirmOfficialDel(id, name) {
+  pendingOffDelId = id;
+  $('confirm-title').textContent = 'Delete official?';
+  $('confirm-msg').textContent = `"${name}" will be permanently deleted. This cannot be undone.`;
+  $('confirm-overlay').classList.add('open');
+  $('confirm-yes').onclick = async () => {
+    if (!pendingOffDelId) return;
+    $('confirm-overlay').classList.remove('open');
+    try {
+      const r = await adminFetch(`/admin/api/officials/${pendingOffDelId}`, { method: 'DELETE' });
+      if (!r.ok) { toast('Delete failed', 'err'); return; }
+      await loadOfficials(); toast('Official deleted', 'ok');
+    } catch(e) { if (e.message !== 'unauthorized') toast('Delete error', 'err'); }
+    pendingOffDelId = null;
   };
 }
 
