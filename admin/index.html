@@ -1599,7 +1599,7 @@ function openInitDetail(id){
   const p=SI.initiatives.find(x=>x.id===id); if(!p) return;
   $('det-title').textContent=p.title||'Initiative';
   const img=$('det-img');
-  if(p.imageUrl){img.src='/'+p.imageUrl;img.style.display='block';}else img.style.display='none';
+  if(p.imageUrl){img.src=(p.imageUrl.indexOf('http')===0?p.imageUrl:'/'+p.imageUrl);img.style.display='block';}else img.style.display='none';
   $('det-meta').innerHTML=`<span class="badge badge-${p.status}">${p.status}</span><span class="cat-tag">${esc(p.category)}</span>${p.subtitle?'<span class="ann-date">'+esc(p.subtitle)+'</span>':''}${p.featured?'<span class="feat-tag">★ Featured</span>':''}`;
   if(p.shortDescription){
     $('det-short').textContent=p.shortDescription;
@@ -1752,7 +1752,7 @@ function renderInitList() {
   }
   el.innerHTML = items.map((p, i) => {
     const thumb = p.imageUrl
-      ? `<img class="ann-thumb" draggable="false" src="/${p.imageUrl}" alt="" onerror="this.style.display='none'">`
+      ? `<img class="ann-thumb" draggable="false" src="${p.imageUrl.indexOf('http')===0?p.imageUrl:'/'+p.imageUrl}" alt="" onerror="this.style.display='none'">`
       : `<div class="ann-thumb-ph">🌟</div>`;
     return `<div class="ann-card" data-id="${p.id}">
       <span class="drag-handle" title="Drag to reorder">⠿</span>
@@ -1816,7 +1816,7 @@ function openInitEdit(id) {
   if(sEl) sEl.checked=true; else $('is-draft').checked=true;
   if(p.featured) $('if-feat-yes').checked=true; else $('if-feat-no').checked=true;
   if(p.imageUrl) {
-    $('init-img-preview').src='/'+p.imageUrl; $('init-img-preview').style.display='block';
+    $('init-img-preview').src=(p.imageUrl.indexOf('http')===0?p.imageUrl:'/'+p.imageUrl); $('init-img-preview').style.display='block';
     $('init-img-url-note').textContent=p.imageUrl; $('init-img-url-note').style.display='block';
   }
   $('init-form-overlay').classList.add('open');
@@ -1836,7 +1836,7 @@ $('if-img-file').onchange=async e=>{
     const d=await r.json();
     if(!r.ok){toast(d.error||'Upload failed','err');return;}
     SI.imageUrl=d.url;
-    $('init-img-preview').src='/'+d.url; $('init-img-preview').style.display='block';
+    $('init-img-preview').src=(d.url.indexOf('http')===0?d.url:'/'+d.url); $('init-img-preview').style.display='block';
     $('init-img-url-note').textContent=d.url; $('init-img-url-note').style.display='block';
     toast('Image uploaded','ok');
   } catch(e){ if(e.message!=='unauthorized') toast('Upload error','err'); }
@@ -1855,7 +1855,7 @@ initDropArea.addEventListener('drop',async e=>{
     const d=await r.json();
     if(!r.ok){toast(d.error||'Upload failed','err');return;}
     SI.imageUrl=d.url;
-    $('init-img-preview').src='/'+d.url; $('init-img-preview').style.display='block';
+    $('init-img-preview').src=(d.url.indexOf('http')===0?d.url:'/'+d.url); $('init-img-preview').style.display='block';
     $('init-img-url-note').textContent=d.url; $('init-img-url-note').style.display='block';
     toast('Image uploaded','ok');
   } catch(e){ if(e.message!=='unauthorized') toast('Upload error','err'); }
