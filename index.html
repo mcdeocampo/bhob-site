@@ -249,7 +249,7 @@
             var safeT   = (p.title||'').replace(/</g,'&lt;').replace(/>/g,'&gt;');
             var safeD   = (p.shortDescription||'').replace(/</g,'&lt;').replace(/>/g,'&gt;');
             var bannerHtml = p.imageUrl
-              ? '<div class="proj-card-banner proj-card-banner-img bhob-banner"><img src="'+(p.imageUrl.indexOf('http')===0?p.imageUrl:'/'+p.imageUrl)+'" alt="'+safeT+'" onerror="this.parentElement.innerHTML=\'\'"></div>'
+              ? '<div class="proj-card-banner proj-card-banner-img bhob-banner" style="display:block"><img src="'+(p.imageUrl.indexOf('http')===0?p.imageUrl:'/'+p.imageUrl)+'" alt="'+safeT+'" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block" onerror="this.parentElement.innerHTML=\'\'"></div>'
               : '<div class="prog-banner '+(bc[p.category]||'prog-banner--blue')+' proj-card-banner bhob-banner" aria-hidden="true"><div class="ict-banner-label"><strong>'+safeCat+'</strong><span>'+safeSub+'</span></div></div>';
             return '<article class="image-card proj-card reveal'+( delay?' '+delay:'')+'">'
               +bannerHtml
