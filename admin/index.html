@@ -1677,7 +1677,7 @@ function resetForm() {
   $('f-cat').value='Barangay Assembly'; $('f-short').value=''; $('f-details').value='';
   $('s-draft').checked=true; $('feat-no').checked=true;
   $('img-preview').style.display='none'; $('img-preview').src='';
-  $('img-url-note').style.display='none'; $('img-url-note').textContent='';
+  $('img-url-note').classList.remove('show-note'); $('img-url-note').textContent='';
   document.querySelectorAll('.di-btn').forEach(b=>b.classList.remove('sel'));
 }
 
@@ -1685,7 +1685,10 @@ function openNew() { resetForm(); $('modal-title').textContent='New Announcement
 
 function openEdit(id) {
   const a = S.announcements.find(x=>x.id===id); if(!a) return;
-  resetForm(); S.editingId=id; S.imageUrl=a.imageUrl||'';
+  resetForm();
+  $('img-url-note').innerHTML = '';
+  $('img-url-note').textContent = '';
+  S.editingId=id; S.imageUrl=a.imageUrl||'';
   $('modal-title').textContent='Edit Announcement';
   $('f-title').value=a.title||''; $('f-date').value=a.date||'';
   $('f-cat').value=a.category||'Other';
@@ -1695,7 +1698,6 @@ function openEdit(id) {
   if(a.featured) $('feat-yes').checked=true; else $('feat-no').checked=true;
   if(a.imageUrl) {
     $('img-preview').src=(a.imageUrl.indexOf('http')===0?a.imageUrl:'/'+a.imageUrl); $('img-preview').style.display='block';
-    $('img-url-note').textContent=a.imageUrl; $('img-url-note').style.display='block';
     document.querySelectorAll('.di-btn').forEach(b=>b.classList.toggle('sel',b.dataset.url===a.imageUrl));
   }
   $('form-overlay').classList.add('open'); $('f-title').focus();
@@ -1719,7 +1721,6 @@ async function doUpload(file) {
     const d=await r.json();
     if(!r.ok){toast(d.error||'Upload failed','err');return;}
     S.imageUrl=d.url; $('img-preview').src=(d.url.indexOf('http')===0?d.url:'/'+d.url); $('img-preview').style.display='block';
-    $('img-url-note').textContent=d.url; $('img-url-note').style.display='block';
     document.querySelectorAll('.di-btn').forEach(b=>b.classList.remove('sel'));
     toast('Image uploaded','ok');
   } catch(e){ if(e.message!=='unauthorized') toast('Upload error','err'); }
@@ -1729,7 +1730,6 @@ document.querySelectorAll('.di-btn').forEach(btn=>{
   btn.onclick=()=>{
     S.imageUrl=btn.dataset.url;
     $('img-preview').src='/'+btn.dataset.url; $('img-preview').style.display='block';
-    $('img-url-note').textContent=btn.dataset.url; $('img-url-note').style.display='block';
     document.querySelectorAll('.di-btn').forEach(b=>b.classList.remove('sel'));
     btn.classList.add('sel');
   };
