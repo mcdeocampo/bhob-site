@@ -1997,7 +1997,7 @@ function resetInitForm() {
   $('if-subtitle').value=''; $('if-short').value=''; $('if-details').value='';
   $('is-draft').checked=true; $('if-feat-no').checked=true;
   $('init-img-preview').style.display='none'; $('init-img-preview').src='';
-  $('init-img-url-note').classList.remove('show-note'); $('init-img-url-note').textContent='';
+  $('init-img-url-note').classList.remove('show-note');
 }
 
 function openInitNew() {
@@ -2021,7 +2021,6 @@ function openInitEdit(id) {
   if(p.featured) $('if-feat-yes').checked=true; else $('if-feat-no').checked=true;
   if(p.imageUrl) {
     $('init-img-preview').src=(p.imageUrl.indexOf('http')===0?p.imageUrl:'/'+p.imageUrl); $('init-img-preview').style.display='block';
-    $('init-img-url-note').textContent=p.imageUrl; $('init-img-url-note').classList.add('show-note');
   }
   $('init-form-overlay').classList.add('open');
   $('if-title').focus();
@@ -2041,7 +2040,6 @@ $('if-img-file').onchange=async e=>{
     if(!r.ok){toast(d.error||'Upload failed','err');return;}
     SI.imageUrl=d.url;
     $('init-img-preview').src=(d.url.indexOf('http')===0?d.url:'/'+d.url); $('init-img-preview').style.display='block';
-    $('init-img-url-note').textContent=d.url; $('init-img-url-note').classList.add('show-note');
     toast('Image uploaded','ok');
   } catch(e){ if(e.message!=='unauthorized') toast('Upload error','err'); }
   e.target.value='';
@@ -2060,7 +2058,6 @@ initDropArea.addEventListener('drop',async e=>{
     if(!r.ok){toast(d.error||'Upload failed','err');return;}
     SI.imageUrl=d.url;
     $('init-img-preview').src=(d.url.indexOf('http')===0?d.url:'/'+d.url); $('init-img-preview').style.display='block';
-    $('init-img-url-note').textContent=d.url; $('init-img-url-note').classList.add('show-note');
     toast('Image uploaded','ok');
   } catch(e){ if(e.message!=='unauthorized') toast('Upload error','err'); }
 });
