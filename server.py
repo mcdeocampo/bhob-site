@@ -1555,6 +1555,11 @@ def admin_site_settings_put():
         'copyright_year', 'copyright_owner', 'copyright_suffix',
         'barangay_phone', 'barangay_email',
         'barangay_facebook', 'barangay_social', 'barangay_address',
+        'homepage_hotline_label', 'homepage_hotline_number', 'homepage_hotline_description',
+        'emergency_card_label', 'emergency_card_number',
+        'police_card_label', 'police_card_number',
+        'social_facebook_url', 'social_linkedin_url', 'social_instagram_url',
+        'sk_facebook_title', 'sk_facebook_subtitle', 'sk_facebook_url',
     }
     patch = {k: _clean(v, 300) for k, v in d.items() if k in ALLOWED_KEYS}
     if not patch:
