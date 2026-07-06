@@ -123,7 +123,7 @@
           var ext    = (f.fileType || 'pdf').toLowerCase();
           var dlName = safeTitle + '.' + ext;
           var href = (f.fileUrl.indexOf('http') === 0) ? f.fileUrl : '/' + f.fileUrl;
-          btn = '<a class=\'dl-form-btn\' href=\'' + href + '\' target=\'_blank\' rel=\'noopener\'>Download</a>';
+          btn = '<a class=\'dl-form-btn\' href=\'' + href + '\' download=\'' + dlName + '\'>Download</a>';
         } else {
           btn = '<button class=\'dl-form-btn\' onclick=\'alert(“This form file is not yet available. Please visit the Barangay Hall or check back later.”)\'>Download</button>';
         }
