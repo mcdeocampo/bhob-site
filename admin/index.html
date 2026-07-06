@@ -2555,7 +2555,7 @@ function resetOfficialForm() {
   $('os-draft').checked = true; $('of-order').value = '99'; $('of-punong').checked = false;
   $('off-punong-warn').style.display = 'none';
   $('off-img-preview').style.display = 'none'; $('off-img-preview').src = '';
-  $('off-img-url-note').style.display = 'none'; $('off-img-url-note').textContent = '';
+  $('off-img-url-note').classList.remove('show-note'); $('off-img-url-note').textContent = '';
 }
 
 function openOfficialNew() {
@@ -2580,8 +2580,6 @@ function openOfficialEdit(id) {
   if (o.photoUrl) {
     $('off-img-preview').src = o.photoUrl.indexOf('http') === 0 ? o.photoUrl : '/' + o.photoUrl;
     $('off-img-preview').style.display = 'block';
-    $('off-img-url-note').textContent = o.photoUrl;
-    $('off-img-url-note').style.display = 'block';
   }
   $('off-form-overlay').classList.add('open');
   $('of-name').focus();
@@ -2606,8 +2604,6 @@ async function uploadOfficialPhoto(file) {
     SO.photoUrl = d.url;
     $('off-img-preview').src = d.url.indexOf('http') === 0 ? d.url : '/' + d.url;
     $('off-img-preview').style.display = 'block';
-    $('off-img-url-note').textContent = d.url;
-    $('off-img-url-note').style.display = 'block';
     toast('Photo uploaded', 'ok');
   } catch(e) { if (e.message !== 'unauthorized') toast('Upload error', 'err'); }
 }
