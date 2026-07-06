@@ -279,10 +279,16 @@ a{text-decoration:none;color:inherit}
 
 /* ─── SETTINGS ───────────────────────────────────────────── */
 .settings-card{background:var(--card);border:1px solid var(--border);border-radius:10px;
-  padding:28px;max-width:520px}
+  padding:28px;max-width:none}
 .settings-card h3{font-size:1rem;font-weight:700;margin-bottom:4px}
 .settings-desc{font-size:.82rem;color:var(--gray);margin-bottom:20px}
 .settings-acts{display:flex;gap:8px;margin-top:20px;flex-wrap:wrap}
+.settings-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px;align-items:start}
+.settings-grid-full{grid-column:1/-1}
+.settings-subgroup{margin-top:18px;padding-top:16px;border-top:1px solid var(--border)}
+.settings-subtitle{font-size:.7rem;font-weight:700;color:var(--blue);text-transform:uppercase;
+  letter-spacing:.05em;margin-bottom:10px}
+@media(max-width:820px){.settings-grid{grid-template-columns:1fr}}
 
 /* ─── OVERLAYS ───────────────────────────────────────────── */
 .overlay{position:fixed;inset:0;background:rgba(15,30,60,.58);z-index:100;
@@ -810,126 +816,156 @@ a{text-decoration:none;color:inherit}
       <div class="page-hdr">
         <div>
           <h2>Settings</h2>
-          <p>Manage your admin account and security settings.</p>
+          <p>Manage your admin account and website settings.</p>
         </div>
       </div>
-      <div class="settings-card">
-        <h3>Change Password</h3>
-        <p class="settings-desc">Keep your account secure by updating your password regularly.</p>
-        <div class="pw-policy-box">
-          <strong>Password Requirements</strong>
-          At least 10 characters &nbsp;·&nbsp; Uppercase (A-Z) &nbsp;·&nbsp; Lowercase (a-z) &nbsp;·&nbsp; Number (0-9) &nbsp;·&nbsp; Special character (!@#$%...)
-        </div>
-        <div class="field">
-          <label>Current Password</label>
-          <div class="pw-wrap">
-            <input type="password" id="cp-current" autocomplete="current-password" >
-            <button type="button" class="pw-eye" onclick="togglePw('cp-current',this)" tabindex="-1" aria-label="Toggle">
-              <svg class="eye-show" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-              <svg class="eye-hide" style="display:none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
-            </button>
+
+      <div class="settings-grid">
+
+        <!-- Change Password: full width -->
+        <div class="settings-card settings-grid-full">
+          <h3>Change Password</h3>
+          <p class="settings-desc">Keep your account secure by updating your password regularly.</p>
+          <div class="pw-policy-box">
+            <strong>Password Requirements</strong>
+            At least 10 characters &nbsp;·&nbsp; Uppercase (A-Z) &nbsp;·&nbsp; Lowercase (a-z) &nbsp;·&nbsp; Number (0-9) &nbsp;·&nbsp; Special character (!@#$%...)
+          </div>
+          <div class="form-grid" style="margin-top:4px">
+            <div class="field">
+              <label>Current Password</label>
+              <div class="pw-wrap">
+                <input type="password" id="cp-current" autocomplete="current-password">
+                <button type="button" class="pw-eye" onclick="togglePw('cp-current',this)" tabindex="-1" aria-label="Toggle">
+                  <svg class="eye-show" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                  <svg class="eye-hide" style="display:none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                </button>
+              </div>
+            </div>
+            <div class="field">
+              <label>New Password</label>
+              <div class="pw-wrap">
+                <input type="password" id="cp-new" autocomplete="new-password" oninput="updateStrength(this.value,'cp-strength')">
+                <button type="button" class="pw-eye" onclick="togglePw('cp-new',this)" tabindex="-1" aria-label="Toggle">
+                  <svg class="eye-show" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                  <svg class="eye-hide" style="display:none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                </button>
+              </div>
+              <div class="pw-strength-box" id="cp-strength">
+                <div class="pw-strength-title">Password must contain:</div>
+                <div class="sreq" id="cp-r-len"><svg class="sr-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg><svg class="sr-ok" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>At least 10 characters</div>
+                <div class="sreq" id="cp-r-upper"><svg class="sr-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg><svg class="sr-ok" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Uppercase letter (A-Z)</div>
+                <div class="sreq" id="cp-r-lower"><svg class="sr-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg><svg class="sr-ok" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Lowercase letter (a-z)</div>
+                <div class="sreq" id="cp-r-num"><svg class="sr-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg><svg class="sr-ok" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Number (0-9)</div>
+                <div class="sreq" id="cp-r-special"><svg class="sr-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg><svg class="sr-ok" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Special character (!@#$%...)</div>
+              </div>
+            </div>
+            <div class="field field-full">
+              <label>Confirm New Password</label>
+              <div class="pw-wrap">
+                <input type="password" id="cp-confirm" autocomplete="new-password">
+                <button type="button" class="pw-eye" onclick="togglePw('cp-confirm',this)" tabindex="-1" aria-label="Toggle">
+                  <svg class="eye-show" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                  <svg class="eye-hide" style="display:none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+          <div id="cp-err" style="color:var(--red);font-size:.8rem;display:none;padding:5px 0 0"></div>
+          <div class="settings-acts">
+            <button class="btn-cancel" onclick="resetSettingsForm()">Cancel</button>
+            <button class="btn-publish" id="cp-submit" onclick="submitChangePassword()">Change Password</button>
           </div>
         </div>
-        <div class="field">
-          <label>New Password</label>
-          <div class="pw-wrap">
-            <input type="password" id="cp-new" autocomplete="new-password" oninput="updateStrength(this.value,'cp-strength')">
-            <button type="button" class="pw-eye" onclick="togglePw('cp-new',this)" tabindex="-1" aria-label="Toggle">
-              <svg class="eye-show" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-              <svg class="eye-hide" style="display:none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
-            </button>
+
+        <!-- Emergency Hotlines: full width -->
+        <div class="settings-card settings-grid-full">
+          <h3>Emergency Hotlines</h3>
+          <p class="settings-desc">Manage the hotline list shown in the Other Hotlines modal on the public website.</p>
+          <div style="display:flex;gap:8px;margin-bottom:14px;align-items:center;flex-wrap:wrap">
+            <button class="btn-publish" onclick="openHotlineNew()">+ Add Hotline</button>
+            <button class="btn-cancel" id="hl-save-order-btn" onclick="saveHotlineOrder()" style="display:none">Save Order</button>
           </div>
-          <div class="pw-strength-box" id="cp-strength">
-            <div class="pw-strength-title">Password must contain:</div>
-            <div class="sreq" id="cp-r-len"><svg class="sr-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg><svg class="sr-ok" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>At least 10 characters</div>
-            <div class="sreq" id="cp-r-upper"><svg class="sr-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg><svg class="sr-ok" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Uppercase letter (A-Z)</div>
-            <div class="sreq" id="cp-r-lower"><svg class="sr-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg><svg class="sr-ok" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Lowercase letter (a-z)</div>
-            <div class="sreq" id="cp-r-num"><svg class="sr-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg><svg class="sr-ok" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Number (0-9)</div>
-            <div class="sreq" id="cp-r-special"><svg class="sr-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg><svg class="sr-ok" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Special character (!@#$%...)</div>
+          <div class="ann-list" id="hl-list"><div style="color:var(--gray);font-size:.85rem">Loading…</div></div>
+        </div>
+
+        <!-- Footer & Copyright: left column -->
+        <div class="settings-card">
+          <h3>Footer &amp; Copyright</h3>
+          <p class="settings-desc">Update the contact and copyright text displayed in the public website footer.</p>
+          <div class="form-grid">
+            <div class="field"><label>Footer Phone</label><input type="text" id="ss-footer-phone" placeholder="e.g. 02 8741 2573"></div>
+            <div class="field"><label>Footer Email</label><input type="text" id="ss-footer-email" placeholder="e.g. info@huloobando.gov.ph"></div>
+            <div class="field"><label>Copyright Year</label><input type="text" id="ss-copyright-year" placeholder="e.g. 2026"></div>
+            <div class="field"><label>Copyright Owner</label><input type="text" id="ss-copyright-owner" placeholder="e.g. Barangay Hulo, Obando, Bulacan"></div>
+            <div class="field field-full"><label>Copyright Suffix</label><input type="text" id="ss-copyright-suffix" placeholder="e.g. All Rights Reserved."></div>
+          </div>
+          <div class="settings-acts">
+            <button class="btn-publish" onclick="saveFooterSettings()">Save Footer &amp; Copyright</button>
           </div>
         </div>
-        <div class="field" style="margin-bottom:8px">
-          <label>Confirm New Password</label>
-          <div class="pw-wrap">
-            <input type="password" id="cp-confirm" autocomplete="new-password">
-            <button type="button" class="pw-eye" onclick="togglePw('cp-confirm',this)" tabindex="-1" aria-label="Toggle">
-              <svg class="eye-show" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-              <svg class="eye-hide" style="display:none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
-            </button>
+
+        <!-- Barangay Hall Info: right column -->
+        <div class="settings-card">
+          <h3>Barangay Hall Information</h3>
+          <p class="settings-desc">Update contact details, social media links, and address for the barangay.</p>
+          <div class="form-grid">
+            <div class="field"><label>Phone</label><input type="text" id="ss-barangay-phone" placeholder="e.g. 02 8741 2573"></div>
+            <div class="field"><label>Email</label><input type="text" id="ss-barangay-email" placeholder="e.g. info@huloobando.gov.ph"></div>
+            <div class="field"><label>Facebook URL</label><input type="text" id="ss-barangay-facebook" placeholder="https://facebook.com/..."></div>
+            <div class="field"><label>Other Social Media URL</label><input type="text" id="ss-barangay-social" placeholder="https://..."></div>
+            <div class="field field-full"><label>Address</label><input type="text" id="ss-barangay-address" placeholder="e.g. Barangay Hulo, Obando, Bulacan 3021"></div>
+          </div>
+          <div class="settings-acts">
+            <button class="btn-publish" onclick="saveBarangaySettings()">Save Barangay Hall Info</button>
           </div>
         </div>
-        <div id="cp-err" style="color:var(--red);font-size:.8rem;display:none;padding:5px 0"></div>
-        <div class="settings-acts">
-          <button class="btn-cancel" onclick="resetSettingsForm()">Cancel</button>
-          <button class="btn-publish" id="cp-submit" onclick="submitChangePassword()">Change Password</button>
-        </div>
-      </div>
 
-      <!-- Emergency Hotlines -->
-      <div class="dash-section-label" style="max-width:760px">Emergency Hotlines</div>
-      <div class="settings-card" style="max-width:760px">
-        <h3>Emergency Hotlines</h3>
-        <p class="settings-desc">Manage the hotline list shown in the Other Hotlines modal on the public website.</p>
-        <div style="display:flex;gap:8px;margin-bottom:14px;align-items:center;flex-wrap:wrap">
-          <button class="btn-publish" onclick="openHotlineNew()">+ Add Hotline</button>
-          <button class="btn-cancel" id="hl-save-order-btn" onclick="saveHotlineOrder()" style="display:none">Save Order</button>
-        </div>
-        <div class="ann-list" id="hl-list"><div style="color:var(--gray);font-size:.85rem">Loading…</div></div>
-      </div>
+        <!-- Homepage Contact & Social Links: full width, grouped sections -->
+        <div class="settings-card settings-grid-full">
+          <h3>Homepage Contact &amp; Social Links</h3>
+          <p class="settings-desc">Update the emergency card text and social page URLs displayed on the public homepage.</p>
 
-      <!-- Footer & Copyright -->
-      <div class="dash-section-label" style="max-width:520px">Footer &amp; Copyright</div>
-      <div class="settings-card">
-        <h3>Footer &amp; Copyright</h3>
-        <p class="settings-desc">Update the contact and copyright text displayed in the public website footer.</p>
-        <div class="field"><label>Footer Phone</label><input type="text" id="ss-footer-phone" placeholder="e.g. 02 8741 2573"></div>
-        <div class="field"><label>Footer Email</label><input type="text" id="ss-footer-email" placeholder="e.g. info@huloobando.gov.ph"></div>
-        <div class="field"><label>Copyright Year</label><input type="text" id="ss-copyright-year" placeholder="e.g. 2026"></div>
-        <div class="field"><label>Copyright Owner</label><input type="text" id="ss-copyright-owner" placeholder="e.g. Barangay Hulo, Obando, Bulacan"></div>
-        <div class="field"><label>Copyright Suffix</label><input type="text" id="ss-copyright-suffix" placeholder="e.g. All Rights Reserved."></div>
-        <div class="settings-acts">
-          <button class="btn-publish" onclick="saveFooterSettings()">Save Footer &amp; Copyright</button>
-        </div>
-      </div>
+          <div class="settings-subtitle">Barangay Hotline</div>
+          <div class="form-grid">
+            <div class="field"><label>Hotline Label</label><input type="text" id="ss-hp-hotline-label" placeholder="e.g. Barangay Hotline"></div>
+            <div class="field"><label>Hotline Number</label><input type="text" id="ss-hp-hotline-number" placeholder="e.g. 02 8741 2573"></div>
+            <div class="field field-full"><label>Hotline Description</label><input type="text" id="ss-hp-hotline-desc" placeholder="e.g. Immediate assistance for urgent barangay incidents…"></div>
+          </div>
 
-      <!-- Barangay Hall Info -->
-      <div class="dash-section-label" style="max-width:520px">Barangay Hall Information</div>
-      <div class="settings-card">
-        <h3>Barangay Hall Information</h3>
-        <p class="settings-desc">Update contact details, social media links, and address for the barangay.</p>
-        <div class="field"><label>Phone</label><input type="text" id="ss-barangay-phone" placeholder="e.g. 02 8741 2573"></div>
-        <div class="field"><label>Email</label><input type="text" id="ss-barangay-email" placeholder="e.g. info@huloobando.gov.ph"></div>
-        <div class="field"><label>Facebook URL</label><input type="text" id="ss-barangay-facebook" placeholder="https://facebook.com/..."></div>
-        <div class="field"><label>Other Social Media URL</label><input type="text" id="ss-barangay-social" placeholder="https://..."></div>
-        <div class="field"><label>Address</label><input type="text" id="ss-barangay-address" placeholder="e.g. Barangay Hulo, Obando, Bulacan 3021"></div>
-        <div class="settings-acts">
-          <button class="btn-publish" onclick="saveBarangaySettings()">Save Barangay Hall Info</button>
-        </div>
-      </div>
+          <div class="settings-subgroup">
+            <div class="settings-subtitle">Emergency Cards</div>
+            <div class="form-grid">
+              <div class="field"><label>Emergency Label</label><input type="text" id="ss-hp-emergency-label" placeholder="e.g. Emergency"></div>
+              <div class="field"><label>Emergency Number</label><input type="text" id="ss-hp-emergency-number" placeholder="e.g. 911"></div>
+              <div class="field"><label>Police Label</label><input type="text" id="ss-hp-police-label" placeholder="e.g. Police"></div>
+              <div class="field"><label>Police Number</label><input type="text" id="ss-hp-police-number" placeholder="e.g. 117"></div>
+            </div>
+          </div>
 
-      <!-- Homepage Contact & Social Links -->
-      <div class="dash-section-label" style="max-width:520px">Homepage Contact &amp; Social Links</div>
-      <div class="settings-card">
-        <h3>Homepage Contact &amp; Social Links</h3>
-        <p class="settings-desc">Update the emergency card text and social page URLs displayed on the public homepage.</p>
-        <div class="field"><label>Barangay Hotline Label</label><input type="text" id="ss-hp-hotline-label" placeholder="e.g. Barangay Hotline"></div>
-        <div class="field"><label>Barangay Hotline Number</label><input type="text" id="ss-hp-hotline-number" placeholder="e.g. 02 8741 2573"></div>
-        <div class="field"><label>Barangay Hotline Description</label><input type="text" id="ss-hp-hotline-desc" placeholder="e.g. Immediate assistance for urgent barangay incidents…"></div>
-        <div class="field"><label>Emergency Label</label><input type="text" id="ss-hp-emergency-label" placeholder="e.g. Emergency"></div>
-        <div class="field"><label>Emergency Number</label><input type="text" id="ss-hp-emergency-number" placeholder="e.g. 911"></div>
-        <div class="field"><label>Police Label</label><input type="text" id="ss-hp-police-label" placeholder="e.g. Police"></div>
-        <div class="field"><label>Police Number</label><input type="text" id="ss-hp-police-number" placeholder="e.g. 117"></div>
-        <div class="field"><label>Facebook URL</label><input type="text" id="ss-hp-social-facebook" placeholder="https://facebook.com/..."></div>
-        <div class="field"><label>LinkedIn URL</label><input type="text" id="ss-hp-social-linkedin" placeholder="https://linkedin.com/..."></div>
-        <div class="field"><label>Instagram URL</label><input type="text" id="ss-hp-social-instagram" placeholder="https://instagram.com/..."></div>
-        <div class="field"><label>SK Facebook Page Title</label><input type="text" id="ss-hp-sk-title" placeholder="e.g. SK Barangay Hulo"></div>
-        <div class="field"><label>SK Facebook Page Subtitle</label><input type="text" id="ss-hp-sk-subtitle" placeholder="e.g. Sangguniang Kabataan Official Page"></div>
-        <div class="field"><label>SK Facebook Page URL</label><input type="text" id="ss-hp-sk-url" placeholder="https://facebook.com/..."></div>
-        <div class="settings-acts">
-          <button class="btn-publish" onclick="saveHomepageContactSettings()">Save Homepage Contact &amp; Social</button>
-        </div>
-      </div>
+          <div class="settings-subgroup">
+            <div class="settings-subtitle">Social Links</div>
+            <div class="form-grid">
+              <div class="field"><label>Facebook URL</label><input type="text" id="ss-hp-social-facebook" placeholder="https://facebook.com/..."></div>
+              <div class="field"><label>LinkedIn URL</label><input type="text" id="ss-hp-social-linkedin" placeholder="https://linkedin.com/..."></div>
+              <div class="field"><label>Instagram URL</label><input type="text" id="ss-hp-social-instagram" placeholder="https://instagram.com/..."></div>
+            </div>
+          </div>
 
+          <div class="settings-subgroup">
+            <div class="settings-subtitle">SK Facebook Page</div>
+            <div class="form-grid">
+              <div class="field"><label>Page Title</label><input type="text" id="ss-hp-sk-title" placeholder="e.g. SK Barangay Hulo"></div>
+              <div class="field"><label>Page Subtitle</label><input type="text" id="ss-hp-sk-subtitle" placeholder="e.g. Sangguniang Kabataan Official Page"></div>
+              <div class="field field-full"><label>Page URL</label><input type="text" id="ss-hp-sk-url" placeholder="https://facebook.com/..."></div>
+            </div>
+          </div>
+
+          <div class="settings-acts">
+            <button class="btn-publish" onclick="saveHomepageContactSettings()">Save Homepage Contact &amp; Social</button>
+          </div>
+        </div>
+
+      </div>
     </section>
 
   </main>
