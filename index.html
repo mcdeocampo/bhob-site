@@ -171,9 +171,9 @@
             <label>Police</label>
             <span>117</span>
           </div>
-          <div class="hero-emergency-item">
-            <label>Fire</label>
-            <span>160</span>
+          <div class="hero-emergency-item hero-emergency-item--hotlines" onclick="openHotlinesModal()" role="button" tabindex="0" style="cursor:pointer;" onkeydown="if(event.key==='Enter'||event.key===' ')openHotlinesModal()">
+            <label>Other Hotlines</label>
+            <span class="hotlines-view-link">View List</span>
           </div>
         </div>
 
@@ -419,6 +419,66 @@
       })
       .catch(function() { /* silent — static fallback stays */ });
   })();
+  </script>
+
+  <!-- Hotlines Modal -->
+  <div id="hotlines-modal-overlay" onclick="if(event.target===this)closeHotlinesModal()" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(10,28,64,.55);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:20px;">
+    <div style="background:#fff;border-radius:20px;width:100%;max-width:400px;box-shadow:0 24px 60px rgba(10,28,64,.22),0 4px 16px rgba(10,28,64,.10);overflow:hidden;animation:hotlinesFadeIn .22s ease;">
+      <div style="background:linear-gradient(110deg,#0f2f57 0%,#1a4a8a 60%,#1565c0 100%);padding:20px 24px 18px;display:flex;align-items:center;justify-content:space-between;">
+        <div>
+          <div style="font-size:.65rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.65);margin-bottom:3px;">Barangay Hulo</div>
+          <div style="font-size:1.05rem;font-weight:800;color:#fff;line-height:1.2;">Other Barangay Hotlines</div>
+        </div>
+        <button onclick="closeHotlinesModal()" aria-label="Close" style="background:rgba(255,255,255,.12);border:none;border-radius:50%;width:34px;height:34px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1.1rem;color:#fff;line-height:1;flex-shrink:0;transition:background .18s;">✕</button>
+      </div>
+      <div style="padding:18px 24px 24px;">
+        <div id="hotlines-list" style="display:flex;flex-direction:column;gap:10px;"></div>
+        <div style="margin-top:18px;padding-top:14px;border-top:1px solid #e8eef7;font-size:.73rem;color:#94a3b8;text-align:center;">For emergencies, call 911</div>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    @keyframes hotlinesFadeIn { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+    .hero-emergency-item--hotlines:hover .hotlines-view-link { text-decoration:underline; }
+    .hotlines-view-link { color:#1a56db !important; font-size:.95rem !important; font-weight:900 !important; }
+    .hotline-row { display:flex; align-items:center; justify-content:space-between; background:#f4f7fd; border-radius:12px; padding:11px 14px; gap:8px; }
+    .hotline-row-label { font-size:.82rem; font-weight:700; color:#1e293b; }
+    .hotline-row-number { font-size:.88rem; font-weight:800; color:#12356f; white-space:nowrap; }
+    #hotlines-modal-overlay.open { display:flex !important; }
+    @media (max-width:480px) {
+      #hotlines-modal-overlay > div { border-radius:16px; }
+      .hotline-row { padding:10px 12px; }
+    }
+  </style>
+
+  <script>
+  var HOTLINES = [
+    { label: 'Public Information Office', number: '8277-1356' },
+    { label: "Mayor's Office",            number: '8277-1356' },
+    { label: 'Disaster',                  number: '8281-5816' },
+    { label: 'Health',                    number: '8332-2744 / 8709-4408' },
+    { label: 'Police',                    number: '8292-2043' },
+    { label: 'Fire',                      number: '8292-2043' }
+  ];
+  function openHotlinesModal() {
+    var list = document.getElementById('hotlines-list');
+    if (!list.hasChildNodes()) {
+      list.innerHTML = HOTLINES.map(function(h) {
+        return '<div class="hotline-row"><span class="hotline-row-label">' + h.label + '</span><span class="hotline-row-number">' + h.number + '</span></div>';
+      }).join('');
+    }
+    var overlay = document.getElementById('hotlines-modal-overlay');
+    overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeHotlinesModal() {
+    document.getElementById('hotlines-modal-overlay').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeHotlinesModal();
+  });
   </script>
 </body>
 </html>
