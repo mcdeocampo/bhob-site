@@ -907,6 +907,29 @@ a{text-decoration:none;color:inherit}
         </div>
       </div>
 
+      <!-- Homepage Contact & Social Links -->
+      <div class="dash-section-label" style="max-width:520px">Homepage Contact &amp; Social Links</div>
+      <div class="settings-card">
+        <h3>Homepage Contact &amp; Social Links</h3>
+        <p class="settings-desc">Update the emergency card text and social page URLs displayed on the public homepage.</p>
+        <div class="field"><label>Barangay Hotline Label</label><input type="text" id="ss-hp-hotline-label" placeholder="e.g. Barangay Hotline"></div>
+        <div class="field"><label>Barangay Hotline Number</label><input type="text" id="ss-hp-hotline-number" placeholder="e.g. 02 8741 2573"></div>
+        <div class="field"><label>Barangay Hotline Description</label><input type="text" id="ss-hp-hotline-desc" placeholder="e.g. Immediate assistance for urgent barangay incidents…"></div>
+        <div class="field"><label>Emergency Label</label><input type="text" id="ss-hp-emergency-label" placeholder="e.g. Emergency"></div>
+        <div class="field"><label>Emergency Number</label><input type="text" id="ss-hp-emergency-number" placeholder="e.g. 911"></div>
+        <div class="field"><label>Police Label</label><input type="text" id="ss-hp-police-label" placeholder="e.g. Police"></div>
+        <div class="field"><label>Police Number</label><input type="text" id="ss-hp-police-number" placeholder="e.g. 117"></div>
+        <div class="field"><label>Facebook URL</label><input type="text" id="ss-hp-social-facebook" placeholder="https://facebook.com/..."></div>
+        <div class="field"><label>LinkedIn URL</label><input type="text" id="ss-hp-social-linkedin" placeholder="https://linkedin.com/..."></div>
+        <div class="field"><label>Instagram URL</label><input type="text" id="ss-hp-social-instagram" placeholder="https://instagram.com/..."></div>
+        <div class="field"><label>SK Facebook Page Title</label><input type="text" id="ss-hp-sk-title" placeholder="e.g. SK Barangay Hulo"></div>
+        <div class="field"><label>SK Facebook Page Subtitle</label><input type="text" id="ss-hp-sk-subtitle" placeholder="e.g. Sangguniang Kabataan Official Page"></div>
+        <div class="field"><label>SK Facebook Page URL</label><input type="text" id="ss-hp-sk-url" placeholder="https://facebook.com/..."></div>
+        <div class="settings-acts">
+          <button class="btn-publish" onclick="saveHomepageContactSettings()">Save Homepage Contact &amp; Social</button>
+        </div>
+      </div>
+
     </section>
 
   </main>
@@ -2744,6 +2767,19 @@ async function loadSiteSettings() {
       ['ss-barangay-facebook', d.barangay_facebook],
       ['ss-barangay-social',   d.barangay_social],
       ['ss-barangay-address',  d.barangay_address],
+      ['ss-hp-hotline-label',   d.homepage_hotline_label],
+      ['ss-hp-hotline-number',  d.homepage_hotline_number],
+      ['ss-hp-hotline-desc',    d.homepage_hotline_description],
+      ['ss-hp-emergency-label', d.emergency_card_label],
+      ['ss-hp-emergency-number',d.emergency_card_number],
+      ['ss-hp-police-label',    d.police_card_label],
+      ['ss-hp-police-number',   d.police_card_number],
+      ['ss-hp-social-facebook', d.social_facebook_url],
+      ['ss-hp-social-linkedin', d.social_linkedin_url],
+      ['ss-hp-social-instagram',d.social_instagram_url],
+      ['ss-hp-sk-title',        d.sk_facebook_title],
+      ['ss-hp-sk-subtitle',     d.sk_facebook_subtitle],
+      ['ss-hp-sk-url',          d.sk_facebook_url],
     ].forEach(([id, val]) => { const el=$(id); if (el) el.value = val || ''; });
   } catch(e) { if (e.message !== 'unauthorized') toast('Failed to load site settings', 'err'); }
 }
@@ -2777,6 +2813,30 @@ async function saveBarangaySettings() {
     const d = await r.json();
     if (!r.ok) { toast(d.error || 'Save failed', 'err'); return; }
     toast('Barangay Hall Info saved', 'ok');
+  } catch(e) { if (e.message !== 'unauthorized') toast('Save failed', 'err'); }
+}
+
+async function saveHomepageContactSettings() {
+  const payload = {
+    homepage_hotline_label:       ($('ss-hp-hotline-label')   || {}).value || '',
+    homepage_hotline_number:      ($('ss-hp-hotline-number')  || {}).value || '',
+    homepage_hotline_description: ($('ss-hp-hotline-desc')    || {}).value || '',
+    emergency_card_label:         ($('ss-hp-emergency-label') || {}).value || '',
+    emergency_card_number:        ($('ss-hp-emergency-number')|| {}).value || '',
+    police_card_label:            ($('ss-hp-police-label')    || {}).value || '',
+    police_card_number:           ($('ss-hp-police-number')   || {}).value || '',
+    social_facebook_url:          ($('ss-hp-social-facebook') || {}).value || '',
+    social_linkedin_url:          ($('ss-hp-social-linkedin') || {}).value || '',
+    social_instagram_url:         ($('ss-hp-social-instagram')|| {}).value || '',
+    sk_facebook_title:            ($('ss-hp-sk-title')        || {}).value || '',
+    sk_facebook_subtitle:         ($('ss-hp-sk-subtitle')     || {}).value || '',
+    sk_facebook_url:              ($('ss-hp-sk-url')          || {}).value || '',
+  };
+  try {
+    const r = await adminFetch('/admin/api/site-settings', { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
+    const d = await r.json();
+    if (!r.ok) { toast(d.error || 'Save failed', 'err'); return; }
+    toast('Homepage Contact & Social saved', 'ok');
   } catch(e) { if (e.message !== 'unauthorized') toast('Save failed', 'err'); }
 }
 
