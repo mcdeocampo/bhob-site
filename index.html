@@ -150,8 +150,8 @@
 
         <div class="emergency-main-row">
           <div class="emergency-copy">
-            <strong>Barangay Hotline</strong>
-            <div class="hero-hotline-number">02 8741 2573</div>
+            <strong id="hp-hotline-label">Barangay Hotline</strong>
+            <div class="hero-hotline-number" id="hp-hotline-number">02 8741 2573</div>
           </div>
           <div class="emergency-siren-badge" aria-hidden="true">
             <span></span>
@@ -160,16 +160,16 @@
           </div>
         </div>
 
-        <p>Immediate assistance for urgent barangay incidents, safety concerns, and rapid local response coordination.</p>
+        <p id="hp-hotline-desc">Immediate assistance for urgent barangay incidents, safety concerns, and rapid local response coordination.</p>
 
         <div class="hero-emergency-grid">
           <div class="hero-emergency-item">
-            <label>Emergency</label>
-            <span>911</span>
+            <label id="hp-emergency-label">Emergency</label>
+            <span id="hp-emergency-number">911</span>
           </div>
           <div class="hero-emergency-item">
-            <label>Police</label>
-            <span>117</span>
+            <label id="hp-police-label">Police</label>
+            <span id="hp-police-number">117</span>
           </div>
           <div class="hero-emergency-item hero-emergency-item--hotlines" onclick="openHotlinesModal()" role="button" tabindex="0" style="cursor:pointer;" onkeydown="if(event.key==='Enter'||event.key===' ')openHotlinesModal()">
             <label>Other Hotlines</label>
@@ -506,6 +506,22 @@
       }
       var emailEl = document.querySelector('.footer-email');
       if (emailEl && d.footer_email) emailEl.textContent = d.footer_email;
+      // Homepage hotline card text
+      var hpMap = [
+        ['hp-hotline-label',   d.homepage_hotline_label],
+        ['hp-hotline-number',  d.homepage_hotline_number],
+        ['hp-hotline-desc',    d.homepage_hotline_description],
+        ['hp-emergency-label', d.emergency_card_label],
+        ['hp-emergency-number',d.emergency_card_number],
+        ['hp-police-label',    d.police_card_label],
+        ['hp-police-number',   d.police_card_number],
+      ];
+      hpMap.forEach(function(pair) {
+        if (pair[1]) {
+          var el = document.getElementById(pair[0]);
+          if (el) el.textContent = pair[1];
+        }
+      });
     })
     .catch(function() { /* keep static footer */ });
   </script>
