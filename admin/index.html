@@ -1997,7 +1997,7 @@ function resetInitForm() {
   $('if-subtitle').value=''; $('if-short').value=''; $('if-details').value='';
   $('is-draft').checked=true; $('if-feat-no').checked=true;
   $('init-img-preview').style.display='none'; $('init-img-preview').src='';
-  $('init-img-url-note').classList.remove('show-note');
+  $('init-img-url-note').classList.remove('show-note'); $('init-img-url-note').textContent='';
 }
 
 function openInitNew() {
@@ -2009,7 +2009,10 @@ function openInitNew() {
 
 function openInitEdit(id) {
   const p = SI.initiatives.find(x=>x.id===id); if(!p) return;
-  resetInitForm(); SI.editingId=id; SI.imageUrl=p.imageUrl||'';
+  resetInitForm();
+  $('init-img-url-note').innerHTML = '';
+  $('init-img-url-note').textContent = '';
+  SI.editingId=id; SI.imageUrl=p.imageUrl||'';
   $('init-modal-title').textContent='Edit Initiative';
   $('if-title').value=p.title||'';
   $('if-cat').value=p.category||'Other';
