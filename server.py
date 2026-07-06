@@ -1473,6 +1473,196 @@ def admin_upload_official_photo():
     return jsonify({'status': 'ok', 'url': url})
 
 
+# ── Site settings helpers ─────────────────────────────────────────────────────
+def _load_site_settings():
+    """Return site_settings as a flat {key: value} dict. Empty dict on error."""
+    try:
+        res = supabase.table('site_settings').select('key,value').execute()
+        return {row['key']: row['value'] for row in (res.data or [])}
+    except Exception:
+        return {}
+
+
+def _upsert_site_settings(patch):
+    """Batch-upsert a {key: value} dict into site_settings."""
+    now = datetime.now(timezone.utc).isoformat()
+    for key, value in patch.items():
+        supabase.table('site_settings').upsert(
+            {'key': key, 'value': str(value), 'updated_at': now},
+            on_conflict='key'
+        ).execute()
+
+
+# ── Emergency hotlines helpers ────────────────────────────────────────────────
+def _row_to_hotline(row):
+    return {
+        'id':           row['id'],
+        'label':        row.get('label', ''),
+        'number':       row.get('number', ''),
+        'description':  row.get('description', ''),
+        'category':     row.get('category', ''),
+        'displayOrder': row.get('display_order', 99),
+        'status':       row.get('status', 'published'),
+        'createdAt':    row.get('created_at', ''),
+        'updatedAt':    row.get('updated_at', ''),
+    }
+
+
+def _load_hotlines(published_only=False):
+    try:
+        q = supabase.table('emergency_hotlines').select('*')
+        if published_only:
+            q = q.eq('status', 'published')
+        res = q.order('display_order').execute()
+        return [_row_to_hotline(r) for r in (res.data or [])]
+    except Exception:
+        return []
+
+
+def _hotline_bulk_order(order_map):
+    now = datetime.now(timezone.utc).isoformat()
+    for hotline_id, order in order_map.items():
+        supabase.table('emergency_hotlines').update(
+            {'display_order': order, 'updated_at': now}
+        ).eq('id', hotline_id).execute()
+
+
+# ── Public — site settings & emergency hotlines ───────────────────────────────
+@app.route('/api/site-settings')
+def api_site_settings():
+    return jsonify(_load_site_settings())
+
+
+@app.route('/api/emergency-hotlines')
+def api_emergency_hotlines():
+    hotlines = _load_hotlines(published_only=True)
+    return jsonify({'hotlines': hotlines})
+
+
+# ── Admin — site settings ─────────────────────────────────────────────────────
+@app.route('/admin/api/site-settings')
+@admin_required
+def admin_site_settings_get():
+    return jsonify(_load_site_settings())
+
+
+@app.route('/admin/api/site-settings', methods=['PUT'])
+@admin_required
+def admin_site_settings_put():
+    d = request.get_json(silent=True) or {}
+    ALLOWED_KEYS = {
+        'footer_phone', 'footer_email',
+        'copyright_year', 'copyright_owner', 'copyright_suffix',
+        'barangay_phone', 'barangay_email',
+        'barangay_facebook', 'barangay_social', 'barangay_address',
+    }
+    patch = {k: _clean(v, 300) for k, v in d.items() if k in ALLOWED_KEYS}
+    if not patch:
+        return jsonify({'error': 'No valid fields provided'}), 400
+    _upsert_site_settings(patch)
+    return jsonify({'ok': True, 'updated': list(patch.keys())})
+
+
+# ── Admin — emergency hotlines CRUD ──────────────────────────────────────────
+@app.route('/admin/api/emergency-hotlines')
+@admin_required
+def admin_hotlines_list():
+    hotlines = _load_hotlines()
+    return jsonify({'hotlines': hotlines})
+
+
+@app.route('/admin/api/emergency-hotlines', methods=['POST'])
+@admin_required
+def admin_hotlines_create():
+    d = request.get_json(silent=True) or {}
+    if not str(d.get('label', '')).strip():
+        return jsonify({'error': 'Label is required.'}), 400
+    if not str(d.get('number', '')).strip():
+        return jsonify({'error': 'Number is required.'}), 400
+    status = d.get('status', 'published')
+    if status not in ('draft', 'published', 'hidden'):
+        status = 'published'
+    now = datetime.now(timezone.utc).isoformat()
+    row = {
+        'label':         _clean(d.get('label'), 100),
+        'number':        _clean(d.get('number'), 50),
+        'description':   _clean(d.get('description', ''), 300),
+        'category':      _clean(d.get('category', ''), 100),
+        'status':        status,
+        'created_at':    now,
+        'updated_at':    now,
+    }
+    try:
+        row['display_order'] = int(d.get('displayOrder', 99))
+    except (ValueError, TypeError):
+        row['display_order'] = 99
+    res = supabase.table('emergency_hotlines').insert(row).execute()
+    if not res.data:
+        return jsonify({'error': 'Create failed'}), 500
+    return jsonify({'ok': True, 'hotline': _row_to_hotline(res.data[0])}), 201
+
+
+@app.route('/admin/api/emergency-hotlines/reorder', methods=['PUT'])
+@admin_required
+def admin_hotlines_reorder():
+    items = request.get_json(silent=True) or []
+    if not isinstance(items, list):
+        return jsonify({'error': 'Invalid payload'}), 400
+    order_map = {}
+    for item in items:
+        if isinstance(item, dict) and 'id' in item:
+            try:
+                order_map[str(item['id'])] = int(item['displayOrder'])
+            except (ValueError, TypeError, KeyError):
+                pass
+    _hotline_bulk_order(order_map)
+    return jsonify({'ok': True})
+
+
+@app.route('/admin/api/emergency-hotlines/<hotline_id>', methods=['PUT'])
+@admin_required
+def admin_hotlines_update(hotline_id):
+    d = request.get_json(silent=True) or {}
+    now = datetime.now(timezone.utc).isoformat()
+    patch = {'updated_at': now}
+    if 'label' in d:
+        if not str(d['label']).strip():
+            return jsonify({'error': 'Label is required.'}), 400
+        patch['label'] = _clean(d['label'], 100)
+    if 'number' in d:
+        if not str(d['number']).strip():
+            return jsonify({'error': 'Number is required.'}), 400
+        patch['number'] = _clean(d['number'], 50)
+    for field, snake, maxlen in [
+        ('description', 'description',   300),
+        ('category',    'category',      100),
+    ]:
+        if field in d:
+            patch[snake] = _clean(d[field], maxlen)
+    if 'status' in d and d['status'] in ('draft', 'published', 'hidden'):
+        patch['status'] = d['status']
+    if 'displayOrder' in d:
+        try:
+            patch['display_order'] = int(d['displayOrder'])
+        except (ValueError, TypeError):
+            pass
+    res = (supabase.table('emergency_hotlines')
+           .update(patch).eq('id', hotline_id).execute())
+    if not res.data:
+        return jsonify({'error': 'Not found'}), 404
+    return jsonify({'ok': True, 'hotline': _row_to_hotline(res.data[0])})
+
+
+@app.route('/admin/api/emergency-hotlines/<hotline_id>', methods=['DELETE'])
+@admin_required
+def admin_hotlines_delete(hotline_id):
+    res = (supabase.table('emergency_hotlines')
+           .delete().eq('id', hotline_id).execute())
+    if not res.data:
+        return jsonify({'error': 'Not found'}), 404
+    return jsonify({'ok': True})
+
+
 # ── Static file serving ───────────────────────────────────────────────────────
 @app.route('/')
 def index():
