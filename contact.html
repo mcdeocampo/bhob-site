@@ -96,7 +96,6 @@
           </div>
         </div>
 
-
       <div class="contact-social-block" aria-label="Barangay Hall social media">
         <div class="contact-social-left">
           <span class="contact-social-label">Official Social Pages</span>
@@ -131,11 +130,18 @@
       </div>
     </article>
 
-    <form class="contact-form contact-form-modern reveal delay-1" action="#" method="post">
+    <form class="contact-form contact-form-modern reveal delay-1" id="contactForm" action="#" method="post">
       <div class="contact-card-header">
         <span class="contact-chip">Inquiry Form</span>
         <h2>Send an Inquiry</h2>
         <p>Fill out the form below and the Barangay Hall will review your message as soon as possible.</p>
+      </div>
+
+      <div id="form-success" style="display:none;padding:1rem;background:#d1fae5;border-radius:8px;color:#065f46;margin-bottom:1rem;">
+        ✅ Your inquiry has been sent successfully! We will get back to you soon.
+      </div>
+      <div id="form-error" style="display:none;padding:1rem;background:#fee2e2;border-radius:8px;color:#991b1b;margin-bottom:1rem;">
+        ❌ Something went wrong. Please try again or contact us directly.
       </div>
 
       <div class="form-row">
@@ -149,7 +155,7 @@
       </div>
 
       <label>Message<textarea name="message" rows="6" required></textarea></label>
-      <button class="btn btn-primary" type="submit">Submit Inquiry</button>
+      <button class="btn btn-primary" type="submit" id="submitBtn">Submit Inquiry</button>
     </form>
   </div>
 </section>
@@ -173,5 +179,49 @@
   </footer>
   <button class="back-to-top" aria-label="Back to top">↑</button>
   <script src="assets/js/main.js"></script>
+  <script>
+    var contactForm = document.getElementById('contactForm');
+    if (contactForm) {
+      contactForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        var btn = document.getElementById('submitBtn');
+        var success = document.getElementById('form-success');
+        var error = document.getElementById('form-error');
+        var fields = contactForm.querySelectorAll('input, textarea, button');
+        success.style.display = 'none';
+        error.style.display = 'none';
+        fields.forEach(function(f) { f.disabled = true; });
+        btn.innerHTML = 'Sending...';
+        var payload = {
+          name:    contactForm.querySelector('[name="full_name"]').value,
+          email:   contactForm.querySelector('[name="email"]').value,
+          phone:   contactForm.querySelector('[name="contact_number"]').value,
+          subject: contactForm.querySelector('[name="subject"]').value,
+          message: contactForm.querySelector('[name="message"]').value
+        };
+        fetch('/api/contact', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        })
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+          if (data.success) {
+            success.style.display = 'block';
+            contactForm.reset();
+          } else {
+            error.style.display = 'block';
+          }
+        })
+        .catch(function() {
+          error.style.display = 'block';
+        })
+        .finally(function() {
+          fields.forEach(function(f) { f.disabled = false; });
+          btn.innerHTML = 'Submit Inquiry';
+        });
+      });
+    }
+  </script>
 </body>
 </html>
