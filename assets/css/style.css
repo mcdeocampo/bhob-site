@@ -20235,3 +20235,183 @@ body[data-page="index.html"] .image-card .proj-card-banner-img.bhob-banner img {
   filter: none !important;
   backface-visibility: hidden !important;
 }
+
+/* ===== Contact Page Compactness Optimization (2026-07-07) =====
+   Scoped exclusively to body[data-page="contact.html"].
+   No other pages are affected. Cards use padding:0 internally;
+   spacing comes from header padding and info-stack/form-row margins.
+   ============================================================= */
+
+/* 1. Hero banner — reduce height ~35% (desktop: 112px→68px top, 74px→44px bottom) */
+body[data-page="contact.html"] .page-hero {
+  padding: 68px 0 44px !important;
+}
+
+/* 2. Contact section — tighter vertical breathing room */
+body[data-page="contact.html"] .contact-modern-section {
+  padding: 48px 0 36px !important;
+}
+
+/* 3. Blue header — Barangay Hall Information card */
+body[data-page="contact.html"] .contact-card-modern .contact-card-header {
+  padding: 18px 22px 16px !important;
+}
+
+body[data-page="contact.html"] .contact-card-modern .contact-chip {
+  padding: 5px 10px !important;
+  font-size: .70rem !important;
+}
+
+body[data-page="contact.html"] .contact-card-modern .contact-card-header h2 {
+  font-size: clamp(1.25rem, 2.2vw, 1.65rem) !important;
+  margin: 6px 0 4px !important;
+}
+
+body[data-page="contact.html"] .contact-card-modern .contact-card-header p {
+  font-size: .88rem !important;
+  line-height: 1.48 !important;
+}
+
+/* 4. Blue header — Send an Inquiry form */
+body[data-page="contact.html"] .contact-form-modern .contact-card-header {
+  padding: 18px 24px 16px !important;
+}
+
+body[data-page="contact.html"] .contact-form-modern .contact-chip {
+  padding: 5px 10px !important;
+  font-size: .70rem !important;
+}
+
+body[data-page="contact.html"] .contact-form-modern .contact-card-header h2 {
+  font-size: clamp(1.25rem, 2.2vw, 1.65rem) !important;
+  margin: 6px 0 4px !important;
+}
+
+body[data-page="contact.html"] .contact-form-modern .contact-card-header p {
+  font-size: .88rem !important;
+  line-height: 1.48 !important;
+}
+
+/* 5. Info stack — compact items, smaller icons */
+body[data-page="contact.html"] .contact-card-modern .contact-info-stack {
+  gap: 4px !important;
+  padding: 14px 18px 18px !important;
+}
+
+body[data-page="contact.html"] .contact-card-modern .info-stack-item {
+  padding: 9px 11px !important;
+  grid-template-columns: 34px 1fr !important;
+  gap: 11px !important;
+  border-radius: 12px !important;
+}
+
+body[data-page="contact.html"] .contact-card-modern .info-stack-icon {
+  width: 34px !important;
+  height: 34px !important;
+  border-radius: 10px !important;
+}
+
+body[data-page="contact.html"] .contact-card-modern .info-stack-icon svg {
+  width: 15px !important;
+  height: 15px !important;
+}
+
+body[data-page="contact.html"] .contact-card-modern .info-stack-title {
+  margin-bottom: 2px !important;
+  font-size: .67rem !important;
+}
+
+body[data-page="contact.html"] .contact-card-modern .info-stack-content p {
+  font-size: .9rem !important;
+  line-height: 1.45 !important;
+}
+
+body[data-page="contact.html"] .contact-card-modern .info-stack-item + .info-stack-item {
+  padding-top: 9px !important;
+  border-top: none !important;
+}
+
+/* 6. Social block — less top space */
+body[data-page="contact.html"] .contact-card-modern .contact-social-block {
+  margin-top: 10px !important;
+  padding-top: 10px !important;
+}
+
+/* 7. Inquiry form body — tighter margins and gaps */
+body[data-page="contact.html"] .contact-form-modern .form-row,
+body[data-page="contact.html"] .contact-form-modern > label,
+body[data-page="contact.html"] .contact-form-modern > button {
+  margin-left: 20px !important;
+  margin-right: 20px !important;
+}
+
+body[data-page="contact.html"] .contact-form-modern .form-row:first-of-type {
+  margin-top: 16px !important;
+}
+
+body[data-page="contact.html"] .contact-form-modern > button {
+  margin-bottom: 20px !important;
+  width: calc(100% - 40px) !important;
+}
+
+body[data-page="contact.html"] .contact-form-modern .form-row {
+  gap: 10px !important;
+}
+
+/* 8. Form inputs — reduced height */
+body[data-page="contact.html"] .contact-form-modern input,
+body[data-page="contact.html"] .contact-form-modern textarea {
+  padding: 9px 13px !important;
+}
+
+body[data-page="contact.html"] .contact-form-modern textarea {
+  min-height: 130px !important;
+}
+
+/* 9. Submit button */
+body[data-page="contact.html"] .contact-form-modern .btn-primary {
+  padding: 12px 24px !important;
+}
+
+/* ── Responsive: tablet (≤900px) ─────────────────────────────── */
+@media (max-width: 900px) {
+  body[data-page="contact.html"] .page-hero {
+    padding: 50px 0 30px !important;
+  }
+  body[data-page="contact.html"] .contact-modern-section {
+    padding: 36px 0 26px !important;
+  }
+  body[data-page="contact.html"] .contact-card-modern .contact-card-header,
+  body[data-page="contact.html"] .contact-form-modern .contact-card-header {
+    padding: 16px 20px 14px !important;
+  }
+}
+
+/* ── Responsive: mobile (≤640px) ─────────────────────────────── */
+@media (max-width: 640px) {
+  body[data-page="contact.html"] .page-hero {
+    padding: 44px 0 26px !important;
+  }
+  body[data-page="contact.html"] .contact-modern-section {
+    padding: 28px 0 20px !important;
+  }
+  body[data-page="contact.html"] .contact-card-modern .contact-card-header,
+  body[data-page="contact.html"] .contact-form-modern .contact-card-header {
+    padding: 14px 18px 12px !important;
+  }
+  body[data-page="contact.html"] .contact-card-modern .contact-info-stack {
+    padding: 12px 16px 14px !important;
+  }
+  body[data-page="contact.html"] .contact-form-modern .form-row,
+  body[data-page="contact.html"] .contact-form-modern > label,
+  body[data-page="contact.html"] .contact-form-modern > button {
+    margin-left: 14px !important;
+    margin-right: 14px !important;
+  }
+  body[data-page="contact.html"] .contact-form-modern > button {
+    width: calc(100% - 28px) !important;
+  }
+  body[data-page="contact.html"] .contact-form-modern textarea {
+    min-height: 110px !important;
+  }
+}
