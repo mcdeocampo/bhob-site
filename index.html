@@ -321,7 +321,7 @@
       </div>
       <div>
         <h3>Contact Information</h3>
-        <p>Barangay Hall, Hulo, Obando, Bulacan<br>Phone: 02 8741 2573<br>Email: <span class="footer-email">contact@huloobando.gov.ph</span></p>
+        <p><span class="footer-address">Barangay Hall, Hulo, Obando, Bulacan</span><br>Phone: <span class="footer-phone">02 8741 2573</span><br>Email: <span class="footer-email">contact@huloobando.gov.ph</span></p>
       </div>
       <div>
         <h3>Quick Links</h3>
@@ -506,6 +506,10 @@
       }
       var emailEl = document.querySelector('.footer-email');
       if (emailEl && d.footer_email) emailEl.textContent = d.footer_email;
+      var phoneEl = document.querySelector('.footer-phone');
+      if (phoneEl && d.footer_phone) phoneEl.textContent = d.footer_phone;
+      var addrEl = document.querySelector('.footer-address');
+      if (addrEl && d.barangay_address) addrEl.textContent = d.barangay_address;
       // Homepage hotline card text
       var hpMap = [
         ['hp-hotline-label',   d.homepage_hotline_label],
