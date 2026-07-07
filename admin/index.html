@@ -2893,7 +2893,8 @@ function renderHotlineList() {
     return;
   }
   el.innerHTML = SS.hotlines.map(h =>
-    `<div class="ann-card" data-id="${esc(h.id)}">
+    `<div class="ann-card" data-id="${esc(h.id)}" draggable="true">
+      <span class="drag-handle" title="Drag to reorder">&#8801;</span>
       <div style="flex:1;min-width:0">
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:3px">
           <span style="font-weight:700;font-size:.9rem">${esc(h.label)}</span>
@@ -2901,11 +2902,6 @@ function renderHotlineList() {
         </div>
         <div style="font-size:.85rem;color:var(--blue);font-weight:600">${esc(h.number)}</div>
         ${h.description ? `<div style="font-size:.78rem;color:var(--gray);margin-top:2px">${esc(h.description)}</div>` : ''}
-        <div style="font-size:.72rem;color:#94a3b8;margin-top:4px">
-          Order: <input type="number" value="${h.displayOrder}" min="1" max="999"
-            style="width:48px;padding:1px 4px;border:1px solid var(--border);border-radius:4px;font-size:.72rem"
-            onchange="markHlOrderDirty()" data-hl-order="${esc(h.id)}">
-        </div>
       </div>
       <div class="ann-actions">
         <button class="btn-act" onclick="openHotlineEdit('${esc(h.id)}')">Edit</button>
@@ -2913,17 +2909,47 @@ function renderHotlineList() {
       </div>
     </div>`
   ).join('');
-}
-
-function markHlOrderDirty() {
-  const btn = $('hl-save-order-btn');
-  if (btn) btn.style.display = 'inline-flex';
+  // Wire up drag-and-drop (same pattern as announcements/officials/forms/initiatives)
+  let dragged = null;
+  el.addEventListener('dragover', e => e.preventDefault());
+  el.querySelectorAll('.ann-card').forEach(card => {
+    card.addEventListener('dragstart', e => {
+      dragged = card;
+      e.dataTransfer.effectAllowed = 'move';
+      setTimeout(() => card.classList.add('dragging'), 0);
+    });
+    card.addEventListener('dragend', () => {
+      card.classList.remove('dragging');
+      el.querySelectorAll('.ann-card').forEach(c => c.classList.remove('drag-over-card'));
+    });
+    card.addEventListener('dragover', e => {
+      e.preventDefault();
+      if (card === dragged) return;
+      el.querySelectorAll('.ann-card').forEach(c => c.classList.remove('drag-over-card'));
+      card.classList.add('drag-over-card');
+    });
+    card.addEventListener('dragleave', e => {
+      if (!card.contains(e.relatedTarget)) card.classList.remove('drag-over-card');
+    });
+    card.addEventListener('drop', e => {
+      e.preventDefault();
+      el.querySelectorAll('.ann-card').forEach(c => c.classList.remove('drag-over-card'));
+      if (dragged && dragged !== card) {
+        const cards = [...el.querySelectorAll('.ann-card')];
+        const fromIdx = cards.indexOf(dragged);
+        const toIdx   = cards.indexOf(card);
+        if (fromIdx < toIdx) card.after(dragged);
+        else card.before(dragged);
+        const btn = $('hl-save-order-btn');
+        if (btn) btn.style.display = 'inline-flex';
+      }
+    });
+  });
 }
 
 async function saveHotlineOrder() {
-  const inputs = document.querySelectorAll('[data-hl-order]');
-  const items = [];
-  inputs.forEach(inp => items.push({ id: inp.dataset.hlOrder, displayOrder: parseInt(inp.value) || 99 }));
+  const cards = document.querySelectorAll('#hl-list .ann-card');
+  const items = [...cards].map((c, i) => ({ id: c.dataset.id, displayOrder: i + 1 }));
   try {
     const r = await adminFetch('/admin/api/emergency-hotlines/reorder', {
       method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(items)
@@ -2941,7 +2967,6 @@ function openHotlineNew() {
   SS.editingHotlineId = null;
   $('hl-modal-title').textContent = 'New Hotline';
   ['hl-label','hl-number','hl-description','hl-category'].forEach(id => { const el=$(id); if(el) el.value=''; });
-  $('hl-order').value = '99';
   $('hl-status').value = 'published';
   $('hl-modal-err').textContent = '';
   $('hl-modal-overlay').classList.add('open');
@@ -2957,7 +2982,6 @@ function openHotlineEdit(id) {
   $('hl-number').value      = h.number      || '';
   $('hl-description').value = h.description || '';
   $('hl-category').value    = h.category    || '';
-  $('hl-order').value       = h.displayOrder || 99;
   $('hl-status').value      = h.status      || 'published';
   $('hl-modal-err').textContent = '';
   $('hl-modal-overlay').classList.add('open');
@@ -2977,7 +3001,6 @@ async function saveHotlineForm() {
     label, number,
     description:  $('hl-description').value.trim(),
     category:     $('hl-category').value.trim(),
-    displayOrder: parseInt($('hl-order').value) || 99,
     status:       $('hl-status').value,
   };
   const isEdit = !!SS.editingHotlineId;
@@ -3022,7 +3045,6 @@ init();
       <div class="field"><label>Description <span style="color:var(--gray);font-weight:400;font-size:.77rem">(optional)</span></label><input type="text" id="hl-description" placeholder="Enter description (optional)" autocomplete="off"></div>
       <div class="field"><label>Category <span style="color:var(--gray);font-weight:400;font-size:.77rem">(optional)</span></label><input type="text" id="hl-category" placeholder="Enter category (optional)" autocomplete="off"></div>
       <div style="display:flex;gap:12px">
-        <div class="field" style="flex:1"><label>Display Order</label><input type="number" id="hl-order" min="1" max="999" value="99"></div>
         <div class="field" style="flex:1"><label>Status</label>
           <select id="hl-status" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-size:.9rem;color:var(--text);background:#fff">
             <option value="published">Published</option>
