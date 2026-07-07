@@ -20441,3 +20441,13 @@ body[data-page="contact.html"] .contact-form-modern .btn-primary {
     min-height: 112px !important;
   }
 }
+
+/* ===== Contact Grid — 55/45 Desktop Split (2026-07-07) =====
+   Info card 55%, form card 45%. Desktop only (≥901px).
+   Tablet/mobile single-column layout is unaffected.
+   ========================================================== */
+@media (min-width: 901px) {
+  body[data-page="contact.html"] .contact-grid-modern {
+    grid-template-columns: 55fr 45fr !important;
+  }
+}
