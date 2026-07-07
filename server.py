@@ -13,7 +13,7 @@ import urllib.request
 import urllib.error
 from datetime import datetime, timezone, timedelta
 from functools import wraps
-from flask import Flask, jsonify, send_from_directory, abort, request, session
+from flask import Flask, jsonify, send_from_directory, abort, request, session, redirect
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -796,16 +796,25 @@ def api_forms():
 
 # ── Public page clean URLs (no .html required) ───────────────────────────────
 _PUBLIC_PAGES = [
-    'about', 'officials', 'services', 'citizens-charter',
-    'announcements', 'projects', 'transparency', 'downloads', 'contact',
+    'about', 'officials', 'services', 'announcements',
+    'projects', 'transparency', 'downloads', 'contact',
 ]
+
+_PAGE_ALIASES = {
+    'service-standards': 'citizens-charter',
+}
+
+@app.route('/citizens-charter')
+def redirect_citizens_charter():
+    return redirect('/service-standards', code=301)
 
 @app.route('/<page_name>')
 def public_page(page_name):
-    if page_name in _PUBLIC_PAGES:
-        f = os.path.join(BASE_DIR, page_name + '.html')
+    page_file = _PAGE_ALIASES.get(page_name, page_name)
+    if page_file in _PUBLIC_PAGES or page_name in _PAGE_ALIASES:
+        f = os.path.join(BASE_DIR, page_file + '.html')
         if os.path.exists(f):
-            return send_from_directory(BASE_DIR, page_name + '.html')
+            return send_from_directory(BASE_DIR, page_file + '.html')
     abort(404)
 
 
