@@ -4,6 +4,7 @@ Serves static files, weather/tide proxy, announcement management API, and secure
 Data layer: Supabase Postgres + Supabase Storage.
 """
 import os
+import json
 import time
 import uuid
 import hashlib
