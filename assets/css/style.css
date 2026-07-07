@@ -20451,7 +20451,7 @@ body[data-page="contact.html"] .contact-form-modern .btn-primary {
     grid-template-columns: 40fr 60fr !important;
   }
   body[data-page="contact.html"] .contact-card-modern {
-    max-width: 420px !important;
+    max-width: 100% !important;
   }
 }
 
