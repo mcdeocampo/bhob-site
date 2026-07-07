@@ -796,17 +796,28 @@ def api_forms():
 
 # ── Public page clean URLs (no .html required) ───────────────────────────────
 _PUBLIC_PAGES = [
-    'about', 'officials', 'services', 'announcements',
-    'projects', 'transparency', 'downloads', 'contact',
+    'about', 'officials', 'announcements',
+    'transparency', 'downloads', 'contact',
 ]
 
 _PAGE_ALIASES = {
     'service-standards': 'citizens-charter',
+    'community-initiatives': 'projects',
+    'public-services': 'services',
 }
 
 @app.route('/citizens-charter')
 def redirect_citizens_charter():
     return redirect('/service-standards', code=301)
+
+
+@app.route('/projects')
+def redirect_projects():
+    return redirect('/community-initiatives', code=301)
+
+@app.route('/services')
+def redirect_services():
+    return redirect('/public-services', code=301)
 
 @app.route('/<page_name>')
 def public_page(page_name):
