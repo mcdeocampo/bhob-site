@@ -144,6 +144,8 @@
         ❌ Something went wrong. Please try again or contact us directly.
       </div>
 
+      <!-- honeypot: bots fill this, humans don't -->
+      <input type="text" name="website" tabindex="-1" autocomplete="off" style="display:none !important;position:absolute;left:-9999px;" aria-hidden="true">
       <div class="form-row">
         <label>Full Name<input type="text" name="full_name" required></label>
         <label>Email Address<input type="email" name="email" required></label>
@@ -197,7 +199,8 @@
           email:   contactForm.querySelector('[name="email"]').value,
           phone:   contactForm.querySelector('[name="contact_number"]').value,
           subject: contactForm.querySelector('[name="subject"]').value,
-          message: contactForm.querySelector('[name="message"]').value
+          message: contactForm.querySelector('[name="message"]').value,
+          website: contactForm.querySelector('[name="website"]').value
         };
         fetch('/api/contact', {
           method: 'POST',
@@ -211,17 +214,30 @@
         .then(function(data) {
           if (data.success) {
             success.style.display = 'block';
+            success.style.opacity = '1';
+            success.style.transition = '';
             contactForm.reset();
+            setTimeout(function() {
+              success.style.transition = 'opacity 0.6s ease';
+              success.style.opacity = '0';
+              setTimeout(function() {
+                success.style.display = 'none';
+                success.style.opacity = '1';
+                success.style.transition = '';
+                fields.forEach(function(f) { f.disabled = false; });
+                btn.innerHTML = 'Submit Inquiry';
+              }, 600);
+            }, 5000);
           } else {
             console.error('[contact] server error:', data.error);
             error.style.display = 'block';
+            fields.forEach(function(f) { f.disabled = false; });
+            btn.innerHTML = 'Submit Inquiry';
           }
         })
         .catch(function(err) {
           console.error('[contact] fetch/parse error:', err);
           error.style.display = 'block';
-        })
-        .finally(function() {
           fields.forEach(function(f) { f.disabled = false; });
           btn.innerHTML = 'Submit Inquiry';
         });

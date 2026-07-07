@@ -289,10 +289,16 @@ def _update_user(updated_user):
 
 
 
-# Contact form
+# Contact form — in-memory rate limit store (IP → last submission timestamp)
+_contact_rate: dict = {}
+_CONTACT_COOLDOWN = 60  # seconds
+
 @app.route('/api/contact', methods=['POST'])
 def api_contact():
     data = request.get_json(silent=True) or {}
+    # Honeypot: bots fill the hidden "website" field; humans never see it
+    if data.get('website', ''):
+        return jsonify({'success': True})  # silently discard
     name = str(data.get('name', '')).strip()
     email = str(data.get('email', '')).strip()
     phone = str(data.get('phone', '')).strip()
@@ -300,6 +306,14 @@ def api_contact():
     message = str(data.get('message', '')).strip()
     if not name or not email or not message:
         return jsonify({'success': False, 'error': 'Missing fields'}), 400
+    # Rate limit: 1 submission per IP per minute
+    ip = request.headers.get('X-Forwarded-For', request.remote_addr or '').split(',')[0].strip()
+    now = time.time()
+    last = _contact_rate.get(ip, 0)
+    if now - last < _CONTACT_COOLDOWN:
+        wait = int(_CONTACT_COOLDOWN - (now - last))
+        return jsonify({'success': False, 'error': f'Please wait {wait}s before submitting again.'}), 429
+    _contact_rate[ip] = now
     print('[contact] Starting, key exists:', bool(os.environ.get('BREVO_API_KEY')), flush=True)
     key = os.environ.get('BREVO_API_KEY', '')
     if not key:
