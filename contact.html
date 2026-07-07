@@ -204,16 +204,21 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
         })
-        .then(function(res) { return res.json(); })
+        .then(function(res) {
+          if (!res.ok) { console.error('[contact] HTTP ' + res.status); }
+          return res.json();
+        })
         .then(function(data) {
           if (data.success) {
             success.style.display = 'block';
             contactForm.reset();
           } else {
+            console.error('[contact] server error:', data.error);
             error.style.display = 'block';
           }
         })
-        .catch(function() {
+        .catch(function(err) {
+          console.error('[contact] fetch/parse error:', err);
           error.style.display = 'block';
         })
         .finally(function() {
