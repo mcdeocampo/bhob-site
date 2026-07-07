@@ -299,6 +299,7 @@ def api_contact():
     message = str(data.get('message', '')).strip()
     if not name or not email or not message:
         return jsonify({'success': False, 'error': 'Missing fields'}), 400
+    print('[contact] Starting, key exists:', bool(os.environ.get('BREVO_API_KEY')))
     key = os.environ.get('BREVO_API_KEY', '')
     if not key:
         return jsonify({'success': False, 'error': 'Not configured'}), 500
