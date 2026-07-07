@@ -20448,7 +20448,10 @@ body[data-page="contact.html"] .contact-form-modern .btn-primary {
    ========================================================== */
 @media (min-width: 901px) {
   body[data-page="contact.html"] .contact-grid-modern {
-    grid-template-columns: 55fr 45fr !important;
+    grid-template-columns: 40fr 60fr !important;
+  }
+  body[data-page="contact.html"] .contact-card-modern {
+    max-width: 420px !important;
   }
 }
 
