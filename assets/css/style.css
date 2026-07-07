@@ -20536,3 +20536,15 @@ body[data-page="contact.html"] .contact-form-modern .btn-primary {
 .hero-emergency-item--hotlines:focus .hotlines-view-link {
   text-decoration: underline !important;
 }
+
+/* ===== Contact page — social block stacked layout (2026-07-07) ===== */
+/* Prevents "SK Facebook Page" from wrapping by giving the card full width */
+body[data-page="contact.html"] .contact-card-modern .contact-social-block {
+  flex-direction: column !important;
+  align-items: stretch !important;
+  gap: 10px !important;
+}
+body[data-page="contact.html"] .contact-card-modern .contact-social-featured {
+  width: 100% !important;
+  min-width: 0 !important;
+}
