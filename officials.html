@@ -231,5 +231,14 @@
       .catch(function() { /* silent — static fallback stays */ });
   })();
   </script>
+  <script>
+  fetch('/api/site-settings').then(function(r){return r.json();}).then(function(d){
+    if(!d)return;
+    var y=d.copyright_year||'',o=d.copyright_owner||'',s=d.copyright_suffix||'';
+    if(y&&o){var b=document.querySelector('.footer-bottom');if(b)b.textContent='© '+y+' '+o+(s?'. '+s:'');}
+    var e=document.querySelector('.footer-email');if(e&&d.footer_email)e.textContent=d.footer_email;
+    var p=document.querySelector('.footer-phone');if(p&&d.footer_phone)p.textContent=d.footer_phone;
+  }).catch(function(){});
+  </script>
 </body>
 </html>
