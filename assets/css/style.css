@@ -20415,3 +20415,29 @@ body[data-page="contact.html"] .contact-form-modern .btn-primary {
     min-height: 110px !important;
   }
 }
+
+/* ===== Contact Form — Desktop Field Width Refinement (2026-07-07) =====
+   Desktop only (≥901px). Narrows form fields ~9% by increasing inner
+   horizontal margins. Cards stay equal width; tablet/mobile unchanged.
+   ===================================================================== */
+@media (min-width: 901px) {
+  body[data-page="contact.html"] .contact-form-modern .form-row,
+  body[data-page="contact.html"] .contact-form-modern > label,
+  body[data-page="contact.html"] .contact-form-modern > button {
+    margin-left: 44px !important;
+    margin-right: 44px !important;
+  }
+
+  body[data-page="contact.html"] .contact-form-modern > button {
+    width: calc(100% - 88px) !important;
+    margin-bottom: 28px !important;
+  }
+
+  body[data-page="contact.html"] .contact-form-modern .form-row:first-of-type {
+    margin-top: 18px !important;
+  }
+
+  body[data-page="contact.html"] .contact-form-modern textarea {
+    min-height: 112px !important;
+  }
+}
