@@ -20519,3 +20519,17 @@ body[data-page="contact.html"] .contact-form-modern .btn-primary {
     max-width: 100% !important;
   }
 }
+
+/* ===== "View List" hotlines link — subtle link styling (2026-07-07) ===== */
+/* Two-class selector (0-2-0) beats .hero-emergency-item span (0-1-1) on !important specificity */
+.hero-emergency-item--hotlines .hotlines-view-link {
+  font-weight: 400 !important;
+  color: #1565c0 !important;
+  font-size: 0.875rem !important;
+  text-decoration: none !important;
+  cursor: pointer !important;
+}
+.hero-emergency-item--hotlines:hover .hotlines-view-link,
+.hero-emergency-item--hotlines:focus .hotlines-view-link {
+  text-decoration: underline !important;
+}
