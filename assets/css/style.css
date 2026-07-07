@@ -20451,3 +20451,71 @@ body[data-page="contact.html"] .contact-form-modern .btn-primary {
     grid-template-columns: 55fr 45fr !important;
   }
 }
+
+/* ===== Contact Page — Full Resize & Balance Pass (2026-07-07 Round 4) =====
+   Scope: body[data-page="contact.html"] only. Zero cross-page impact.
+   ======================================================================= */
+
+/* 1. Hero headline: 46px → 28-32px */
+body[data-page="contact.html"] .page-hero h1 {
+  font-size: clamp(1.75rem, 2.4vw, 2rem) !important;
+  letter-spacing: -0.035em !important;
+}
+
+/* 2. Card / form section titles: 26px → 20-22px */
+body[data-page="contact.html"] .contact-card-modern .contact-card-header h2,
+body[data-page="contact.html"] .contact-form-modern .contact-card-header h2 {
+  font-size: clamp(1.2rem, 1.6vw, 1.375rem) !important;
+}
+
+/* 3. Info stack inner side padding: 18px → 24px */
+body[data-page="contact.html"] .contact-card-modern .contact-info-stack {
+  padding-left: 24px !important;
+  padding-right: 24px !important;
+}
+
+/* 4. Form body horizontal margins: 44px → 30px (per 30-36px spec, desktop only) */
+@media (min-width: 901px) {
+  body[data-page="contact.html"] .contact-form-modern .form-row,
+  body[data-page="contact.html"] .contact-form-modern > label,
+  body[data-page="contact.html"] .contact-form-modern > button {
+    margin-left: 30px !important;
+    margin-right: 30px !important;
+  }
+  body[data-page="contact.html"] .contact-form-modern > button {
+    width: calc(100% - 60px) !important;
+    margin-bottom: 28px !important;
+  }
+}
+
+/* 5. Form inputs: 8px vertical padding → ~44px height (line-height 25.8 + 16 pad + 2.67 border) */
+body[data-page="contact.html"] .contact-form-modern input {
+  padding-top: 8px !important;
+  padding-bottom: 8px !important;
+}
+
+/* 6. Textarea: CSS height overrides rows="6"; 130px for all viewports */
+body[data-page="contact.html"] .contact-form-modern textarea {
+  height: 130px !important;
+  min-height: 130px !important;
+}
+@media (max-width: 640px) {
+  body[data-page="contact.html"] .contact-form-modern textarea {
+    height: 110px !important;
+    min-height: 110px !important;
+  }
+}
+
+/* 7. Submit button: 15px vertical padding → ~48px tall (line-height 17.6 + 30 pad) */
+body[data-page="contact.html"] .contact-form-modern .btn-primary {
+  padding-top: 15px !important;
+  padding-bottom: 15px !important;
+}
+
+/* 8. Mobile cards 92-95% width at 375px / no overflow at 320px */
+@media (max-width: 640px) {
+  body[data-page="contact.html"] .contact-modern-section .container {
+    width: min(calc(100% - 20px), 100%) !important;
+    max-width: 100% !important;
+  }
+}
