@@ -1585,10 +1585,11 @@ def _upsert_site_settings(patch):
     """Batch-upsert a {key: value} dict into site_settings."""
     now = datetime.now(timezone.utc).isoformat()
     for key, value in patch.items():
-        supabase.table('site_settings').upsert(
+        res = supabase.table('site_settings').upsert(
             {'key': key, 'value': str(value), 'updated_at': now},
             on_conflict='key'
         ).execute()
+        print(f'[settings] upsert {key}={repr(str(value))} → data={res.data}', flush=True)
 
 
 # ── Emergency hotlines helpers ────────────────────────────────────────────────
@@ -1662,7 +1663,17 @@ def admin_site_settings_put():
     patch = {k: _clean(v, 300) for k, v in d.items() if k in ALLOWED_KEYS}
     if not patch:
         return jsonify({'error': 'No valid fields provided'}), 400
-    _upsert_site_settings(patch)
+    try:
+        _upsert_site_settings(patch)
+    except Exception:
+        import traceback
+        print('[settings] FAILED to save:', traceback.format_exc(), flush=True)
+        return jsonify({'error': 'Database write failed — check Render logs'}), 500
+    # Verify write by re-reading
+    saved = _load_site_settings()
+    failed = [k for k, v in patch.items() if v and saved.get(k) != v]
+    if failed:
+        print(f'[settings] WARNING: keys not confirmed in DB after write: {failed}', flush=True)
     return jsonify({'ok': True, 'updated': list(patch.keys())})
 
 
