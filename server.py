@@ -323,13 +323,33 @@ def api_contact():
             raise RuntimeError(f'Brevo {http_err.code}: {body}') from http_err
     try:
         send({'sender': {'name': sn, 'email': se}, 'to': [{'email': ae}], 'replyTo': {'email': email, 'name': name}, 'subject': 'New Inquiry – ' + subject, 'htmlContent': '<b>Name:</b> ' + name + '<br><b>Email:</b> ' + email + '<br><b>Phone:</b> ' + phone + '<br><b>Subject:</b> ' + subject + '<br><b>Message:</b> ' + message})
-        send({'sender': {'name': sn, 'email': se}, 'to': [{'email': email, 'name': name}], 'replyTo': {'email': pe, 'name': sn}, 'subject': 'We received your inquiry', 'htmlContent': '<p>Dear ' + name + ', thank you for reaching out. We will get back to you soon.<br>Barangay Hulo</p>'})
-        print(f'[contact] Emails sent OK to admin and {email}', flush=True)
-        return jsonify({'success': True})
+        print(f'[contact] Admin notification sent to {ae}', flush=True)
     except Exception as e:
         import traceback
-        print('[contact] FAILED:', traceback.format_exc(), flush=True)
+        print('[contact] FAILED (admin email):', traceback.format_exc(), flush=True)
         return jsonify({'success': False, 'error': str(e)}), 500
+    ack_html = (
+        '<p>Dear ' + name + ',</p>'
+        '<p>Greetings from Barangay Hulo!</p>'
+        '<p>Thank you for contacting the Barangay Hulo Office through our official website. '
+        'This email confirms that we have successfully received your inquiry, concern, or request.</p>'
+        '<p>Our team will review your submission and respond as soon as possible during official office hours. '
+        'If additional information is required, we will contact you using the details you provided.</p>'
+        '<p>If your concern is urgent or requires immediate assistance, please contact the Barangay Office '
+        'directly through our official contact numbers or visit the Barangay Hall during office hours.</p>'
+        '<p>We appreciate your patience and thank you for helping us serve the community better.</p>'
+        '<br><p><strong>Sincerely,</strong><br>'
+        'Barangay Hulo Office<br>'
+        'Municipality of Obando, Bulacan<br>'
+        'Official Barangay Digital Platform</p>'
+    )
+    try:
+        send({'sender': {'name': sn, 'email': se}, 'to': [{'email': email, 'name': name}], 'replyTo': {'email': pe, 'name': sn}, 'subject': 'We Have Received Your Inquiry – Barangay Hulo', 'htmlContent': ack_html})
+        print(f'[contact] Acknowledgment sent to {email}', flush=True)
+    except Exception:
+        import traceback
+        print('[contact] WARNING: acknowledgment email failed (admin email was sent):', traceback.format_exc(), flush=True)
+    return jsonify({'success': True})
 
 def _ensure_initial_user():
     """
