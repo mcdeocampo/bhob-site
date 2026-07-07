@@ -299,7 +299,7 @@ def api_contact():
     message = str(data.get('message', '')).strip()
     if not name or not email or not message:
         return jsonify({'success': False, 'error': 'Missing fields'}), 400
-    print('[contact] Starting, key exists:', bool(os.environ.get('BREVO_API_KEY')))
+    print('[contact] Starting, key exists:', bool(os.environ.get('BREVO_API_KEY')), flush=True)
     key = os.environ.get('BREVO_API_KEY', '')
     if not key:
         return jsonify({'success': False, 'error': 'Not configured'}), 500
@@ -318,16 +318,16 @@ def api_contact():
             urllib.request.urlopen(req, timeout=10)
         except urllib.error.HTTPError as http_err:
             body = http_err.read().decode('utf-8', errors='replace')
-            print(f'[contact] Brevo API error {http_err.code}: {body}')
+            print(f'[contact] Brevo API error {http_err.code}: {body}', flush=True)
             raise RuntimeError(f'Brevo {http_err.code}: {body}') from http_err
     try:
         send({'sender': {'name': sn, 'email': se}, 'to': [{'email': ae}], 'replyTo': {'email': email, 'name': name}, 'subject': 'New Inquiry – ' + subject, 'htmlContent': '<b>Name:</b> ' + name + '<br><b>Email:</b> ' + email + '<br><b>Phone:</b> ' + phone + '<br><b>Subject:</b> ' + subject + '<br><b>Message:</b> ' + message})
         send({'sender': {'name': sn, 'email': se}, 'to': [{'email': email, 'name': name}], 'replyTo': {'email': pe, 'name': sn}, 'subject': 'We received your inquiry', 'htmlContent': '<p>Dear ' + name + ', thank you for reaching out. We will get back to you soon.<br>Barangay Hulo</p>'})
-        print(f'[contact] Emails sent OK to admin and {email}')
+        print(f'[contact] Emails sent OK to admin and {email}', flush=True)
         return jsonify({'success': True})
     except Exception as e:
         import traceback
-        print('[contact] FAILED:', traceback.format_exc())
+        print('[contact] FAILED:', traceback.format_exc(), flush=True)
         return jsonify({'success': False, 'error': str(e)}), 500
 
 def _ensure_initial_user():
