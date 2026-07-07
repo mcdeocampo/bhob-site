@@ -1573,23 +1573,35 @@ def admin_upload_official_photo():
 
 # ── Site settings helpers ─────────────────────────────────────────────────────
 def _load_site_settings():
-    """Return site_settings as a flat {key: value} dict. Empty dict on error."""
+    """Return site_settings as a flat {key: value} dict. Empty dict on error.
+    Orders by updated_at desc so the most recent value wins if duplicates exist."""
     try:
-        res = supabase.table('site_settings').select('key,value').execute()
-        return {row['key']: row['value'] for row in (res.data or [])}
+        res = supabase.table('site_settings').select('key,value').order('updated_at', desc=True).execute()
+        seen = {}
+        for row in (res.data or []):
+            if row['key'] not in seen:
+                seen[row['key']] = row['value']
+        return seen
     except Exception:
         return {}
 
 
 def _upsert_site_settings(patch):
-    """Batch-upsert a {key: value} dict into site_settings."""
+    """Save each key/value into site_settings using update-then-insert to avoid
+    relying on a unique constraint for ON CONFLICT resolution."""
     now = datetime.now(timezone.utc).isoformat()
     for key, value in patch.items():
-        res = supabase.table('site_settings').upsert(
-            {'key': key, 'value': str(value), 'updated_at': now},
-            on_conflict='key'
-        ).execute()
-        print(f'[settings] upsert {key}={repr(str(value))} → data={res.data}', flush=True)
+        val = str(value)
+        res = supabase.table('site_settings').update(
+            {'value': val, 'updated_at': now}
+        ).eq('key', key).execute()
+        if res.data:
+            print(f'[settings] updated {key}={repr(val)}', flush=True)
+        else:
+            supabase.table('site_settings').insert(
+                {'key': key, 'value': val, 'updated_at': now}
+            ).execute()
+            print(f'[settings] inserted {key}={repr(val)}', flush=True)
 
 
 # ── Emergency hotlines helpers ────────────────────────────────────────────────
