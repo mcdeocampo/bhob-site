@@ -287,57 +287,6 @@ def _update_user(updated_user):
         return False
 
 
-def 
-# -- Contact form --------------------------------------------------------------
-@app.route('/api/contact', methods=['POST'])
-def api_contact():
-    data = request.get_json(silent=True) or {}
-    name    = str(data.get('name', '')).strip()
-    email   = str(data.get('email', '')).strip()
-    phone   = str(data.get('phone', '')).strip()
-    subject = str(data.get('subject', '')).strip()
-    message = str(data.get('message', '')).strip()
-    if not name or not email or not message:
-        return jsonify({'success': False, 'error': 'Please provide name, email, and message'}), 400
-    brevo_api_key = os.environ.get('BREVO_API_KEY', '')
-    sender_email  = os.environ.get('BREVO_SENDER_EMAIL', 'web@huloobando.com')
-    sender_name   = os.environ.get('BREVO_SENDER_NAME', 'Barangay Hulo')
-    admin_email   = os.environ.get('ADMIN_EMAIL', 'contact@huloobando.com')
-    public_email  = os.environ.get('PUBLIC_CONTACT_EMAIL', 'contact@huloobando.com')
-    if not brevo_api_key:
-        return jsonify({'success': False, 'error': 'Email service not configured'}), 500
-    submitted_at = _manila_now().strftime('%B %d, %Y %I:%M %p PHT')
-    def send_brevo(payload):
-        body = json.dumps(payload).encode('utf-8')
-        req  = urllib.request.Request(
-            'https://api.brevo.com/v3/smtp/email',
-            data=body,
-            headers={'Content-Type': 'application/json', 'api-key': brevo_api_key},
-            method='POST'
-        )
-        with urllib.request.urlopen(req, timeout=10) as resp:
-            return resp.status
-    admin_payload = {
-        'sender':      {'name': sender_name, 'email': sender_email},
-        'to':          [{'email': admin_email, 'name': 'Barangay Hulo'}],
-        'replyTo':     {'email': email, 'name': name},
-        'subject':     'New Website Inquiry',
-        'htmlContent': ('<h2>New Website Inquiry</h2>' + f'<strong>Name:</strong> {name}<br>' + f'<strong>Email:</strong> {email}<br>' + f'<strong>Phone:</strong> {phone or "Not provided"}<br>' + f'<strong>Subject:</strong> {subject or "Not provided"}<br>' + f'<strong>Submitted:</strong> {submitted_at}<br>' + f'<hr><strong>Message:</strong><br>{message}')
-    }
-    customer_payload = {
-        'sender':      {'name': sender_name, 'email': sender_email},
-        'to':          [{'email': email, 'name': name}],
-        'replyTo':     {'email': public_email, 'name': sender_name},
-        'subject':     'We Received Your Inquiry - Barangay Hulo',
-        'htmlContent': (f'<p>Dear {name},</p>' + '<p>Thank you for reaching out to us.</p>' + '<p>We have successfully received your inquiry. Our team will review your message and get back to you as soon as possible.</p>' + f'<p>Regards,<br><strong>Barangay Hulo</strong><br>{public_email}</p>')
-    }
-    try:
-        send_brevo(admin_payload)
-        send_brevo(customer_payload)
-        return jsonify({'success': True})
-    except Exception as e:
-        print(f'[contact] Error sending email: {e}')
-        return jsonify({'success': False, 'error': 'Unable to send message'}), 500
 
 # Contact form
 @app.route('/api/contact', methods=['POST'])
@@ -353,21 +302,21 @@ def api_contact():
     key = os.environ.get('BREVO_API_KEY', '')
     if not key:
         return jsonify({'success': False, 'error': 'Not configured'}), 500
+    se = os.environ.get('BREVO_SENDER_EMAIL', 'web@huloobando.com')
+    sn = os.environ.get('BREVO_SENDER_NAME', 'Barangay Hulo')
+    ae = os.environ.get('ADMIN_EMAIL', 'contact@huloobando.com')
+    pe = os.environ.get('PUBLIC_CONTACT_EMAIL', 'contact@huloobando.com')
     def send(p):
-        r = urllib.request.Request('https://api.brevo.com/v3/smtp/email', json.dumps(p).encode(), {'Content-Type':'application/json','api-key':key}, method='POST')
+        r = urllib.request.Request('https://api.brevo.com/v3/smtp/email', json.dumps(p).encode(), {'Content-Type': 'application/json', 'api-key': key}, method='POST')
         urllib.request.urlopen(r, timeout=10)
-    se = os.environ.get('BREVO_SENDER_EMAIL','web@huloobando.com')
-    sn = os.environ.get('BREVO_SENDER_NAME','Barangay Hulo')
-    ae = os.environ.get('ADMIN_EMAIL','contact@huloobando.com')
-    pe = os.environ.get('PUBLIC_CONTACT_EMAIL','contact@huloobando.com')
     try:
-        send({'sender':{'name':sn,'email':se},'to':[{'email':ae}],'replyTo':{'email':email,'name':name},'subject':'New Inquiry','htmlContent':f'<b>Name:</b>{name}<br><b>Email:</b>{email}<br><b>Message:</b>{message}'})
-        send({'sender':{'name':sn,'email':se},'to':[{'email':email,'name':name}],'replyTo':{'email':pe,'name':sn},'subject':'We received your inquiry','htmlContent':f'<p>Dear {name}, thank you for reaching out. We will get back to you soon.<br>Barangay Hulo</p>'})
+        send({'sender': {'name': sn, 'email': se}, 'to': [{'email': ae}], 'replyTo': {'email': email, 'name': name}, 'subject': 'New Inquiry', 'htmlContent': '<b>Name:</b> ' + name + '<br><b>Email:</b> ' + email + '<br><b>Message:</b> ' + message})
+        send({'sender': {'name': sn, 'email': se}, 'to': [{'email': email, 'name': name}], 'replyTo': {'email': pe, 'name': sn}, 'subject': 'We received your inquiry', 'htmlContent': '<p>Dear ' + name + ', thank you for reaching out. We will get back to you soon.<br>Barangay Hulo</p>'})
         return jsonify({'success': True})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
-_ensure_initial_user():
+def _ensure_initial_user():
     """
     Create the initial admin account only when no users exist in Supabase.
     Never called when users already exist — never resets a changed password.
@@ -1785,86 +1734,6 @@ def static_files(filename):
 
 
 # ── Bootstrap ─────────────────────────────────────────────────────────────────
-
-# -- Contact form --------------------------------------------------------------
-@app.route('/api/contact', methods=['POST'])
-def api_contact():
-    data = request.get_json(silent=True) or {}
-    name    = str(data.get('name', '')).strip()
-    email   = str(data.get('email', '')).strip()
-    phone   = str(data.get('phone', '')).strip()
-    subject = str(data.get('subject', '')).strip()
-    message = str(data.get('message', '')).strip()
-    if not name or not email or not message:
-        return jsonify({'success': False, 'error': 'Please provide name, email, and message'}), 400
-    brevo_api_key = os.environ.get('BREVO_API_KEY', '')
-    sender_email  = os.environ.get('BREVO_SENDER_EMAIL', 'web@huloobando.com')
-    sender_name   = os.environ.get('BREVO_SENDER_NAME', 'Barangay Hulo')
-    admin_email   = os.environ.get('ADMIN_EMAIL', 'contact@huloobando.com')
-    public_email  = os.environ.get('PUBLIC_CONTACT_EMAIL', 'contact@huloobando.com')
-    if not brevo_api_key:
-        return jsonify({'success': False, 'error': 'Email service not configured'}), 500
-    submitted_at = _manila_now().strftime('%B %d, %Y %I:%M %p PHT')
-    def send_brevo(payload):
-        body = json.dumps(payload).encode('utf-8')
-        req  = urllib.request.Request(
-            'https://api.brevo.com/v3/smtp/email',
-            data=body,
-            headers={'Content-Type': 'application/json', 'api-key': brevo_api_key},
-            method='POST'
-        )
-        with urllib.request.urlopen(req, timeout=10) as resp:
-            return resp.status
-    admin_payload = {
-        'sender':      {'name': sender_name, 'email': sender_email},
-        'to':          [{'email': admin_email, 'name': 'Barangay Hulo'}],
-        'replyTo':     {'email': email, 'name': name},
-        'subject':     'New Website Inquiry',
-        'htmlContent': ('<h2>New Website Inquiry</h2>' + f'<strong>Name:</strong> {name}<br>' + f'<strong>Email:</strong> {email}<br>' + f'<strong>Phone:</strong> {phone or "Not provided"}<br>' + f'<strong>Subject:</strong> {subject or "Not provided"}<br>' + f'<strong>Submitted:</strong> {submitted_at}<br>' + f'<hr><strong>Message:</strong><br>{message}')
-    }
-    customer_payload = {
-        'sender':      {'name': sender_name, 'email': sender_email},
-        'to':          [{'email': email, 'name': name}],
-        'replyTo':     {'email': public_email, 'name': sender_name},
-        'subject':     'We Received Your Inquiry - Barangay Hulo',
-        'htmlContent': (f'<p>Dear {name},</p>' + '<p>Thank you for reaching out to us.</p>' + '<p>We have successfully received your inquiry. Our team will review your message and get back to you as soon as possible.</p>' + f'<p>Regards,<br><strong>Barangay Hulo</strong><br>{public_email}</p>')
-    }
-    try:
-        send_brevo(admin_payload)
-        send_brevo(customer_payload)
-        return jsonify({'success': True})
-    except Exception as e:
-        print(f'[contact] Error sending email: {e}')
-        return jsonify({'success': False, 'error': 'Unable to send message'}), 500
-
-# Contact form
-@app.route('/api/contact', methods=['POST'])
-def api_contact():
-    data = request.get_json(silent=True) or {}
-    name = str(data.get('name', '')).strip()
-    email = str(data.get('email', '')).strip()
-    phone = str(data.get('phone', '')).strip()
-    subject = str(data.get('subject', '')).strip()
-    message = str(data.get('message', '')).strip()
-    if not name or not email or not message:
-        return jsonify({'success': False, 'error': 'Missing fields'}), 400
-    key = os.environ.get('BREVO_API_KEY', '')
-    if not key:
-        return jsonify({'success': False, 'error': 'Not configured'}), 500
-    def send(p):
-        r = urllib.request.Request('https://api.brevo.com/v3/smtp/email', json.dumps(p).encode(), {'Content-Type':'application/json','api-key':key}, method='POST')
-        urllib.request.urlopen(r, timeout=10)
-    se = os.environ.get('BREVO_SENDER_EMAIL','web@huloobando.com')
-    sn = os.environ.get('BREVO_SENDER_NAME','Barangay Hulo')
-    ae = os.environ.get('ADMIN_EMAIL','contact@huloobando.com')
-    pe = os.environ.get('PUBLIC_CONTACT_EMAIL','contact@huloobando.com')
-    try:
-        send({'sender':{'name':sn,'email':se},'to':[{'email':ae}],'replyTo':{'email':email,'name':name},'subject':'New Inquiry','htmlContent':f'<b>Name:</b>{name}<br><b>Email:</b>{email}<br><b>Message:</b>{message}'})
-        send({'sender':{'name':sn,'email':se},'to':[{'email':email,'name':name}],'replyTo':{'email':pe,'name':sn},'subject':'We received your inquiry','htmlContent':f'<p>Dear {name}, thank you for reaching out. We will get back to you soon.<br>Barangay Hulo</p>'})
-        return jsonify({'success': True})
-    except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
-
 _ensure_initial_user()
 
 if __name__ == '__main__':
