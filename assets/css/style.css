@@ -19654,6 +19654,13 @@ body[data-page="index.html"] .opc-features {
   body[data-page="projects.html"] .proj-card-banner .ict-banner-label {
     padding-left: 80px !important;
   }
+  /* Full-width banner image on mobile — remove card-edge margins */
+  body[data-page="index.html"] .proj-card-banner,
+  body[data-page="projects.html"] .proj-card-banner {
+    margin: 0 !important;
+    width: 100% !important;
+    border-radius: 0 !important;
+  }
 }
 
 /* ── Logo: remove white background box ── */
