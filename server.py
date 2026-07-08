@@ -336,7 +336,56 @@ def api_contact():
             print(f'[contact] Brevo API error {http_err.code}: {body}', flush=True)
             raise RuntimeError(f'Brevo {http_err.code}: {body}') from http_err
     try:
-        send({'sender': {'name': sn, 'email': se}, 'to': [{'email': ae}], 'replyTo': {'email': email, 'name': name}, 'subject': 'New Inquiry – ' + subject, 'htmlContent': '<b>Name:</b> ' + name + '<br><b>Email:</b> ' + email + '<br><b>Phone:</b> ' + phone + '<br><b>Subject:</b> ' + subject + '<br><b>Message:</b> ' + message})
+        import html as _html
+        from datetime import datetime, timezone, timedelta
+        _ph_tz = timezone(timedelta(hours=8))
+        _submitted = datetime.now(_ph_tz).strftime('%B %d, %Y at %I:%M %p (Philippine Standard Time)')
+        def _esc(s): return _html.escape(str(s))
+        _phone_display = _esc(phone) if phone else '&mdash;'
+        _msg_html = _esc(message).replace('\n', '<br>')
+        _field = (
+            lambda label, content:
+            '<table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:12px"><tr>'
+            '<td style="background:#f8fafc;border-left:4px solid #2563eb;border-radius:0 8px 8px 0;padding:12px 16px">'
+            '<p style="margin:0 0 3px;font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.08em">' + label + '</p>'
+            '<p style="margin:0;font-size:15px;color:#1e293b;font-weight:600">' + content + '</p>'
+            '</td></tr></table>'
+        )
+        admin_html = (
+            '<!DOCTYPE html><html><head><meta charset="UTF-8"></head>'
+            '<body style="margin:0;padding:0;background:#f1f5f9;font-family:Arial,Helvetica,sans-serif">'
+            '<table width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9;padding:32px 16px"><tr><td align="center">'
+            '<table cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,.08)">'
+            '<tr><td style="background:linear-gradient(135deg,#1e3a5f,#2563eb);padding:28px 32px;text-align:center">'
+            '<div style="font-size:28px;margin-bottom:6px">&#x1F4E9;</div>'
+            '<h1 style="margin:0;color:#fff;font-size:20px;font-weight:700">New Website Inquiry</h1>'
+            '<p style="margin:8px 0 0;color:rgba(255,255,255,.82);font-size:13px">A new inquiry has been submitted through the <strong>Barangay Hulo Official Website</strong>.</p>'
+            '</td></tr>'
+            '<tr><td style="padding:28px 32px 20px">'
+            + _field('Name', _esc(name))
+            + _field('Email Address', '<a href="mailto:' + _esc(email) + '" style="color:#2563eb;text-decoration:none;font-weight:600">' + _esc(email) + '</a>')
+            + _field('Phone Number', _phone_display)
+            + _field('Subject', _esc(subject))
+            + '<table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:20px"><tr>'
+            '<td style="background:#f8fafc;border-left:4px solid #2563eb;border-radius:0 8px 8px 0;padding:12px 16px">'
+            '<p style="margin:0 0 3px;font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.08em">Message</p>'
+            '<p style="margin:0;font-size:14px;color:#1e293b;line-height:1.7">' + _msg_html + '</p>'
+            '</td></tr></table>'
+            '<table width="100%" cellpadding="0" cellspacing="0" style="background:#f0f9ff;border-radius:8px;margin-bottom:16px"><tr>'
+            '<td style="padding:14px 16px">'
+            '<p style="margin:0 0 6px;font-size:13px;color:#475569"><strong>&#128197; Submitted:</strong> ' + _submitted + '</p>'
+            '<p style="margin:0;font-size:13px;color:#475569"><strong>&#127760; Source:</strong> Barangay Hulo Official Website</p>'
+            '</td></tr></table>'
+            '<p style="margin:0;font-size:13px;color:#1e293b;font-style:italic">&#128172; Please click <strong>Reply</strong> to respond directly to the resident.</p>'
+            '</td></tr>'
+            '<tr><td style="background:#f8fafc;border-top:1px solid #e2e8f0;padding:16px 32px;text-align:center">'
+            '<p style="margin:0;font-size:11px;color:#94a3b8;line-height:1.7">'
+            'This is an automated notification from the Barangay Hulo Digital Platform.<br>'
+            'Please do not reply directly to this automated email.</p>'
+            '</td></tr>'
+            '</table></td></tr></table></body></html>'
+        )
+        send({'sender': {'name': sn, 'email': se}, 'to': [{'email': ae}], 'replyTo': {'email': email, 'name': name}, 'subject': 'New Inquiry – ' + subject, 'htmlContent': admin_html})
         print(f'[contact] Admin notification sent to {ae}', flush=True)
     except Exception as e:
         import traceback
