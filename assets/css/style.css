@@ -19005,17 +19005,30 @@ body[data-page="officials.html"] .officials-council-grid .official-card {
   border-color: rgba(21, 94, 239, .12) !important;
 }
 
-body[data-page="officials.html"] .officials-council-grid .official-card img {
-  width: 90px !important;
-  height: 90px !important;
-  border-radius: 50% !important;
-  background: linear-gradient(135deg, #c6d8ff 0%, #b8ccff 100%) !important;
-  mix-blend-mode: multiply !important;
+/* Photo circle wrapper — blue background shows through transparent PNGs */
+body[data-page="officials.html"] .officials-council-grid .official-card .ofc-circle {
+  display: block;
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #c6d8ff 0%, #b8ccff 100%);
+  overflow: hidden;
+  margin: 0 auto 10px;
+  border: 4px solid rgba(21, 94, 239, .14);
+  box-shadow: 0 6px 18px rgba(8, 38, 77, .14);
+  flex-shrink: 0;
+}
+body[data-page="officials.html"] .officials-council-grid .official-card .ofc-circle img {
+  width: 100% !important;
+  height: 100% !important;
+  border-radius: 0 !important;
   object-fit: cover !important;
-  border: 4px solid #ddeeff !important;
-  box-shadow: 0 8px 20px rgba(13, 71, 161, .13) !important;
+  object-position: center top !important;
+  margin: 0 !important;
   display: block !important;
-  margin: 0 auto 10px !important;
+  background: none !important;
+  border: none !important;
+  box-shadow: none !important;
 }
 
 body[data-page="officials.html"] .officials-council-grid .official-card h3 {
@@ -19121,7 +19134,7 @@ body[data-page="officials.html"] .officials-council-grid .official-card p {
   body[data-page="officials.html"] .ofc-watermark {
     display: none;
   }
-  body[data-page="officials.html"] .officials-council-grid .official-card img {
+  body[data-page="officials.html"] .officials-council-grid .official-card .ofc-circle {
     width: 64px !important;
     height: 64px !important;
   }
@@ -19187,10 +19200,10 @@ body[data-page="officials.html"] .officials-council-grid .official-card:nth-chil
     box-shadow: 0 18px 40px rgba(8, 38, 77, .18) !important;
   }
   /* Photo zoom on council card hover */
-  body[data-page="officials.html"] .officials-council-grid .official-card img {
+  body[data-page="officials.html"] .officials-council-grid .official-card .ofc-circle img {
     transition: transform 0.3s ease !important;
   }
-  body[data-page="officials.html"] .officials-council-grid .official-card:hover img {
+  body[data-page="officials.html"] .officials-council-grid .official-card:hover .ofc-circle img {
     transform: scale(1.08) !important;
   }
 }
@@ -19291,7 +19304,7 @@ body[data-page="officials.html"] .officials-divider span::before {
     padding: 18px 14px 16px !important;
     min-height: auto !important;
   }
-  body[data-page="officials.html"] .officials-council-grid .official-card img {
+  body[data-page="officials.html"] .officials-council-grid .official-card .ofc-circle {
     width: 80px !important;
     height: 80px !important;
     margin-bottom: 8px !important;
@@ -19338,7 +19351,7 @@ body[data-page="officials.html"] .officials-divider span::before {
     padding: 20px 14px 18px !important;
     min-height: auto !important;
   }
-  body[data-page="officials.html"] .officials-council-grid .official-card img {
+  body[data-page="officials.html"] .officials-council-grid .official-card .ofc-circle {
     width: 86px !important;
     height: 86px !important;
     margin-bottom: 9px !important;
@@ -19359,7 +19372,7 @@ body[data-page="officials.html"] .officials-divider span::before {
   body[data-page="officials.html"] .officials-council-grid .official-card {
     padding: 22px 16px 18px !important;
   }
-  body[data-page="officials.html"] .officials-council-grid .official-card img {
+  body[data-page="officials.html"] .officials-council-grid .official-card .ofc-circle {
     width: 98px !important;
     height: 98px !important;
   }
@@ -19379,7 +19392,7 @@ body[data-page="officials.html"] .officials-divider span::before {
   body[data-page="officials.html"] .officials-council-grid .official-card {
     padding: 24px 18px 20px !important;
   }
-  body[data-page="officials.html"] .officials-council-grid .official-card img {
+  body[data-page="officials.html"] .officials-council-grid .official-card .ofc-circle {
     width: 106px !important;
     height: 106px !important;
   }
