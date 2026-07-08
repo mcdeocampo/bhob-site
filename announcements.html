@@ -96,6 +96,15 @@
         + (a.category ? '<span style="font-size:.7rem;color:#2563eb;background:rgba(37,99,235,.08);padding:2px 9px;border-radius:10px;font-weight:500">' + a.category + '</span>' : '');
       document.getElementById('ann-modal-body').textContent = a.fullDetails || a.shortDescription || '';
       var ov = document.getElementById('ann-modal-overlay');
+      var nav = document.querySelector('.site-header');
+      var navH = nav ? nav.offsetHeight : 0;
+      if (window.innerWidth <= 768) {
+        ov.style.alignItems = 'flex-start';
+        ov.style.paddingTop = (navH + 8) + 'px';
+      } else {
+        ov.style.alignItems = 'center';
+        ov.style.paddingTop = '16px';
+      }
       ov.style.display = 'flex';
       document.body.style.overflow = 'hidden';
     }

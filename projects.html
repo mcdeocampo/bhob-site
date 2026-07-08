@@ -101,6 +101,15 @@
         + (p.subtitle ? '<span style="font-size:.75rem;color:#64748b">' + p.subtitle + '</span>' : '');
       document.getElementById('proj-modal-body').textContent = p.fullDetails || p.shortDescription || '';
       var ov = document.getElementById('proj-modal-overlay');
+      var nav = document.querySelector('.site-header');
+      var navH = nav ? nav.offsetHeight : 0;
+      if (window.innerWidth <= 768) {
+        ov.style.alignItems = 'flex-start';
+        ov.style.paddingTop = (navH + 8) + 'px';
+      } else {
+        ov.style.alignItems = 'center';
+        ov.style.paddingTop = '16px';
+      }
       ov.style.display = 'flex';
       document.body.style.overflow = 'hidden';
     }
