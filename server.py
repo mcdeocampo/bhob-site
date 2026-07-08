@@ -391,20 +391,64 @@ def api_contact():
         import traceback
         print('[contact] FAILED (admin email):', traceback.format_exc(), flush=True)
         return jsonify({'success': False, 'error': str(e)}), 500
+    import html as _html2
+    def _esc2(s): return _html2.escape(str(s))
     ack_html = (
-        '<p>Dear ' + name + ',</p>'
-        '<p>Greetings from Barangay Hulo!</p>'
-        '<p>Thank you for contacting the Barangay Hulo Office through our official website. '
-        'This email confirms that we have successfully received your inquiry, concern, or request.</p>'
-        '<p>Our team will review your submission and respond as soon as possible during official office hours. '
-        'If additional information is required, we will contact you using the details you provided.</p>'
-        '<p>If your concern is urgent or requires immediate assistance, please contact the Barangay Office '
-        'directly through our official contact numbers or visit the Barangay Hall during office hours.</p>'
-        '<p>We appreciate your patience and thank you for helping us serve the community better.</p>'
-        '<br><p><strong>Sincerely,</strong><br>'
-        'Barangay Hulo Office<br>'
-        'Municipality of Obando, Bulacan<br>'
-        'Official Barangay Digital Platform</p>'
+        '<!DOCTYPE html><html><head><meta charset="UTF-8"></head>'
+        '<body style="margin:0;padding:0;background:#f1f5f9;font-family:Arial,Helvetica,sans-serif">'
+        '<table width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9;padding:32px 16px"><tr><td align="center">'
+        '<table cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,.08)">'
+        # Header
+        '<tr><td style="background:linear-gradient(135deg,#1e3a5f,#2563eb);padding:28px 32px;text-align:center">'
+        '<div style="font-size:28px;margin-bottom:6px">&#x2705;</div>'
+        '<h1 style="margin:0;color:#fff;font-size:20px;font-weight:700">Inquiry Received</h1>'
+        '<p style="margin:8px 0 0;color:rgba(255,255,255,.82);font-size:13px">Barangay Hulo &mdash; Obando, Bulacan</p>'
+        '</td></tr>'
+        # Body
+        '<tr><td style="padding:28px 32px 20px">'
+        '<p style="margin:0 0 16px;font-size:15px;color:#1e293b">Dear <strong>' + _esc2(name) + '</strong>,</p>'
+        '<p style="margin:0 0 14px;font-size:14px;color:#475569;line-height:1.7">'
+        'Thank you for reaching out to the <strong>Barangay Hulo Office</strong> through our official website. '
+        'This email confirms that we have successfully received your inquiry.</p>'
+        '<p style="margin:0 0 20px;font-size:14px;color:#475569;line-height:1.7">'
+        'Our team will carefully review your submission and respond as soon as possible during official office hours. '
+        'If additional information is needed, we will reach you using the contact details you provided.</p>'
+        # Confirmation card
+        '<table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:20px"><tr>'
+        '<td style="background:#f0f9ff;border-left:4px solid #2563eb;border-radius:0 8px 8px 0;padding:14px 18px">'
+        '<p style="margin:0 0 4px;font-size:13px;font-weight:700;color:#1e3a5f">Your Inquiry Summary</p>'
+        '<p style="margin:0 0 3px;font-size:13px;color:#475569"><strong>Subject:</strong> ' + _esc2(subject) + '</p>'
+        '<p style="margin:0;font-size:13px;color:#475569"><strong>Submitted to:</strong> Barangay Hulo Office</p>'
+        '</td></tr></table>'
+        # Urgent contact
+        '<table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:20px"><tr>'
+        '<td style="background:#fff7ed;border-left:4px solid #f59e0b;border-radius:0 8px 8px 0;padding:14px 18px">'
+        '<p style="margin:0 0 4px;font-size:13px;font-weight:700;color:#92400e">For Urgent Concerns</p>'
+        '<p style="margin:0;font-size:13px;color:#78350f;line-height:1.6">'
+        'If your concern requires immediate assistance, please contact us directly at '
+        '<a href="mailto:contact@huloobando.com" style="color:#2563eb;text-decoration:none;font-weight:600">contact@huloobando.com</a> '
+        'or visit the Barangay Hall during office hours.</p>'
+        '</td></tr></table>'
+        '<p style="margin:0 0 4px;font-size:14px;color:#475569;line-height:1.7">'
+        'We appreciate your patience and thank you for helping us serve the community better.</p>'
+        '</td></tr>'
+        # Signature
+        '<tr><td style="padding:0 32px 28px">'
+        '<p style="margin:0;font-size:14px;color:#1e293b;line-height:1.8">'
+        '<strong>Sincerely,</strong><br>'
+        '<strong style="color:#1e3a5f">Barangay Hulo Office</strong><br>'
+        '<span style="color:#64748b;font-size:13px">Municipality of Obando, Bulacan<br>'
+        'Official Barangay Digital Platform</span></p>'
+        '</td></tr>'
+        # Footer
+        '<tr><td style="background:#f8fafc;border-top:1px solid #e2e8f0;padding:16px 32px;text-align:center">'
+        '<p style="margin:0;font-size:11px;color:#94a3b8;line-height:1.7">'
+        'This is an automated acknowledgement from the Barangay Hulo Digital Platform.<br>'
+        'Please do not reply to this email &mdash; to follow up, email '
+        '<a href="mailto:contact@huloobando.com" style="color:#2563eb;text-decoration:none">contact@huloobando.com</a>.'
+        '</p>'
+        '</td></tr>'
+        '</table></td></tr></table></body></html>'
     )
     try:
         send({'sender': {'name': sn, 'email': se}, 'to': [{'email': email, 'name': name}], 'replyTo': {'email': pe, 'name': sn}, 'subject': 'We Have Received Your Inquiry – Barangay Hulo', 'htmlContent': ack_html})
