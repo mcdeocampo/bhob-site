@@ -335,11 +335,11 @@ def api_contact():
             body = http_err.read().decode('utf-8', errors='replace')
             print(f'[contact] Brevo API error {http_err.code}: {body}', flush=True)
             raise RuntimeError(f'Brevo {http_err.code}: {body}') from http_err
+    import html as _html
+    from datetime import datetime, timezone, timedelta
+    _ph_tz = timezone(timedelta(hours=8))
+    _submitted = datetime.now(_ph_tz).strftime('%B %d, %Y at %I:%M %p (Philippine Standard Time)')
     try:
-        import html as _html
-        from datetime import datetime, timezone, timedelta
-        _ph_tz = timezone(timedelta(hours=8))
-        _submitted = datetime.now(_ph_tz).strftime('%B %d, %Y at %I:%M %p (Philippine Standard Time)')
         def _esc(s): return _html.escape(str(s))
         _phone_display = _esc(phone) if phone else '&mdash;'
         _msg_html = _esc(message).replace('\n', '<br>')
@@ -347,7 +347,7 @@ def api_contact():
             lambda label, content:
             '<table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:12px"><tr>'
             '<td style="background:#f8fafc;border-left:4px solid #2563eb;border-radius:0 8px 8px 0;padding:12px 16px">'
-            '<p style="margin:0 0 3px;font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.08em">' + label + '</p>'
+            '<p style="margin:0 0 3px;font-size:11px;font-weight:700;color:#64748b">' + label + '</p>'
             '<p style="margin:0;font-size:15px;color:#1e293b;font-weight:600">' + content + '</p>'
             '</td></tr></table>'
         )
@@ -367,8 +367,8 @@ def api_contact():
             + _field('Phone Number', _phone_display)
             + _field('Subject', _esc(subject))
             + '<table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:20px"><tr>'
-            '<td style="background:#f8fafc;border-left:4px solid #2563eb;border-radius:0 8px 8px 0;padding:12px 16px">'
-            '<p style="margin:0 0 3px;font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.08em">Message</p>'
+            '<td style="background:#f8fafc;border-left:4px solid #2563eb;border-radius:0 8px 8px 0;padding:8px 14px">'
+            '<p style="margin:0 0 3px;font-size:11px;font-weight:700;color:#64748b">Message</p>'
             '<p style="margin:0;font-size:14px;color:#1e293b;line-height:1.7">' + _msg_html + '</p>'
             '</td></tr></table>'
             '<table width="100%" cellpadding="0" cellspacing="0" style="background:#f0f9ff;border-radius:8px;margin-bottom:16px"><tr>'
@@ -418,6 +418,7 @@ def api_contact():
         '<td style="background:#f0f9ff;border-left:4px solid #2563eb;border-radius:0 8px 8px 0;padding:14px 18px">'
         '<p style="margin:0 0 4px;font-size:13px;font-weight:700;color:#1e3a5f">Your Inquiry Summary</p>'
         '<p style="margin:0 0 3px;font-size:13px;color:#475569"><strong>Subject:</strong> ' + _esc2(subject) + '</p>'
+        '<p style="margin:0 0 3px;font-size:13px;color:#475569"><strong>Submitted:</strong> ' + _submitted + '</p>'
         '<p style="margin:0;font-size:13px;color:#475569"><strong>Submitted to:</strong> Barangay Hulo Office</p>'
         '</td></tr></table>'
         # Urgent contact
@@ -444,7 +445,7 @@ def api_contact():
         '<tr><td style="background:#f8fafc;border-top:1px solid #e2e8f0;padding:16px 32px;text-align:center">'
         '<p style="margin:0;font-size:11px;color:#94a3b8;line-height:1.7">'
         'This is an automated acknowledgement from the Barangay Hulo Digital Platform.<br>'
-        'Please do not reply to this email &mdash; to follow up, email '
+        'For additional questions, simply reply to this email or contact us at '
         '<a href="mailto:contact@huloobando.com" style="color:#2563eb;text-decoration:none">contact@huloobando.com</a>.'
         '</p>'
         '</td></tr>'
