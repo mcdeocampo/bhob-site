@@ -2628,7 +2628,7 @@ function renderOfficialList() {
   }
   el.innerHTML = items.map((o, i) => {
     const thumb = o.photoUrl
-      ? `<img class="ann-thumb" draggable="false" src="${o.photoUrl.indexOf('http')===0?o.photoUrl:'/'+o.photoUrl}" alt="" style="width:56px;height:70px;object-fit:cover;object-position:center top;border-radius:6px;flex-shrink:0" onerror="this.style.display='none'">`
+      ? `<img class="ann-thumb" draggable="false" src="${o.photoUrl.indexOf('http')===0?o.photoUrl:'/'+o.photoUrl}" alt="" style="width:56px;height:70px;object-fit:cover;object-position:center top;border-radius:6px;flex-shrink:0;background:linear-gradient(135deg,#c6d8ff,#b8ccff)" onerror="this.style.display='none'">`
       : `<div class="ann-thumb-ph">👤</div>`;
     const punongBadge = o.isPunong ? `<span class="feat-tag">★ Punong</span>` : '';
     return `<div class="ann-card" data-id="${o.id}">

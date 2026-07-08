@@ -19010,6 +19010,7 @@ body[data-page="officials.html"] .officials-council-grid .official-card img {
   height: 90px !important;
   border-radius: 50% !important;
   background: linear-gradient(135deg, #c6d8ff 0%, #b8ccff 100%) !important;
+  mix-blend-mode: multiply !important;
   object-fit: cover !important;
   border: 4px solid #ddeeff !important;
   box-shadow: 0 8px 20px rgba(13, 71, 161, .13) !important;
