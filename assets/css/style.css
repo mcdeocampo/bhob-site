@@ -20236,6 +20236,7 @@ body[data-page="projects.html"] .image-card .proj-card-banner-img.bhob-banner im
 body[data-page="index.html"] .image-card .proj-card-banner-img.bhob-banner img {
   width: 100% !important;
   height: 100% !important;
+  max-height: none !important;
   object-fit: cover !important;
   object-position: center !important;
   display: block !important;
@@ -20243,7 +20244,6 @@ body[data-page="index.html"] .image-card .proj-card-banner-img.bhob-banner img {
   image-rendering: auto !important;
   transform: none !important;
   filter: none !important;
-  backface-visibility: hidden !important;
 }
 
 /* ===== Contact Page Compactness Optimization (2026-07-07) =====
