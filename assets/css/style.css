@@ -19001,6 +19001,7 @@ body[data-page="officials.html"] .officials-council-grid .official-card {
   border-radius: 16px !important;
   text-align: center;
   min-height: auto !important;
+  background: linear-gradient(160deg, #e8f0ff 0%, #dce8ff 100%) !important;
 }
 
 body[data-page="officials.html"] .officials-council-grid .official-card img {
@@ -19012,6 +19013,7 @@ body[data-page="officials.html"] .officials-council-grid .official-card img {
   box-shadow: 0 8px 20px rgba(13, 71, 161, .13) !important;
   display: block !important;
   margin: 0 auto 10px !important;
+  mix-blend-mode: multiply !important;
 }
 
 body[data-page="officials.html"] .officials-council-grid .official-card h3 {
