@@ -20229,7 +20229,6 @@ body[data-page="index.html"] .image-card .proj-card-banner-img.bhob-banner {
   transform: none !important;
   filter: none !important;
   box-sizing: border-box !important;
-  -webkit-mask-image: -webkit-radial-gradient(white, black);
 }
 
 body[data-page="projects.html"] .image-card .proj-card-banner-img.bhob-banner img,
