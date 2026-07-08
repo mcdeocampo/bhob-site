@@ -94,7 +94,7 @@
     function openModal(p) {
       document.getElementById('proj-modal-title').textContent = p.title || '';
       var img = document.getElementById('proj-modal-img');
-      if (p.imageUrl) { img.src = '/' + p.imageUrl; img.style.display = 'block'; }
+      if (p.imageUrl) { img.src = p.imageUrl.indexOf('http') === 0 ? p.imageUrl : '/' + p.imageUrl; img.style.display = 'block'; }
       else img.style.display = 'none';
       var meta = document.getElementById('proj-modal-meta');
       meta.innerHTML = (p.category ? '<span style="font-size:.7rem;color:#2563eb;background:rgba(37,99,235,.08);padding:2px 9px;border-radius:10px;font-weight:500">' + p.category + '</span>' : '')
