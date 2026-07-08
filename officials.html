@@ -78,61 +78,61 @@
     <!-- Remaining 10 officials -->
     <div class="officials-council-grid">
       <article class="official-card reveal">
-        <span class="ofc-circle"><img src="assets/images/officials/official-2.jpg" alt="Barangay Kagawad Leonardo Mendiola"></span>
+        <img src="assets/images/officials/official-2.jpg" alt="Barangay Kagawad Leonardo Mendiola">
         <h3>Leonardo Mendiola</h3>
         <span>Barangay Kagawad</span>
         <p>Barangay Council Member</p>
       </article>
       <article class="official-card reveal delay-1">
-        <span class="ofc-circle"><img src="assets/images/officials/official-3.jpg" alt="Barangay Kagawad Jonathan Avendaño"></span>
+        <img src="assets/images/officials/official-3.jpg" alt="Barangay Kagawad Jonathan Avendaño">
         <h3>Jonathan Avendaño</h3>
         <span>Barangay Kagawad</span>
         <p>Barangay Council Member</p>
       </article>
       <article class="official-card reveal delay-2">
-        <span class="ofc-circle"><img src="assets/images/officials/official-4.jpg" alt="Barangay Kagawad Joey Solomon"></span>
+        <img src="assets/images/officials/official-4.jpg" alt="Barangay Kagawad Joey Solomon">
         <h3>Joey Solomon</h3>
         <span>Barangay Kagawad</span>
         <p>Barangay Council Member</p>
       </article>
       <article class="official-card reveal delay-3">
-        <span class="ofc-circle"><img src="assets/images/officials/official-5.jpg" alt="Barangay Kagawad Marites O. Marquez"></span>
+        <img src="assets/images/officials/official-5.jpg" alt="Barangay Kagawad Marites O. Marquez">
         <h3>Marites O. Marquez</h3>
         <span>Barangay Kagawad</span>
         <p>Barangay Council Member</p>
       </article>
       <article class="official-card reveal">
-        <span class="ofc-circle"><img src="assets/images/officials/official-6.jpg" alt="Barangay Kagawad Alicia R. Sta. Ana"></span>
+        <img src="assets/images/officials/official-6.jpg" alt="Barangay Kagawad Alicia R. Sta. Ana">
         <h3>Alicia R. Sta. Ana</h3>
         <span>Barangay Kagawad</span>
         <p>Barangay Council Member</p>
       </article>
       <article class="official-card reveal delay-1">
-        <span class="ofc-circle"><img src="assets/images/officials/official-7.jpg" alt="Barangay Kagawad Edgardo C. Esguerra"></span>
+        <img src="assets/images/officials/official-7.jpg" alt="Barangay Kagawad Edgardo C. Esguerra">
         <h3>Edgardo C. Esguerra</h3>
         <span>Barangay Kagawad</span>
         <p>Barangay Council Member</p>
       </article>
       <article class="official-card reveal delay-2">
-        <span class="ofc-circle"><img src="assets/images/officials/official-8.jpg" alt="Barangay Kagawad Eric Andaya"></span>
+        <img src="assets/images/officials/official-8.jpg" alt="Barangay Kagawad Eric Andaya">
         <h3>Eric Andaya</h3>
         <span>Barangay Kagawad</span>
         <p>Barangay Council Member</p>
       </article>
       <article class="official-card reveal delay-3">
-        <span class="ofc-circle"><img src="assets/images/officials/official-9.jpg" alt="SK Chairman Mark Jesty Roxas"></span>
+        <img src="assets/images/officials/official-9.jpg" alt="SK Chairman Mark Jesty Roxas">
         <h3>Mark Jesty Roxas</h3>
         <span>SK Chairman</span>
         <p>Sangguniang Kabataan</p>
       </article>
       <article class="official-card reveal">
-        <span class="ofc-circle"><img src="assets/images/officials/official-10.jpg" alt="Barangay Secretary Norris Austria"></span>
+        <img src="assets/images/officials/official-10.jpg" alt="Barangay Secretary Norris Austria">
         <h3>Norris Austria</h3>
         <span>Barangay Secretary</span>
         <p>Records and Administration</p>
       </article>
       <article class="official-card reveal delay-1">
-        <span class="ofc-circle"><img src="assets/images/officials/official-11.jpg" alt="Barangay Treasurer Ronnie Cruz"></span>
+        <img src="assets/images/officials/official-11.jpg" alt="Barangay Treasurer Ronnie Cruz">
         <h3>Ronnie Cruz</h3>
         <span>Barangay Treasurer</span>
         <p>Finance and Treasury</p>
@@ -199,7 +199,7 @@
           ? '<img src="' + esc(src) + '" alt="' + esc(o.position + ' ' + o.fullName) + '" onerror="this.style.display=\'none\'">'
           : '';
         return '<article class="official-card reveal' + delays[i % 4] + '">' +
-          (imgHtml ? '<span class="ofc-circle">' + imgHtml + '</span>' : '') +
+          imgHtml +
           '<h3>' + esc(o.fullName) + '</h3>' +
           '<span>' + esc(o.position) + '</span>' +
           '<p>' + esc(o.roleDescription) + '</p>' +
