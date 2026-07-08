@@ -19663,6 +19663,17 @@ body[data-page="index.html"] .opc-features {
   }
 }
 
+/* Full-width banner at all viewports — negative margins cancel card's fluid padding;
+   card overflow:hidden + border-radius clips the corners cleanly */
+body[data-page="index.html"] .proj-card-banner,
+body[data-page="projects.html"] .proj-card-banner {
+  margin-top: calc(-1 * var(--fluid-card-pad, 22px)) !important;
+  margin-left: calc(-1 * var(--fluid-card-pad, 22px)) !important;
+  margin-right: calc(-1 * var(--fluid-card-pad, 22px)) !important;
+  width: calc(100% + 2 * var(--fluid-card-pad, 22px)) !important;
+  border-radius: 0 !important;
+}
+
 /* ── Logo: remove white background box ── */
 .brand{background:transparent!important;border:none!important;box-shadow:none!important;padding:8px 14px!important}
 .brand img,
@@ -20222,13 +20233,15 @@ body[data-page="announcements.html"] .image-card .ann-img-wrap img {
    ===================================================================== */
 body[data-page="projects.html"] .image-card .proj-card-banner-img.bhob-banner,
 body[data-page="index.html"] .image-card .proj-card-banner-img.bhob-banner {
-  border-radius: 24px !important;
+  border-radius: 0 !important;
   overflow: hidden !important;
   background: transparent !important;
   padding: 0 !important;
   transform: none !important;
   filter: none !important;
   box-sizing: border-box !important;
+  -webkit-mask-image: none !important;
+  mask-image: none !important;
 }
 
 body[data-page="projects.html"] .image-card .proj-card-banner-img.bhob-banner img,
@@ -20239,7 +20252,7 @@ body[data-page="index.html"] .image-card .proj-card-banner-img.bhob-banner img {
   object-fit: cover !important;
   object-position: center !important;
   display: block !important;
-  border-radius: 24px !important;
+  border-radius: 0 !important;
   image-rendering: auto !important;
   transform: none !important;
   filter: none !important;
