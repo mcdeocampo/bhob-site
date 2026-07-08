@@ -19002,6 +19002,7 @@ body[data-page="officials.html"] .officials-council-grid .official-card {
   text-align: center;
   min-height: auto !important;
   background: linear-gradient(160deg, #e8f0ff 0%, #dce8ff 100%) !important;
+  will-change: auto !important;
 }
 
 body[data-page="officials.html"] .officials-council-grid .official-card img {
