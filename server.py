@@ -437,7 +437,7 @@ def api_contact():
         '<tr><td style="padding:0 32px 28px">'
         '<p style="margin:0;font-size:14px;color:#1e293b;line-height:1.8">'
         '<strong>Sincerely,</strong><br>'
-        '<strong style="color:#1e3a5f">Barangay Hulo Office</strong><br>'
+        '<strong style="color:#1e3a5f">Barangay Hulo</strong><br>'
         '<span style="color:#64748b;font-size:13px">Municipality of Obando, Bulacan<br>'
         'Official Barangay Digital Platform</span></p>'
         '</td></tr>'
