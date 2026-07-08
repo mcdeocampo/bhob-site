@@ -61,11 +61,11 @@
   </section>
 
   <!-- Read More modal -->
-  <div id="ann-modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:900;align-items:center;justify-content:center;padding:16px">
+  <div id="ann-modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:900;align-items:center;justify-content:center;padding:16px;box-sizing:border-box">
     <div style="background:#fff;border-radius:14px;max-width:640px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.25)">
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 22px 14px;border-bottom:1px solid #e2e8f0;position:sticky;top:0;background:#fff;z-index:1">
-        <h3 id="ann-modal-title" style="font-size:1.05rem;font-weight:700;color:#1e293b;margin:0"></h3>
-        <button id="ann-modal-close" aria-label="Close" style="background:none;border:none;font-size:1.3rem;color:#64748b;cursor:pointer;padding:4px 8px;line-height:1;border-radius:4px">✕</button>
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:16px 16px 14px;border-bottom:1px solid #e2e8f0;position:sticky;top:0;background:#fff;z-index:10">
+        <h3 id="ann-modal-title" style="font-size:1rem;font-weight:700;color:#1e293b;margin:0;padding-top:4px;flex:1;min-width:0"></h3>
+        <button id="ann-modal-close" aria-label="Close" style="flex-shrink:0;background:#f1f5f9;border:none;font-size:.95rem;color:#475569;cursor:pointer;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;line-height:1">✕</button>
       </div>
       <div style="padding:20px 22px">
         <img id="ann-modal-img" src="" alt="" style="width:100%;max-height:240px;object-fit:cover;border-radius:8px;display:none;margin-bottom:16px">
