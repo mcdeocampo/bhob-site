@@ -20233,7 +20233,7 @@ body[data-page="announcements.html"] .image-card .ann-img-wrap img {
    ===================================================================== */
 body[data-page="projects.html"] .image-card .proj-card-banner-img.bhob-banner,
 body[data-page="index.html"] .image-card .proj-card-banner-img.bhob-banner {
-  border-radius: 0 !important;
+  border-radius: 22px !important;
   overflow: hidden !important;
   background: transparent !important;
   padding: 0 !important;
