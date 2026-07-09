@@ -10,7 +10,10 @@
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --navy:#1e3a5f;--blue:#2563eb;--blue-hover:#1d4ed8;
+  /* Barangay Hulo brand palette */
+  --navy:#10213f;--blue:#0d47a1;--blue-2:#1565d8;--blue-dark:#08264d;
+  --teal:#00a884;--teal-dark:#087562;--gold:#f6c445;--gold-2:#ffe08a;
+  --blue-hover:#087562;
   --green:#16a34a;--amber:#d97706;--red:#dc2626;--gray:#64748b;
   --bg:#f0f4f8;--card:#fff;--border:#e2e8f0;--text:#1e293b;
   --sidebar-w:240px;--radius:8px;
@@ -170,7 +173,7 @@ a{text-decoration:none;color:inherit}
   color:rgba(255,255,255,.6);font-size:.83rem;text-align:left;
   transition:all .15s;white-space:nowrap}
 .nav-item:hover:not([disabled]){background:rgba(255,255,255,.07);color:#fff}
-.nav-item.active{background:rgba(37,130,246,.18);color:#fff;border-left-color:var(--blue)}
+.nav-item.active{background:rgba(0,168,132,.18);color:#fff;border-left-color:var(--teal)}
 .nav-item[disabled]{opacity:.35;cursor:not-allowed}
 .nav-item svg{width:15px;height:15px;flex-shrink:0}
 .soon-badge{font-size:.6rem;background:rgba(255,255,255,.12);padding:1px 5px;
@@ -188,13 +191,13 @@ a{text-decoration:none;color:inherit}
 
 /* ─── DASHBOARD ──────────────────────────────────────────── */
 .dash-welcome{
-  background:linear-gradient(120deg,#1e3a5f 0%,#1a4f8a 60%,#1565c0 100%);
+  background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue-2) 55%,var(--teal) 100%);
   border-radius:14px;padding:32px 36px;margin-bottom:28px;
   position:relative;overflow:hidden;
-  box-shadow:0 4px 20px rgba(30,58,95,.18)}
+  box-shadow:0 4px 20px rgba(8,38,77,.22)}
 .dash-welcome::before{content:'';position:absolute;top:-30px;right:-30px;
   width:180px;height:180px;border-radius:50%;
-  background:radial-gradient(circle,rgba(255,255,255,.07) 0%,transparent 70%);pointer-events:none}
+  background:radial-gradient(circle,rgba(246,196,69,.18) 0%,transparent 70%);pointer-events:none}
 .dash-welcome h2{font-size:1.45rem;font-weight:700;margin-bottom:6px;color:#fff;letter-spacing:-.02em}
 .dash-welcome p{font-size:.85rem;color:rgba(255,255,255,.65)}
 .dash-welcome-meta{display:flex;align-items:center;gap:8px;margin-top:16px}
@@ -214,7 +217,7 @@ a{text-decoration:none;color:inherit}
 .stat-published::before{background:var(--green)}
 .stat-draft::before{background:var(--amber)}
 .stat-hidden::before{background:#94a3b8}
-.stat-total::before{background:var(--blue)}
+.stat-total::before{background:linear-gradient(90deg,var(--blue-2),var(--teal))}
 .stat-card:hover{box-shadow:0 6px 20px rgba(0,0,0,.10);transform:translateY(-2px)}
 .stat-icon{font-size:1.4rem;margin-bottom:10px;line-height:1}
 .stat-num{font-size:2.2rem;font-weight:800;line-height:1;letter-spacing:-.03em}
@@ -223,12 +226,12 @@ a{text-decoration:none;color:inherit}
 .stat-published .stat-num{color:var(--green)}
 .stat-draft .stat-num{color:var(--amber)}
 .stat-hidden .stat-num{color:var(--gray)}
-.stat-total .stat-num{color:var(--blue)}
+.stat-total .stat-num{color:var(--blue-2)}
 .quick-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px}
 .quick-card{background:var(--card);border:1px solid var(--border);border-radius:12px;
   padding:18px 20px;cursor:pointer;transition:box-shadow .2s,transform .15s,border-color .15s;
   display:flex;align-items:center;gap:14px}
-.quick-card:hover{box-shadow:0 6px 20px rgba(0,0,0,.09);transform:translateY(-2px);border-color:#93c5fd}
+.quick-card:hover{box-shadow:0 6px 20px rgba(0,0,0,.09);transform:translateY(-2px);border-color:#6dd9c8}
 .quick-icon{font-size:1.5rem;flex-shrink:0;line-height:1}
 .quick-label{font-size:.83rem;font-weight:600;color:var(--text);line-height:1.3;flex:1;min-width:0}
 .quick-arrow{margin-left:auto;color:#cbd5e1;font-size:.85rem;flex-shrink:0}
