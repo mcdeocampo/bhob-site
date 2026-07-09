@@ -254,14 +254,6 @@
           <div class="brcal-cards-grid" id="brcal-cards-grid"></div>
         </div>
 
-        <!-- Past / Completed Activities -->
-        <div class="brcal-upcoming-wrap reveal delay-2" id="brcal-past-wrap" style="display:none;margin-top:52px">
-          <div class="brcal-section-label">
-            <span class="brcal-section-label-pill brcal-section-label-past">Archive</span>
-            <h3 class="brcal-upcoming-heading">Past Activities</h3>
-          </div>
-          <div class="brcal-cards-grid" id="brcal-past-grid"></div>
-        </div>
       </div>
     </section>
 
@@ -787,7 +779,7 @@
 
     function renderCards(){
       var now = new Date(); now.setHours(0,0,0,0);
-      var upcoming = ACTS.filter(function(a){ return new Date(a.date+'T00:00:00')>=now; })
+      var upcoming = ACTS.filter(function(a){ return new Date(a.date+'T00:00:00')>=now && a.status !== 'completed' && a.status !== 'archived'; })
         .sort(function(a,b){ return a.date<b.date?-1:a.date>b.date?1:0; }).slice(0,6);
       var grid = document.getElementById('brcal-cards-grid');
       if(!upcoming.length){
@@ -801,27 +793,6 @@
           '<div class="brcal-card-metas">'+
             '<div class="brcal-feat-meta">'+metaIcon('date')+'<span>'+fmtDateCal(a.date)+'</span></div>'+
             '<div class="brcal-feat-meta">'+metaIcon('time')+'<span>'+esc(a.time)+'</span></div>'+
-            '<div class="brcal-feat-meta">'+metaIcon('loc')+'<span>'+esc(a.location)+'</span></div>'+
-          '</div>'+
-          '<p class="brcal-card-desc">'+esc(a.desc)+'</p>'+
-          '<button class="brcal-card-btn" onclick="brcalOpenModal(\''+a.id+'\')">View Details →</button>'+
-        '</article>';
-      }).join('');
-    }
-
-    function renderPastActivities(){
-      var past = ACTS.filter(function(a){ return a.status === 'completed'; })
-        .sort(function(a,b){ return a.date>b.date?-1:a.date<b.date?1:0; }).slice(0,12);
-      var wrap = document.getElementById('brcal-past-wrap');
-      var grid = document.getElementById('brcal-past-grid');
-      if(!past.length){ wrap.style.display='none'; return; }
-      wrap.style.display='';
-      grid.innerHTML = past.map(function(a){
-        return '<article class="brcal-card brcal-card-past">'+
-          '<span class="brcal-feat-cat" style="'+catStyle(a.category)+'">'+esc(a.category)+'</span>'+
-          '<h4 class="brcal-card-title">'+esc(a.title)+'</h4>'+
-          '<div class="brcal-card-metas">'+
-            '<div class="brcal-feat-meta">'+metaIcon('date')+'<span>'+fmtDateCal(a.date)+'</span></div>'+
             '<div class="brcal-feat-meta">'+metaIcon('loc')+'<span>'+esc(a.location)+'</span></div>'+
           '</div>'+
           '<p class="brcal-card-desc">'+esc(a.desc)+'</p>'+
@@ -964,7 +935,6 @@
           ACTS = (d.activities || []).map(mapActivity);
           renderCalendar();
           renderCards();
-          renderPastActivities();
           showTodayDefault();
         })
         .catch(function(){});
