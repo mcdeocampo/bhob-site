@@ -1982,14 +1982,14 @@ def _cal_delete(act_id):
 
 
 @app.route('/admin/api/calendar-activities', methods=['GET'])
-@require_admin
+@admin_required
 def admin_cal_list():
     activities = _load_cal_activities()
     return jsonify({'status': 'ok', 'activities': activities})
 
 
 @app.route('/admin/api/calendar-activities', methods=['POST'])
-@require_admin
+@admin_required
 def admin_cal_create():
     data = request.get_json(force=True) or {}
     title = (data.get('title') or '').strip()
@@ -2007,7 +2007,7 @@ def admin_cal_create():
 
 
 @app.route('/admin/api/calendar-activities/<act_id>', methods=['PUT'])
-@require_admin
+@admin_required
 def admin_cal_update(act_id):
     data = request.get_json(force=True) or {}
     title = (data.get('title') or '').strip()
@@ -2027,7 +2027,7 @@ def admin_cal_update(act_id):
 
 
 @app.route('/admin/api/calendar-activities/<act_id>', methods=['PATCH'])
-@require_admin
+@admin_required
 def admin_cal_patch(act_id):
     data = request.get_json(force=True) or {}
     if 'status' in data and data['status'] not in _CAL_VALID_STATUSES:
@@ -2043,7 +2043,7 @@ def admin_cal_patch(act_id):
 
 
 @app.route('/admin/api/calendar-activities/<act_id>', methods=['DELETE'])
-@require_admin
+@admin_required
 def admin_cal_delete(act_id):
     try:
         _cal_delete(act_id)
@@ -2054,7 +2054,7 @@ def admin_cal_delete(act_id):
 
 
 @app.route('/admin/api/upload/calendar-attachment', methods=['POST'])
-@require_admin
+@admin_required
 def admin_upload_calendar_attachment():
     f = request.files.get('file')
     if not f:
