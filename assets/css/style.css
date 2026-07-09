@@ -20570,3 +20570,17 @@ body[data-page="contact.html"] .contact-card-modern .contact-social-featured {
   width: 100% !important;
   min-width: 0 !important;
 }
+
+/* ── Community Initiatives: desktop image inset (overrides full-bleed negative margins) ── */
+@media (min-width: 561px) {
+  body[data-page="projects.html"] .image-card .bhob-banner,
+  body[data-page="index.html"] .image-card .bhob-banner {
+    margin: 12px 12px 0 !important;
+    width: calc(100% - 24px) !important;
+    border-radius: 20px !important;
+  }
+  body[data-page="projects.html"] .image-card .bhob-banner img,
+  body[data-page="index.html"] .image-card .bhob-banner img {
+    border-radius: 20px !important;
+  }
+}
