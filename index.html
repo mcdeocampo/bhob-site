@@ -850,7 +850,11 @@
           '<div class="brcal-feat-meta">'+metaIcon('loc')+'<span>'+esc(act.location)+'</span></div>'+
         '</div>'+
         '<p class="brcal-modal-desc">'+esc(act.full)+'</p>'+
-        (act.req && act.status !== 'completed' ? '<div class="brcal-modal-req"><strong>Requirements</strong><p>'+esc(act.req)+'</p></div>' : '')+
+        (act.req && act.status !== 'completed' ? (function(){
+          var items = act.req.split(/\n|,/).map(function(s){ return s.trim(); }).filter(Boolean);
+          if (!items.length) return '';
+          return '<div class="brcal-modal-req"><strong>Requirements</strong><ul class="brcal-req-list">'+items.map(function(s){ return '<li>'+esc(s)+'</li>'; }).join('')+'</ul></div>';
+        })() : '')+
         (act.status === 'completed' && act.summary ? '<div class="brcal-modal-req brcal-summary-block"><strong>Activity Summary</strong><p>'+esc(act.summary)+'</p></div>' : '')+
         (act.photos && act.photos.length ? (function(){ _lbPhotos = act.photos; return '<div class="brcal-modal-req"><strong>Photos</strong><div class="brcal-gallery">'+act.photos.map(function(p,i){ return '<img src="'+esc(p.url)+'" alt="'+esc(p.name||'')+'" class="brcal-gallery-img" loading="lazy" onclick="brcalLightbox('+i+')">'; }).join('')+'</div></div>'; })() : '')+
         (act.documents && act.documents.length ? '<div class="brcal-modal-req"><strong>Documents</strong><div class="brcal-docs-list">'+act.documents.map(function(d){ return '<a href="'+esc(d.url)+'" class="brcal-download-link" target="_blank" rel="noopener" download><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:5px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>'+esc(d.name||'Document')+'</a>'; }).join('')+'</div></div>' : '')+

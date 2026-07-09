@@ -21094,6 +21094,8 @@ body[data-page="contact.html"] .contact-card-modern .contact-social-featured {
   letter-spacing: .08em;
 }
 .brcal-modal-req p { color: var(--charcoal); line-height: 1.6; }
+.brcal-req-list { margin: 6px 0 0 0; padding-left: 18px; color: var(--charcoal); line-height: 1.75; }
+.brcal-req-list li { margin-bottom: 3px; }
 .brcal-modal-req a { color: var(--blue-2); text-decoration: underline; }
 .brcal-download-link { display:inline-flex; align-items:center; gap:5px; font-weight:700; }
 
