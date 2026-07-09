@@ -1883,6 +1883,55 @@ def admin_hotlines_delete(hotline_id):
     return jsonify({'ok': True})
 
 
+# ── Calendar activities helpers ───────────────────────────────────────────────
+def _row_to_cal(row):
+    return {
+        'id':               row['id'],
+        'title':            row.get('title', ''),
+        'category':         row.get('category', ''),
+        'date':             row.get('date', ''),
+        'startTime':        row.get('start_time', ''),
+        'endTime':          row.get('end_time', ''),
+        'location':         row.get('location', ''),
+        'shortDescription': row.get('short_description', ''),
+        'fullDescription':  row.get('full_description', ''),
+        'requirements':     row.get('requirements', ''),
+        'attachmentUrl':    row.get('attachment_url', ''),
+        'attachmentName':   row.get('attachment_name', ''),
+        'photos':           row.get('photos') or [],
+        'documents':        row.get('documents') or [],
+        'summary':          row.get('summary', ''),
+        'status':           row.get('status', 'draft'),
+        'createdAt':        row.get('created_at', ''),
+        'updatedAt':        row.get('updated_at', ''),
+    }
+
+
+_CAL_PUBLIC_STATUSES = ['scheduled', 'ongoing', 'completed', 'cancelled']
+
+
+def _load_cal_activities(status_filter=None):
+    try:
+        res = supabase.table('calendar_activities').select('*').order('date').execute()
+        rows = res.data or []
+        if status_filter:
+            if isinstance(status_filter, list):
+                rows = [r for r in rows if r.get('status') in status_filter]
+            else:
+                rows = [r for r in rows if r.get('status') == status_filter]
+        return [_row_to_cal(r) for r in rows]
+    except Exception as exc:
+        app.logger.error('_load_cal_activities error: %s', exc)
+        return []
+
+
+# ── Public — calendar activities ──────────────────────────────────────────────
+@app.route('/api/calendar-activities')
+def api_calendar_activities():
+    activities = _load_cal_activities(status_filter=_CAL_PUBLIC_STATUSES)
+    return jsonify({'status': 'ok', 'activities': activities})
+
+
 # ── Static file serving ───────────────────────────────────────────────────────
 @app.route('/')
 def index():
