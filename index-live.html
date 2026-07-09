@@ -36,10 +36,10 @@
         <a href="/" class="nav-link" data-page="index.html">Home</a>
 <a href="about" class="nav-link" data-page="about.html">About Us</a>
 <a href="officials" class="nav-link" data-page="officials.html">Officials</a>
-<a href="public-services" class="nav-link" data-page="services.html">Public Services</a>
-<a href="service-standards" class="nav-link" data-page="service-standards.html">Service Standards</a>
+<a href="services" class="nav-link" data-page="services.html">Public Services</a>
+<a href="citizens-charter" class="nav-link" data-page="citizens-charter.html">Service Standards</a>
 <a href="announcements" class="nav-link" data-page="announcements.html">Announcements</a>
-<a href="community-initiatives" class="nav-link" data-page="projects.html">Community Initiatives</a>
+<a href="projects" class="nav-link" data-page="projects.html">Community Initiatives</a>
 <!-- TEMP HIDDEN: <a href="transparency" class="nav-link" data-page="transparency.html">Transparency</a> -->
 <!-- TEMP HIDDEN: <a href="downloads" class="nav-link" data-page="downloads.html">Downloads</a> -->
 <a href="contact" class="nav-link nav-contact" data-page="contact.html">Contact Us</a>
@@ -54,7 +54,7 @@
         <h1>Barangay Hulo</h1>
         <p>A modern community portal for residents, visitors, and barangay officials. Access services, announcements, community initiatives, public documents, and contact information in one place.</p>
         <div class="hero-actions">
-          <a class="btn btn-primary" href="public-services">View Public Services</a>
+          <a class="btn btn-primary" href="services">View Public Services</a>
           <a class="btn btn-outline" href="contact">Contact Barangay Hall</a>
           <a class="btn btn-soft" href="announcements">Latest Announcements</a>
         </div>
@@ -143,14 +143,15 @@
 
 
       <div class="hero-card hero-emergency-card emergency-card-alt reveal delay-1">
-        <div class="emergency-card-top" style="justify-content:center">
+        <div class="emergency-card-top">
           <span class="emergency-pill emergency-pill-live"><span class="emergency-dot"></span>Live Emergency Response</span>
+          <span class="emergency-status emergency-status-alert">Active 24/7</span>
         </div>
 
         <div class="emergency-main-row">
           <div class="emergency-copy">
-            <strong id="hp-hotline-label">Barangay Hotline</strong>
-            <a class="hero-hotline-number" id="hp-hotline-number" href="tel:0287412573">02 8741 2573</a>
+            <strong>Barangay Hotline</strong>
+            <div class="hero-hotline-number">02 8741 2573</div>
           </div>
           <div class="emergency-siren-badge" aria-hidden="true">
             <span></span>
@@ -159,23 +160,27 @@
           </div>
         </div>
 
-        <p id="hp-hotline-desc">Immediate assistance for urgent barangay incidents, safety concerns, and rapid local response coordination.</p>
+        <p>Immediate assistance for urgent barangay incidents, safety concerns, and rapid local response coordination.</p>
 
         <div class="hero-emergency-grid">
           <div class="hero-emergency-item">
-            <label id="hp-emergency-label">Emergency</label>
-            <a id="hp-emergency-number" href="tel:911">911</a>
+            <label>Emergency</label>
+            <span>911</span>
           </div>
           <div class="hero-emergency-item">
-            <label id="hp-police-label">Police</label>
-            <a id="hp-police-number" href="tel:117">117</a>
+            <label>Police</label>
+            <span>117</span>
           </div>
-          <div class="hero-emergency-item hero-emergency-item--hotlines" onclick="openHotlinesModal()" role="button" tabindex="0" style="cursor:pointer;" onkeydown="if(event.key==='Enter'||event.key===' ')openHotlinesModal()">
-            <label>Other Hotlines</label>
-            <span class="hotlines-view-link">View List</span>
+          <div class="hero-emergency-item">
+            <label>Fire</label>
+            <span>160</span>
           </div>
         </div>
 
+        <div class="emergency-action-strip">
+          <span class="emergency-action-label">Rapid Response Ready</span>
+          <span class="emergency-action-chip">Emergency Assistance</span>
+        </div>
       </div>
 
 
@@ -193,9 +198,9 @@
       <div class="container">
         <div class="section-heading reveal"><span class="eyebrow">Quick Access</span><h2>Public Services</h2><p>Frequently requested public services and assistance for residents.</p></div>
         <div class="card-grid service-preview">
-          <a class="info-card reveal" href="public-services"><span class="icon">📄</span><h3>Barangay Clearance</h3><p>Request official barangay clearance for employment, permits, and other purposes.</p></a>
-          <a class="info-card reveal delay-1" href="public-services"><span class="icon">🏠</span><h3>Residency Certificate</h3><p>Secure proof of residence within Barangay Hulo.</p></a>
-          <a class="info-card reveal delay-2" href="public-services"><span class="icon">🤝</span><h3>Assistance Programs</h3><p>Access health, senior citizen, PWD, youth, and disaster response support.</p></a>
+          <a class="info-card reveal" href="services"><span class="icon">📄</span><h3>Barangay Clearance</h3><p>Request official barangay clearance for employment, permits, and other purposes.</p></a>
+          <a class="info-card reveal delay-1" href="services"><span class="icon">🏠</span><h3>Residency Certificate</h3><p>Secure proof of residence within Barangay Hulo.</p></a>
+          <a class="info-card reveal delay-2" href="services"><span class="icon">🤝</span><h3>Assistance Programs</h3><p>Access health, senior citizen, PWD, youth, and disaster response support.</p></a>
           <a class="info-card reveal delay-3" href="downloads"><span class="icon">⬇️</span><h3>Download Forms</h3><p>Get downloadable application and request forms for public services.</p></a>
         </div>
       </div>
@@ -213,7 +218,7 @@
         <div class="section-heading reveal"><span class="eyebrow">Community Development</span><h2>Community Initiatives</h2><p>Ongoing programs and projects improving life in Barangay Hulo.</p></div>
         <div id="home-proj-grid" class="card-grid proj-card-grid"></div>
         <div style="text-align:center;margin-top:28px" id="home-proj-viewall" style="display:none">
-          <a class="text-link" href="community-initiatives">View all Community Initiatives →</a>
+          <a class="text-link" href="projects">View all Community Initiatives →</a>
         </div>
       </div>
     </section>
@@ -320,11 +325,11 @@
       </div>
       <div>
         <h3>Contact Information</h3>
-        <p><span class="footer-address">Barangay Hall, Hulo, Obando, Bulacan</span><br>Phone: <a class="footer-phone" href="tel:0287412573">02 8741 2573</a><br>Email: <a class="footer-email" href="mailto:contact@huloobando.gov.ph">contact@huloobando.gov.ph</a></p>
+        <p>Barangay Hall, Hulo, Obando, Bulacan<br>Phone: <a href="tel:0287412573">02 8741 2573</a><br>Email: <a class="footer-email" href="mailto:contact@huloobando.gov.ph">contact@huloobando.gov.ph</a></p>
       </div>
       <div>
         <h3>Quick Links</h3>
-        <ul class="footer-links"><li><a href="/">Home</a></li><li><a href="about">About Us</a></li><li><a href="officials">Officials</a></li><li><a href="public-services">Public Services</a></li><li><a href="service-standards">Service Standards</a></li><li><a href="announcements">Announcements</a></li></ul>
+        <ul class="footer-links"><li><a href="/">Home</a></li><li><a href="about">About Us</a></li><li><a href="officials">Officials</a></li><li><a href="services">Public Services</a></li><li><a href="citizens-charter">Service Standards</a></li><li><a href="announcements">Announcements</a></li></ul>
       </div></div>
     <div class="footer-bottom">© 2026 Barangay Hulo, Obando, Bulacan. All Rights Reserved.</div>
   </footer>
@@ -414,127 +419,6 @@
       })
       .catch(function() { /* silent — static fallback stays */ });
   })();
-  </script>
-
-  <!-- Hotlines Modal -->
-  <div id="hotlines-modal-overlay" onclick="if(event.target===this)closeHotlinesModal()" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(10,28,64,.55);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:20px;">
-    <div style="background:#fff;border-radius:20px;width:100%;max-width:400px;box-shadow:0 24px 60px rgba(10,28,64,.22),0 4px 16px rgba(10,28,64,.10);overflow:hidden;animation:hotlinesFadeIn .22s ease;">
-      <div style="background:linear-gradient(110deg,#0f2f57 0%,#1a4a8a 60%,#1565c0 100%);padding:20px 24px 18px;display:flex;align-items:center;justify-content:space-between;">
-        <div>
-          <div style="font-size:1.05rem;font-weight:800;color:#fff;line-height:1.2;">Other Hotlines</div>
-        </div>
-        <button onclick="closeHotlinesModal()" aria-label="Close" style="background:rgba(255,255,255,.12);border:none;border-radius:50%;width:34px;height:34px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1.1rem;color:#fff;line-height:1;flex-shrink:0;transition:background .18s;">✕</button>
-      </div>
-      <div style="padding:18px 24px 24px;">
-        <div id="hotlines-list" style="display:flex;flex-direction:column;gap:10px;"></div>
-      </div>
-    </div>
-  </div>
-
-  <style>
-    @keyframes hotlinesFadeIn { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
-    .hotlines-view-link { color:#0891b2 !important; font-size:.62rem !important; font-weight:500 !important; text-decoration:underline !important; text-underline-offset:2px; }
-    .hotline-row { display:flex; align-items:center; justify-content:space-between; background:#f4f7fd; border-radius:12px; padding:11px 14px; gap:8px; }
-    .hotline-row-label { font-size:.82rem; font-weight:400; color:#1e293b; }
-    .hotline-row-number { font-size:.88rem; font-weight:600; color:#12356f; white-space:nowrap; }
-    #hotlines-modal-overlay.open { display:flex !important; }
-    @media (max-width:480px) {
-      #hotlines-modal-overlay > div { border-radius:16px; }
-      .hotline-row { padding:10px 12px; }
-    }
-  </style>
-
-  <script>
-  var HOTLINES = [
-    { label: 'Public Information Office', number: '8277-1356' },
-    { label: "Mayor's Office",            number: '8277-1356' },
-    { label: 'Disaster',                  number: '8281-5816' },
-    { label: 'Health',                    number: '8332-2744 / 8709-4408' },
-    { label: 'Police',                    number: '8292-2043' },
-    { label: 'Fire',                      number: '8292-2043' }
-  ];
-  function openHotlinesModal() {
-    var list = document.getElementById('hotlines-list');
-    if (!list.hasChildNodes()) {
-      list.innerHTML = HOTLINES.map(function(h) {
-        return '<div class="hotline-row"><span class="hotline-row-label">' + h.label + '</span><a class="hotline-row-number" href="tel:' + h.number.replace(/[\s\-().\/]/g,'') + '">' + h.number + '</a></div>';
-      }).join('');
-    }
-    var overlay = document.getElementById('hotlines-modal-overlay');
-    overlay.classList.add('open');
-    document.body.style.overflow = 'hidden';
-  }
-  function closeHotlinesModal() {
-    document.getElementById('hotlines-modal-overlay').classList.remove('open');
-    document.body.style.overflow = '';
-  }
-  document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') closeHotlinesModal();
-  });
-
-  // Fetch published hotlines from API; fall back to static HOTLINES if unavailable
-  fetch('/api/emergency-hotlines')
-    .then(function(r) { return r.json(); })
-    .then(function(d) {
-      if (d && Array.isArray(d.hotlines) && d.hotlines.length > 0) {
-        var apiHotlines = d.hotlines
-          .map(function(h) { return { label: h.label || '', number: h.number || '' }; })
-          .filter(function(h) { return h.label && h.number; });
-        if (apiHotlines.length > 0) {
-          HOTLINES = apiHotlines;
-          // Clear cached render only if the modal is not currently open
-          var overlay = document.getElementById('hotlines-modal-overlay');
-          var list    = document.getElementById('hotlines-list');
-          if (list && overlay && window.getComputedStyle(overlay).display === 'none') list.innerHTML = '';
-        }
-      }
-    })
-    .catch(function() { /* keep static HOTLINES */ });
-
-  // Fetch site settings and update footer text if elements are present
-  fetch('/api/site-settings')
-    .then(function(r) { return r.json(); })
-    .then(function(d) {
-      if (!d) return;
-      var year    = d.copyright_year   || '';
-      var owner   = d.copyright_owner  || '';
-      var suffix  = d.copyright_suffix || '';
-      if (year && owner) {
-        var bottom = document.querySelector('.footer-bottom');
-        if (bottom) bottom.textContent = '© ' + year + ' ' + owner + (suffix ? '. ' + suffix : '');
-      }
-      var emailEl = document.querySelector('.footer-email');
-      if (emailEl && d.footer_email) { emailEl.textContent = d.footer_email; emailEl.href = 'mailto:' + d.footer_email; }
-      var phoneEl = document.querySelector('.footer-phone');
-      if (phoneEl && d.footer_phone) { phoneEl.textContent = d.footer_phone; phoneEl.href = 'tel:' + d.footer_phone.replace(/[\s\-().]/g,''); }
-      var addrEl = document.querySelector('.footer-address');
-      if (addrEl && d.barangay_address) addrEl.textContent = d.barangay_address;
-      // Homepage hotline card text
-      var hpMap = [
-        ['hp-hotline-label',   d.homepage_hotline_label],
-        ['hp-hotline-number',  d.homepage_hotline_number],
-        ['hp-hotline-desc',    d.homepage_hotline_description],
-        ['hp-emergency-label', d.emergency_card_label],
-        ['hp-emergency-number',d.emergency_card_number],
-        ['hp-police-label',    d.police_card_label],
-        ['hp-police-number',   d.police_card_number],
-      ];
-      var hpPhoneIds = {
-        'hp-hotline-number': true,
-        'hp-emergency-number': true,
-        'hp-police-number': true
-      };
-      hpMap.forEach(function(pair) {
-        if (pair[1]) {
-          var el = document.getElementById(pair[0]);
-          if (el) {
-            el.textContent = pair[1];
-            if (hpPhoneIds[pair[0]]) el.href = 'tel:' + pair[1].replace(/[\s\-().\/]/g,'');
-          }
-        }
-      });
-    })
-    .catch(function() { /* keep static footer */ });
   </script>
 </body>
 </html>

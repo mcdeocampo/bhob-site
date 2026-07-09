@@ -68,7 +68,7 @@
           <div class="info-stack-icon" aria-hidden="true"><svg viewBox="0 0 24 24" role="presentation" focusable="false"><path d="M6.62 10.79a15.05 15.05 0 0 0 6.59 6.59l2.2-2.2a1 1 0 0 1 1.01-.24c1.1.37 2.28.56 3.48.56a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1C10.3 21 3 13.7 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.2.19 2.38.56 3.48a1 1 0 0 1-.24 1.01l-2.2 2.3Z" fill="currentColor"/></svg></div>
           <div class="info-stack-content">
             <span class="info-stack-title">Phone</span>
-            <p id="contact-info-phone">02 8741 2573</p>
+            <a id="contact-info-phone" href="tel:0287412573">02 8741 2573</a>
           </div>
         </div>
 
@@ -76,7 +76,7 @@
           <div class="info-stack-icon" aria-hidden="true"><svg viewBox="0 0 24 24" role="presentation" focusable="false"><path d="M4 6.75A1.75 1.75 0 0 1 5.75 5h12.5A1.75 1.75 0 0 1 20 6.75v10.5A1.75 1.75 0 0 1 18.25 19H5.75A1.75 1.75 0 0 1 4 17.25V6.75Zm1.84.25L12 11.57 18.16 7H5.84Zm12.41 1.25-5.65 4.19a1 1 0 0 1-1.2 0L5.75 8.25v9h12.5v-9Z" fill="currentColor"/></svg></div>
           <div class="info-stack-content">
             <span class="info-stack-title">Email</span>
-            <p id="contact-info-email">contact@huloobando.gov.ph</p>
+            <a id="contact-info-email" href="mailto:contact@huloobando.gov.ph">contact@huloobando.gov.ph</a>
           </div>
         </div>
 
@@ -158,7 +158,7 @@
       </div>
       <div>
         <h3>Contact Information</h3>
-        <p><span class="footer-address">Barangay Hall, Hulo, Obando, Bulacan</span><br>Phone: <span class="footer-phone">02 8741 2573</span><br>Email: <span class="footer-email">contact@huloobando.gov.ph</span></p>
+        <p><span class="footer-address">Barangay Hall, Hulo, Obando, Bulacan</span><br>Phone: <a class="footer-phone" href="tel:0287412573">02 8741 2573</a><br>Email: <a class="footer-email" href="mailto:contact@huloobando.gov.ph">contact@huloobando.gov.ph</a></p>
       </div>
       <div>
         <h3>Quick Links</h3>
@@ -236,11 +236,11 @@
     if(!d)return;
     var y=d.copyright_year||'',o=d.copyright_owner||'',s=d.copyright_suffix||'';
     if(y&&o){var b=document.querySelector('.footer-bottom');if(b)b.textContent='© '+y+' '+o+(s?'. '+s:'');}
-    var fe=document.querySelector('.footer-email');if(fe&&d.footer_email)fe.textContent=d.footer_email;
-    var fp=document.querySelector('.footer-phone');if(fp&&d.footer_phone)fp.textContent=d.footer_phone;
+    var fe=document.querySelector('.footer-email');if(fe&&d.footer_email){fe.textContent=d.footer_email;fe.href='mailto:'+d.footer_email;}
+    var fp=document.querySelector('.footer-phone');if(fp&&d.footer_phone){fp.textContent=d.footer_phone;fp.href='tel:'+d.footer_phone.replace(/[\s\-().]/g,'');}
     var fa=document.querySelector('.footer-address');if(fa&&d.barangay_address)fa.textContent=d.barangay_address;
-    var cp=document.getElementById('contact-info-phone');if(cp&&d.barangay_phone)cp.textContent=d.barangay_phone;
-    var ce=document.getElementById('contact-info-email');if(ce&&d.barangay_email)ce.textContent=d.barangay_email;
+    var cp=document.getElementById('contact-info-phone');if(cp&&d.barangay_phone){cp.textContent=d.barangay_phone;cp.href='tel:'+d.barangay_phone.replace(/[\s\-().]/g,'');}
+    var ce=document.getElementById('contact-info-email');if(ce&&d.barangay_email){ce.textContent=d.barangay_email;ce.href='mailto:'+d.barangay_email;}
     var ca=document.getElementById('contact-info-address');if(ca&&d.barangay_address)ca.textContent=d.barangay_address;
     var sfb=document.getElementById('social-link-facebook');
     if(sfb&&d.social_facebook_url){sfb.href=d.social_facebook_url;sfb.style.display='';}
