@@ -1932,6 +1932,148 @@ def api_calendar_activities():
     return jsonify({'status': 'ok', 'activities': activities})
 
 
+# ── Admin — calendar activities ──────────────────────────────────────────────
+_CAL_VALID_STATUSES = {'draft', 'scheduled', 'ongoing', 'completed', 'cancelled', 'archived'}
+
+
+def _cal_create(data):
+    payload = {
+        'title':             data.get('title', ''),
+        'category':          data.get('category', ''),
+        'date':              data.get('date') or None,
+        'start_time':        data.get('startTime', ''),
+        'end_time':          data.get('endTime', ''),
+        'location':          data.get('location', ''),
+        'short_description': data.get('shortDescription', ''),
+        'full_description':  data.get('fullDescription', ''),
+        'requirements':      data.get('requirements', ''),
+        'summary':           data.get('summary', ''),
+        'photos':            data.get('photos') or [],
+        'documents':         data.get('documents') or [],
+        'status':            data.get('status', 'draft'),
+    }
+    res = supabase.table('calendar_activities').insert(payload).execute()
+    return res.data[0] if res.data else None
+
+
+def _cal_update(act_id, patch):
+    payload = {}
+    if 'title'            in patch: payload['title']             = patch['title']
+    if 'category'         in patch: payload['category']          = patch['category']
+    if 'date'             in patch: payload['date']              = patch['date'] or None
+    if 'startTime'        in patch: payload['start_time']        = patch['startTime']
+    if 'endTime'          in patch: payload['end_time']          = patch['endTime']
+    if 'location'         in patch: payload['location']          = patch['location']
+    if 'shortDescription' in patch: payload['short_description'] = patch['shortDescription']
+    if 'fullDescription'  in patch: payload['full_description']  = patch['fullDescription']
+    if 'requirements'     in patch: payload['requirements']      = patch['requirements']
+    if 'summary'          in patch: payload['summary']           = patch['summary']
+    if 'photos'           in patch: payload['photos']            = patch['photos'] or []
+    if 'documents'        in patch: payload['documents']         = patch['documents'] or []
+    if 'status'           in patch: payload['status']            = patch['status']
+    if not payload:
+        return None
+    res = supabase.table('calendar_activities').update(payload).eq('id', act_id).execute()
+    return res.data[0] if res.data else None
+
+
+def _cal_delete(act_id):
+    supabase.table('calendar_activities').delete().eq('id', act_id).execute()
+
+
+@app.route('/admin/api/calendar-activities', methods=['GET'])
+@require_admin
+def admin_cal_list():
+    activities = _load_cal_activities()
+    return jsonify({'status': 'ok', 'activities': activities})
+
+
+@app.route('/admin/api/calendar-activities', methods=['POST'])
+@require_admin
+def admin_cal_create():
+    data = request.get_json(force=True) or {}
+    title = (data.get('title') or '').strip()
+    if not title:
+        return jsonify({'error': 'Title is required.'}), 400
+    status = data.get('status', 'draft')
+    if status not in _CAL_VALID_STATUSES:
+        return jsonify({'error': 'Invalid status.'}), 400
+    try:
+        row = _cal_create(data)
+        return jsonify({'status': 'ok', 'activity': _row_to_cal(row)}), 201
+    except Exception as exc:
+        app.logger.error('admin_cal_create error: %s', exc)
+        return jsonify({'error': 'Server error.'}), 500
+
+
+@app.route('/admin/api/calendar-activities/<act_id>', methods=['PUT'])
+@require_admin
+def admin_cal_update(act_id):
+    data = request.get_json(force=True) or {}
+    title = (data.get('title') or '').strip()
+    if not title:
+        return jsonify({'error': 'Title is required.'}), 400
+    status = data.get('status', 'draft')
+    if status not in _CAL_VALID_STATUSES:
+        return jsonify({'error': 'Invalid status.'}), 400
+    try:
+        row = _cal_update(act_id, data)
+        if not row:
+            return jsonify({'error': 'Not found.'}), 404
+        return jsonify({'status': 'ok', 'activity': _row_to_cal(row)})
+    except Exception as exc:
+        app.logger.error('admin_cal_update error: %s', exc)
+        return jsonify({'error': 'Server error.'}), 500
+
+
+@app.route('/admin/api/calendar-activities/<act_id>', methods=['PATCH'])
+@require_admin
+def admin_cal_patch(act_id):
+    data = request.get_json(force=True) or {}
+    if 'status' in data and data['status'] not in _CAL_VALID_STATUSES:
+        return jsonify({'error': 'Invalid status.'}), 400
+    try:
+        row = _cal_update(act_id, data)
+        if not row:
+            return jsonify({'error': 'Not found.'}), 404
+        return jsonify({'status': 'ok', 'activity': _row_to_cal(row)})
+    except Exception as exc:
+        app.logger.error('admin_cal_patch error: %s', exc)
+        return jsonify({'error': 'Server error.'}), 500
+
+
+@app.route('/admin/api/calendar-activities/<act_id>', methods=['DELETE'])
+@require_admin
+def admin_cal_delete(act_id):
+    try:
+        _cal_delete(act_id)
+        return jsonify({'status': 'ok'})
+    except Exception as exc:
+        app.logger.error('admin_cal_delete error: %s', exc)
+        return jsonify({'error': 'Server error.'}), 500
+
+
+@app.route('/admin/api/upload/calendar-attachment', methods=['POST'])
+@require_admin
+def admin_upload_calendar_attachment():
+    f = request.files.get('file')
+    if not f:
+        return jsonify({'error': 'No file provided.'}), 400
+    ext = os.path.splitext(f.filename or '')[1].lower().lstrip('.')
+    allowed = {'jpg', 'jpeg', 'png', 'webp', 'pdf', 'doc', 'docx'}
+    if ext not in allowed:
+        return jsonify({'error': 'File type not allowed.'}), 400
+    data = f.read()
+    if len(data) > 10 * 1024 * 1024:
+        return jsonify({'error': 'File exceeds 10 MB limit.'}), 400
+    try:
+        url = _upload_to_storage(data, 'calendar', ext)
+        return jsonify({'status': 'ok', 'url': url, 'fileName': f.filename})
+    except Exception as exc:
+        app.logger.error('admin_upload_calendar_attachment error: %s', exc)
+        return jsonify({'error': 'Upload failed.'}), 500
+
+
 # ── Static file serving ───────────────────────────────────────────────────────
 @app.route('/')
 def index():
