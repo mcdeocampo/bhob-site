@@ -87,6 +87,55 @@
       return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     }
 
+    function inlineFmt(text) {
+      var s = String(text || '')
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+      s = s.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>');
+      s = s.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+      s = s.replace(/\*([^*\n]+?)\*/g, '<em>$1</em>');
+      return s;
+    }
+
+    function formatMsgBlock(raw) {
+      if (!raw) return '';
+      var lines = String(raw).replace(/\r\n/g,'\n').replace(/\r/g,'\n').split('\n');
+      var out = '', inUl = false, inOl = false, para = [];
+      function flushPara() {
+        if (!para.length) return;
+        out += '<p class="ea-msg-para">' + para.join('<br>') + '</p>';
+        para = [];
+      }
+      function closeLists() {
+        if (inUl) { out += '</ul>'; inUl = false; }
+        if (inOl) { out += '</ol>'; inOl = false; }
+      }
+      for (var i = 0; i < lines.length; i++) {
+        var t = lines[i].trim();
+        if (!t) { flushPara(); closeLists(); continue; }
+        if (/^#{1,6}\s/.test(t)) {
+          flushPara(); closeLists();
+          out += '<p class="ea-msg-heading">' + inlineFmt(t.replace(/^#{1,6}\s+/, '')) + '</p>';
+          continue;
+        }
+        if (/^[*\-•+]\s/.test(t)) {
+          flushPara();
+          if (!inUl) { closeLists(); out += '<ul class="ea-msg-list">'; inUl = true; }
+          out += '<li>' + inlineFmt(t.replace(/^[*\-•+]\s+/, '')) + '</li>';
+          continue;
+        }
+        if (/^\d+[.)]\s/.test(t)) {
+          flushPara();
+          if (!inOl) { closeLists(); out += '<ol class="ea-msg-list">'; inOl = true; }
+          out += '<li>' + inlineFmt(t.replace(/^\d+[.)]\s+/, '')) + '</li>';
+          continue;
+        }
+        closeLists();
+        para.push(inlineFmt(lines[i]));
+      }
+      flushPara(); closeLists();
+      return out;
+    }
+
     function fmtDT(iso) {
       if (!iso) return '—';
       try {
@@ -125,7 +174,7 @@
       var instrHtml = a.instructions
         ? '<div class="info-card" style="border-left:4px solid ' + instructionsBorderColor(a.priority) + '">' +
             '<h3 style="color:' + instructionsBorderColor(a.priority) + ';margin-bottom:14px">What Residents Should Do</h3>' +
-            '<p style="font-size:1.02rem;line-height:1.75;color:var(--charcoal);margin:0">' + esc(a.instructions) + '</p>' +
+            '<div class="ea-msg-body">' + formatMsgBlock(a.instructions) + '</div>' +
           '</div>'
         : '';
 
@@ -167,7 +216,7 @@
 
               '<div class="info-card">' +
                 '<h3 style="margin-bottom:14px">Emergency Message</h3>' +
-                '<p style="font-size:1.05rem;line-height:1.75;color:var(--charcoal);margin:0">' + esc(a.message) + '</p>' +
+                '<div class="ea-msg-body">' + formatMsgBlock(a.message) + '</div>' +
               '</div>' +
 
               instrHtml +
