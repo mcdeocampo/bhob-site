@@ -96,6 +96,29 @@
       return s;
     }
 
+    function formatInstructions(raw) {
+      if (!raw) return '';
+      var lines = String(raw).replace(/\r\n/g,'\n').replace(/\r/g,'\n').split('\n');
+      var items = [];
+      for (var i = 0; i < lines.length; i++) {
+        var t = lines[i].trim();
+        if (!t) continue;
+        t = t.replace(/^#{1,6}\s+/, '');
+        t = t.replace(/^[*\-•+]\s+/, '');
+        t = t.replace(/^\d+[.)]\s+/, '');
+        if (t) items.push(t);
+      }
+      if (!items.length) return '';
+      if (items.length === 1) {
+        return '<p class="ea-msg-para">' + inlineFmt(items[0]) + '</p>';
+      }
+      var html = '<ul class="ea-instr-list">';
+      for (var j = 0; j < items.length; j++) {
+        html += '<li>' + inlineFmt(items[j]) + '</li>';
+      }
+      return html + '</ul>';
+    }
+
     function formatMsgBlock(raw) {
       if (!raw) return '';
       var lines = String(raw).replace(/\r\n/g,'\n').replace(/\r/g,'\n').split('\n');
@@ -174,7 +197,7 @@
       var instrHtml = a.instructions
         ? '<div class="info-card" style="border-left:4px solid ' + instructionsBorderColor(a.priority) + '">' +
             '<h3 style="color:' + instructionsBorderColor(a.priority) + ';margin-bottom:14px">What Residents Should Do</h3>' +
-            '<div class="ea-msg-body">' + formatMsgBlock(a.instructions) + '</div>' +
+            '<div class="ea-msg-body">' + formatInstructions(a.instructions) + '</div>' +
           '</div>'
         : '';
 

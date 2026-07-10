@@ -21188,12 +21188,18 @@ body[data-page="contact.html"] .contact-card-modern .contact-social-featured {
 .ea-msg-list{margin:4px 0 10px 18px;padding:0;line-height:inherit}
 .ea-msg-list li{margin-bottom:5px}
 .ea-msg-list:last-child{margin-bottom:0}
+/* Instructions list */
+.ea-instr-list{margin:0;padding:0 0 0 18px;list-style:disc}
+.ea-instr-list li{margin-bottom:8px;line-height:1.55}
+.ea-instr-list li:last-child{margin-bottom:0}
 /* Detail page message body */
 .ea-msg-body{font-size:1.04rem;line-height:1.75;color:var(--charcoal)}
 .ea-msg-body .ea-msg-para{margin-bottom:14px}
 .ea-msg-body .ea-msg-heading{font-size:1.06rem;font-weight:700;color:var(--navy);margin:18px 0 8px}
 .ea-msg-body .ea-msg-list{margin-left:22px;margin-bottom:14px}
 .ea-msg-body .ea-msg-list li{margin-bottom:7px}
+.ea-msg-body .ea-instr-list{padding-left:22px}
+.ea-msg-body .ea-instr-list li{margin-bottom:10px;line-height:1.7;font-size:1.02rem}
 .ea-popup-meta-row{display:flex;align-items:flex-start;gap:6px;font-size:.87rem;color:#991b1b;font-weight:600;margin-bottom:18px}
 .ea-popup-foot{display:flex;gap:10px;padding:20px 24px;flex-wrap:wrap}
 .ea-popup-btn-detail{flex:1;min-width:120px;padding:12px 16px;background:#dc2626;color:#fff;border:none;border-radius:10px;font-weight:700;font-size:.93rem;cursor:pointer;transition:.18s ease;text-align:center;text-decoration:none;display:inline-flex;align-items:center;justify-content:center}

@@ -48,6 +48,29 @@
       .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
 
+  function formatInstructions(raw) {
+    if (!raw) return '';
+    var lines = String(raw).replace(/\r\n/g,'\n').replace(/\r/g,'\n').split('\n');
+    var items = [];
+    for (var i = 0; i < lines.length; i++) {
+      var t = lines[i].trim();
+      if (!t) continue;
+      t = t.replace(/^#{1,6}\s+/, '');
+      t = t.replace(/^[*\-•+]\s+/, '');
+      t = t.replace(/^\d+[.)]\s+/, '');
+      if (t) items.push(t);
+    }
+    if (!items.length) return '';
+    if (items.length === 1) {
+      return '<p class="ea-msg-para">' + inlineFmt(items[0]) + '</p>';
+    }
+    var html = '<ul class="ea-instr-list">';
+    for (var j = 0; j < items.length; j++) {
+      html += '<li>' + inlineFmt(items[j]) + '</li>';
+    }
+    return html + '</ul>';
+  }
+
   // Convert multi-line text with Markdown to structured HTML (for popup/detail)
   function formatMsgBlock(raw) {
     if (!raw) return '';
@@ -174,7 +197,7 @@
     var instrHtml = alert.instructions
       ? '<div class="ea-popup-section">' +
           '<div class="ea-popup-section-label">What To Do</div>' +
-          '<div class="ea-popup-instr">' + formatMsgBlock(alert.instructions) + '</div>' +
+          '<div class="ea-popup-instr">' + formatInstructions(alert.instructions) + '</div>' +
         '</div>'
       : '';
 
