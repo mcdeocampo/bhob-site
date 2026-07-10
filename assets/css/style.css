@@ -20859,6 +20859,10 @@ body[data-page="contact.html"] .contact-card-modern .contact-social-featured {
   gap: 12px;
   margin-bottom: 22px;
 }
+@keyframes brcal-pill-pulse {
+  0%, 100% { transform: scale(1);    box-shadow: 0 0 0 0 rgba(0,180,180,.35); opacity: 1; }
+  50%       { transform: scale(1.04); box-shadow: 0 0 0 5px rgba(0,180,180,0); opacity: .88; }
+}
 .brcal-section-label-pill {
   display: inline-flex;
   align-items: center;
@@ -20871,6 +20875,10 @@ body[data-page="contact.html"] .contact-card-modern .contact-social-featured {
   background: linear-gradient(135deg, var(--blue-2), var(--teal));
   color: #fff;
   flex-shrink: 0;
+  animation: brcal-pill-pulse 2s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .brcal-section-label-pill { animation: none; }
 }
 .brcal-section-label-past {
   background: linear-gradient(135deg, #6a1b9a, #9c27b0);
