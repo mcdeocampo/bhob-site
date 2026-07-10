@@ -21146,3 +21146,97 @@ body[data-page="contact.html"] .contact-card-modern .contact-social-featured {
   .brcal-modal-head { padding: 20px 18px 18px; }
   .brcal-modal-body-scroll { padding: 18px; }
 }
+
+/* ── Emergency Alert System — Public (Phase 2) ─────────────────────────────── */
+.ea-banner{display:none;width:100%;z-index:999;border-bottom:1px solid transparent;opacity:1;animation:eaBannerIn .35s ease forwards}
+.ea-banner.is-visible{display:block}
+@keyframes eaBannerIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+.ea-banner-inner{display:flex;align-items:center;gap:14px;padding:13px 22px;flex-wrap:wrap}
+.ea-banner-icon{flex-shrink:0;width:22px;height:22px}
+.ea-banner-body{flex:1;min-width:0}
+.ea-banner-title{font-weight:700;font-size:.95rem;line-height:1.3}
+.ea-banner-msg{font-size:.88rem;line-height:1.45;opacity:.9;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ea-banner-actions{display:flex;align-items:center;gap:10px;flex-shrink:0}
+.ea-banner-link{font-size:.84rem;font-weight:700;padding:6px 14px;border-radius:8px;border:1.5px solid currentColor;opacity:.9;transition:.18s ease;white-space:nowrap;text-decoration:none}
+.ea-banner-link:hover{opacity:1;background:rgba(255,255,255,.18)}
+.ea-banner-close{background:none;border:none;cursor:pointer;padding:4px;border-radius:6px;display:flex;align-items:center;justify-content:center;opacity:.7;transition:.18s ease;color:inherit}
+.ea-banner-close:hover{opacity:1;background:rgba(255,255,255,.2)}
+.ea-banner-advisory{background:linear-gradient(135deg,#1e4a91,#2563c4);color:#fff;border-color:rgba(255,255,255,.12)}
+.ea-banner-warning{background:linear-gradient(135deg,#b45309,#d97706);color:#fff;border-color:rgba(255,255,255,.12)}
+.ea-banner-critical{background:linear-gradient(135deg,#991b1b,#dc2626);color:#fff;border-color:rgba(255,255,255,.12)}
+
+.ea-popup-overlay{position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box}
+.ea-popup-box{background:#fff;border-radius:20px;max-width:500px;width:100%;box-shadow:0 28px 80px rgba(0,0,0,.4);overflow:hidden;opacity:1;animation:eaPopupIn .3s cubic-bezier(.22,1,.36,1) forwards;max-height:90vh;overflow-y:auto}
+@keyframes eaPopupIn{from{opacity:0;transform:scale(.93) translateY(18px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.ea-popup-head{background:linear-gradient(135deg,#991b1b,#dc2626);color:#fff;padding:24px 24px 20px}
+.ea-popup-label{font-size:.72rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;opacity:.85;margin-bottom:10px}
+.ea-popup-title{font-size:1.35rem;font-weight:800;line-height:1.2;margin-bottom:14px}
+.ea-popup-badges{display:flex;gap:8px;flex-wrap:wrap}
+.ea-popup-badge{display:inline-flex;padding:4px 11px;border-radius:999px;font-size:.74rem;font-weight:700;letter-spacing:.04em}
+.ea-popup-badge-type{background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.3)}
+.ea-popup-badge-priority{background:rgba(255,255,255,.95);color:#991b1b}
+.ea-popup-body{padding:22px 24px 4px}
+.ea-popup-section{margin-bottom:18px}
+.ea-popup-section-label{font-size:.7rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:7px}
+.ea-popup-msg{font-size:.97rem;color:var(--charcoal);line-height:1.65;margin:0}
+.ea-popup-instr{font-size:.92rem;color:var(--charcoal);line-height:1.6;margin:0;padding:12px 14px;background:#fef2f2;border-radius:8px;border-left:3px solid #dc2626}
+.ea-popup-meta-row{display:flex;align-items:flex-start;gap:6px;font-size:.87rem;color:#991b1b;font-weight:600;margin-bottom:18px}
+.ea-popup-foot{display:flex;gap:10px;padding:20px 24px;flex-wrap:wrap}
+.ea-popup-btn-detail{flex:1;min-width:120px;padding:12px 16px;background:#dc2626;color:#fff;border:none;border-radius:10px;font-weight:700;font-size:.93rem;cursor:pointer;transition:.18s ease;text-align:center;text-decoration:none;display:inline-flex;align-items:center;justify-content:center}
+.ea-popup-btn-detail:hover{background:#b91c1c;color:#fff}
+.ea-popup-btn-close{flex:0 0 auto;padding:12px 20px;background:#f3f4f6;color:var(--charcoal);border:none;border-radius:10px;font-weight:600;font-size:.93rem;cursor:pointer;transition:.18s ease}
+.ea-popup-btn-close:hover{background:#e5e7eb}
+
+.ead-info-table{display:grid;gap:0}
+.ead-info-row{display:grid;gap:3px;padding:13px 0;border-bottom:1px solid rgba(13,71,161,.08)}
+.ead-info-row:first-child{padding-top:0}
+.ead-info-row:last-child{border-bottom:none;padding-bottom:0}
+.ead-info-label{font-size:.73rem;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+.ead-info-val{font-size:.95rem;font-weight:600;color:var(--charcoal);line-height:1.4}
+.ead-hotline-link{display:flex;align-items:center;gap:10px;padding:13px 16px;background:var(--soft-blue);border:1px solid rgba(13,71,161,.12);border-radius:14px;font-weight:700;color:var(--blue);font-size:.9rem;transition:.2s ease;text-decoration:none}
+.ead-hotline-link+.ead-hotline-link{margin-top:10px}
+.ead-hotline-link:hover{background:#dbeafe;box-shadow:0 4px 14px rgba(13,71,161,.1)}
+.ead-expired-notice{background:#fef2f2;border:1px solid rgba(220,38,38,.2);border-radius:var(--radius-sm);padding:40px 28px;text-align:center;color:#991b1b;max-width:560px;margin:0 auto}
+.ead-expired-notice h2{color:#991b1b;margin-bottom:10px}
+.ead-expired-notice p{color:#b91c1c;margin-bottom:20px}
+.ead-badge{display:inline-flex;align-items:center;padding:5px 12px;border-radius:999px;font-size:.78rem;font-weight:800;letter-spacing:.04em}
+.ead-badge-glass{background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.28)}
+.ead-badge-critical{background:#fee2e2;color:#991b1b}
+.ead-badge-warning{background:#fef3c7;color:#92400e}
+.ead-badge-advisory{background:#dbeafe;color:#1e40af}
+
+[data-page="emergency-alert-detail.html"] .ea-banner-link{display:none}
+
+.ea-toast{position:fixed;bottom:24px;right:24px;z-index:10002;background:#fff;border-radius:18px;box-shadow:0 8px 40px rgba(0,0,0,.13),0 2px 8px rgba(0,0,0,.06);border:1.5px solid #bbf7d0;max-width:360px;width:calc(100vw - 48px);opacity:0;transition:opacity .4s ease;pointer-events:none;overflow:hidden}
+.ea-toast.is-visible{opacity:1;pointer-events:auto}
+.ea-toast-head{background:linear-gradient(135deg,#166534,#16a34a);color:#fff;padding:11px 14px 11px 16px;display:flex;align-items:center;gap:8px}
+.ea-toast-head-label{flex:1;font-size:.72rem;font-weight:800;letter-spacing:.13em;text-transform:uppercase}
+.ea-toast-close{background:rgba(255,255,255,.18);border:none;cursor:pointer;color:#fff;font-size:.75rem;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .15s ease;line-height:1;padding:0}
+.ea-toast-close:hover{background:rgba(255,255,255,.32)}
+.ea-toast-body{display:flex;align-items:flex-start;gap:12px;padding:14px 16px 16px}
+.ea-toast-icon{flex-shrink:0;width:32px;height:32px;background:#dcfce7;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#16a34a;margin-top:1px}
+.ea-toast-content{flex:1;min-width:0}
+.ea-toast-title{font-weight:700;font-size:.9rem;color:#15803d;margin-bottom:5px;line-height:1.2}
+.ea-toast-msg{font-size:.81rem;color:#4b5563;line-height:1.55}
+.ea-toast-progress{height:3px;background:#dcfce7}
+.ea-toast-bar{height:100%;width:100%;background:#16a34a;animation:eaToastBar 15s linear forwards}
+@keyframes eaToastBar{from{width:100%}to{width:0%}}
+@media(max-width:480px){
+  .ea-toast{bottom:16px;right:16px;left:16px;max-width:none;width:auto}
+}
+
+@media(max-width:768px){
+  .ea-banner-inner{padding:11px 14px;gap:8px;flex-wrap:nowrap}
+  .ea-banner-msg{display:none}
+  .ea-banner-body{min-width:0}
+  .ea-banner-title{font-size:.88rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .ea-banner-actions{flex-shrink:0;gap:8px}
+  .ea-banner-link{font-size:.8rem;padding:5px 11px}
+  .ea-popup-box{border-radius:16px}
+}
+@media(max-width:480px){
+  .ea-popup-head{padding:20px 18px 16px}
+  .ea-popup-body{padding:18px 18px 4px}
+  .ea-popup-foot{padding:16px 18px;gap:8px}
+  .ea-popup-btn-detail,.ea-popup-btn-close{flex:1 1 auto}
+}

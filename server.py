@@ -2074,6 +2074,422 @@ def admin_upload_calendar_attachment():
         return jsonify({'error': 'Upload failed.'}), 500
 
 
+# ── Resolved message config helpers ──────────────────────────────────────────
+def _row_to_resolved_msg(row):
+    return {
+        'priority':        row['priority'],
+        'useCustom':       bool(row.get('use_custom', False)),
+        'customMessage':   row.get('custom_message', ''),
+        'updatedBy':       row.get('updated_by', ''),
+        'updatedAt':       str(row.get('updated_at', '') or ''),
+        'previousMessage': row.get('previous_message', ''),
+    }
+
+
+def _load_resolved_message_config():
+    try:
+        res = supabase.table('ea_resolved_messages').select('*').execute()
+        return {row['priority']: _row_to_resolved_msg(row) for row in (res.data or [])}
+    except Exception:
+        return {}
+
+
+def _get_resolved_message(priority):
+    try:
+        cfg = _load_resolved_message_config().get(priority)
+        if cfg and cfg.get('useCustom') and cfg.get('customMessage', '').strip():
+            return cfg['customMessage'].strip()
+    except Exception:
+        pass
+    return None
+
+
+# ── Emergency Alert helpers ───────────────────────────────────────────────────
+def _current_admin_name():
+    user = _get_user_by_id(session.get('admin_user_id'))
+    if user:
+        return user.get('fullName') or user.get('username') or 'Admin'
+    return 'Admin'
+
+
+def _compute_banner_popup(priority):
+    if (priority or '').strip() == 'Critical':
+        return True, True
+    return True, False
+
+
+def _row_to_alert(row):
+    return {
+        'id':                 row['id'],
+        'title':              row.get('title', ''),
+        'alertType':          row.get('alert_type', 'Other'),
+        'priority':           row.get('priority', 'Advisory'),
+        'targetAudience':     row.get('target_audience', 'All Residents'),
+        'targetArea':         row.get('target_area', ''),
+        'message':            row.get('message', ''),
+        'instructions':       row.get('instructions', ''),
+        'startDatetime':      row.get('start_datetime', ''),
+        'expirationDatetime': row.get('expiration_datetime', ''),
+        'status':             row.get('status', 'draft'),
+        'version':            row.get('version', 1),
+        'showBanner':         bool(row.get('show_banner', False)),
+        'enablePopup':        bool(row.get('enable_popup', False)),
+        'createdBy':          row.get('created_by', ''),
+        'createdAt':          str(row.get('created_at', '') or ''),
+        'updatedBy':          row.get('updated_by', ''),
+        'updatedAt':          str(row.get('updated_at', '') or ''),
+        'resolvedBy':         row.get('resolved_by', ''),
+        'resolvedAt':         str(row.get('resolved_at', '') or ''),
+    }
+
+
+def _load_alerts():
+    try:
+        res = (supabase.table('emergency_alerts')
+               .select('*')
+               .order('created_at', desc=True)
+               .execute())
+        return [_row_to_alert(r) for r in (res.data or [])]
+    except Exception as exc:
+        app.logger.error('_load_alerts error: %s', exc)
+        return []
+
+
+def _auto_expire_alerts():
+    try:
+        now_manila = _manila_now().strftime('%Y-%m-%dT%H:%M')
+        res = (supabase.table('emergency_alerts')
+               .select('id,expiration_datetime')
+               .eq('status', 'active')
+               .execute())
+        now_utc = datetime.now(timezone.utc).isoformat()
+        for row in (res.data or []):
+            exp = (row.get('expiration_datetime') or '')[:16]
+            if exp and exp <= now_manila:
+                supabase.table('emergency_alerts').update({
+                    'status':     'expired',
+                    'updated_at': now_utc,
+                }).eq('id', row['id']).execute()
+    except Exception as exc:
+        app.logger.error('_auto_expire_alerts error: %s', exc)
+
+
+# ── Admin — emergency alerts CRUD ─────────────────────────────────────────────
+@app.route('/admin/api/emergency-alerts')
+@admin_required
+def admin_alerts_list():
+    _auto_expire_alerts()
+    alerts = _load_alerts()
+    return jsonify({'status': 'ok', 'alerts': alerts})
+
+
+@app.route('/admin/api/emergency-alerts', methods=['POST'])
+@admin_required
+def admin_alerts_create():
+    d = request.get_json(silent=True) or {}
+    title   = _clean(d.get('title'), 200)
+    message = _clean(d.get('message'), 5000)
+    if not title:
+        return jsonify({'error': 'Alert title is required.'}), 400
+    if not message:
+        return jsonify({'error': 'Emergency message is required.'}), 400
+    start  = _clean(d.get('startDatetime'), 30) or None
+    expiry = _clean(d.get('expirationDatetime'), 30) or None
+    req_status = d.get('status', 'draft')
+    if req_status == 'active':
+        if not start:
+            return jsonify({'error': 'Start date and time is required.'}), 400
+        if not expiry:
+            return jsonify({'error': 'Expiration date and time is required.'}), 400
+    if start and expiry and expiry <= start:
+        return jsonify({'error': 'Expiration must be after Start date/time.'}), 400
+
+    priority = _clean(d.get('priority', 'Advisory'), 20)
+    if priority not in ('Advisory', 'Warning', 'Critical'):
+        priority = 'Advisory'
+    show_banner, enable_popup = _compute_banner_popup(priority)
+    status = 'active' if req_status == 'active' else 'draft'
+    admin_name = _current_admin_name()
+    now = datetime.now(timezone.utc).isoformat()
+    row = {
+        'id':                  uuid.uuid4().hex,
+        'title':               title,
+        'alert_type':          _clean(d.get('alertType', 'Other'), 50),
+        'priority':            priority,
+        'target_audience':     _clean(d.get('targetAudience', 'All Residents'), 50),
+        'target_area':         _clean(d.get('targetArea', ''), 200),
+        'message':             message,
+        'instructions':        _clean(d.get('instructions', ''), 5000),
+        'start_datetime':      start,
+        'expiration_datetime': expiry,
+        'status':              status,
+        'version':             1,
+        'show_banner':         show_banner,
+        'enable_popup':        enable_popup,
+        'created_by':          admin_name,
+        'created_at':          now,
+        'updated_by':          admin_name,
+        'updated_at':          now,
+        'resolved_by':         '',
+        'resolved_at':         None,
+    }
+    try:
+        res = supabase.table('emergency_alerts').insert(row).select().execute()
+        alert = _row_to_alert(res.data[0]) if res.data else row
+        return jsonify({'status': 'ok', 'alert': alert}), 201
+    except Exception as exc:
+        return jsonify({'error': f'Create failed: {exc}'}), 500
+
+
+@app.route('/admin/api/emergency-alerts/<alert_id>', methods=['PUT'])
+@admin_required
+def admin_alerts_update(alert_id):
+    d = request.get_json(silent=True) or {}
+    try:
+        cur_res = (supabase.table('emergency_alerts')
+                   .select('*').eq('id', alert_id).limit(1).execute())
+        if not cur_res.data:
+            return jsonify({'error': 'Alert not found.'}), 404
+        cur = cur_res.data[0]
+    except Exception as exc:
+        return jsonify({'error': f'Fetch failed: {exc}'}), 500
+
+    start  = _clean(d.get('startDatetime',      cur.get('start_datetime',  '')), 30) or None
+    expiry = _clean(d.get('expirationDatetime', cur.get('expiration_datetime', '')), 30) or None
+    if expiry and start and expiry <= start:
+        return jsonify({'error': 'Expiration must be after Start date/time.'}), 400
+
+    priority = _clean(d.get('priority', cur.get('priority', 'Advisory')), 20)
+    if priority not in ('Advisory', 'Warning', 'Critical'):
+        priority = cur.get('priority', 'Advisory')
+    show_banner, enable_popup = _compute_banner_popup(priority)
+    admin_name = _current_admin_name()
+    now = datetime.now(timezone.utc).isoformat()
+    patch = {
+        'title':               _clean(d.get('title',           cur.get('title', '')), 200),
+        'alert_type':          _clean(d.get('alertType',       cur.get('alert_type', 'Other')), 50),
+        'priority':            priority,
+        'target_audience':     _clean(d.get('targetAudience',  cur.get('target_audience', 'All Residents')), 50),
+        'target_area':         _clean(d.get('targetArea',      cur.get('target_area', '')), 200),
+        'message':             _clean(d.get('message',         cur.get('message', '')), 5000),
+        'instructions':        _clean(d.get('instructions',    cur.get('instructions', '')), 5000),
+        'start_datetime':      start,
+        'expiration_datetime': expiry,
+        'show_banner':         show_banner,
+        'enable_popup':        enable_popup,
+        'version':             int(cur.get('version', 1)) + 1,
+        'updated_by':          admin_name,
+        'updated_at':          now,
+    }
+    try:
+        res = (supabase.table('emergency_alerts')
+               .update(patch).eq('id', alert_id).select().execute())
+        if not res.data:
+            return jsonify({'error': 'Alert not found.'}), 404
+        return jsonify({'status': 'ok', 'alert': _row_to_alert(res.data[0])})
+    except Exception as exc:
+        return jsonify({'error': f'Update failed: {exc}'}), 500
+
+
+@app.route('/admin/api/emergency-alerts/<alert_id>/activate', methods=['POST'])
+@admin_required
+def admin_alerts_activate(alert_id):
+    admin_name = _current_admin_name()
+    now = datetime.now(timezone.utc).isoformat()
+    try:
+        res = (supabase.table('emergency_alerts')
+               .update({'status': 'active', 'updated_by': admin_name, 'updated_at': now})
+               .eq('id', alert_id).select().execute())
+        if not res.data:
+            return jsonify({'error': 'Alert not found.'}), 404
+        return jsonify({'status': 'ok', 'alert': _row_to_alert(res.data[0])})
+    except Exception as exc:
+        return jsonify({'error': f'Activate failed: {exc}'}), 500
+
+
+@app.route('/admin/api/emergency-alerts/<alert_id>/resolve', methods=['POST'])
+@admin_required
+def admin_alerts_resolve(alert_id):
+    admin_name = _current_admin_name()
+    now = datetime.now(timezone.utc).isoformat()
+    try:
+        res = (supabase.table('emergency_alerts')
+               .update({
+                   'status':      'resolved',
+                   'resolved_by': admin_name,
+                   'resolved_at': now,
+                   'updated_by':  admin_name,
+                   'updated_at':  now,
+               })
+               .eq('id', alert_id).select().execute())
+        if not res.data:
+            return jsonify({'error': 'Alert not found.'}), 404
+        return jsonify({'status': 'ok', 'alert': _row_to_alert(res.data[0])})
+    except Exception as exc:
+        return jsonify({'error': f'Resolve failed: {exc}'}), 500
+
+
+@app.route('/admin/api/emergency-alerts/<alert_id>/archive', methods=['POST'])
+@admin_required
+def admin_alerts_archive(alert_id):
+    admin_name = _current_admin_name()
+    now = datetime.now(timezone.utc).isoformat()
+    try:
+        res = (supabase.table('emergency_alerts')
+               .update({'status': 'archived', 'updated_by': admin_name, 'updated_at': now})
+               .eq('id', alert_id).select().execute())
+        if not res.data:
+            return jsonify({'error': 'Alert not found.'}), 404
+        return jsonify({'status': 'ok', 'alert': _row_to_alert(res.data[0])})
+    except Exception as exc:
+        return jsonify({'error': f'Archive failed: {exc}'}), 500
+
+
+@app.route('/admin/api/emergency-alerts/<alert_id>', methods=['DELETE'])
+@admin_required
+def admin_alerts_delete(alert_id):
+    try:
+        res = supabase.table('emergency_alerts').delete().eq('id', alert_id).execute()
+        if not res.data:
+            return jsonify({'error': 'Not found'}), 404
+        return jsonify({'status': 'ok'})
+    except Exception as exc:
+        return jsonify({'error': f'Delete failed: {exc}'}), 500
+
+
+# ── Admin — resolved message config ──────────────────────────────────────────
+@app.route('/admin/api/emergency-alerts/resolved-messages')
+@admin_required
+def admin_resolved_messages_get():
+    config = _load_resolved_message_config()
+    for p in ('Critical', 'Warning', 'Advisory'):
+        if p not in config:
+            config[p] = {'priority': p, 'useCustom': False, 'customMessage': '',
+                         'updatedBy': '', 'updatedAt': '', 'previousMessage': ''}
+    return jsonify({'ok': True, 'config': config})
+
+
+@app.route('/admin/api/emergency-alerts/resolved-messages/<priority>', methods=['PUT'])
+@admin_required
+def admin_resolved_messages_put(priority):
+    if priority not in ('Critical', 'Warning', 'Advisory'):
+        return jsonify({'error': 'Invalid priority. Must be Critical, Warning, or Advisory.'}), 400
+    d = request.get_json(silent=True) or {}
+    use_custom     = bool(d.get('useCustom', False))
+    custom_message = _clean(d.get('customMessage', ''), 2000)
+    if use_custom and not custom_message.strip():
+        return jsonify({'error': 'Custom message cannot be empty when enabled.'}), 400
+    admin_name = _current_admin_name()
+    now = datetime.now(timezone.utc).isoformat()
+    try:
+        prev = supabase.table('ea_resolved_messages').select('custom_message').eq('priority', priority).execute()
+        previous_message = (prev.data[0].get('custom_message', '') if prev.data else '')
+    except Exception:
+        previous_message = ''
+    row = {
+        'priority':         priority,
+        'use_custom':       use_custom,
+        'custom_message':   custom_message,
+        'updated_by':       admin_name,
+        'updated_at':       now,
+        'previous_message': previous_message,
+    }
+    try:
+        supabase.table('ea_resolved_messages').upsert(row, on_conflict='priority').execute()
+        return jsonify({'ok': True})
+    except Exception as exc:
+        return jsonify({'error': f'Save failed: {exc}'}), 500
+
+
+# ── Public — emergency alert endpoints ────────────────────────────────────────
+@app.route('/api/emergency-alerts/resolved-message')
+def api_resolved_message():
+    priority = request.args.get('priority', 'Advisory')
+    if priority not in ('Critical', 'Warning', 'Advisory'):
+        priority = 'Advisory'
+    resp = jsonify({'message': _get_resolved_message(priority)})
+    resp.headers['Cache-Control'] = 'no-store'
+    return resp
+
+
+@app.route('/api/emergency-alerts')
+def api_emergency_alerts_public():
+    _auto_expire_alerts()
+    alerts = _load_alerts()
+    active = [a for a in alerts if a.get('status') == 'active']
+    return jsonify({'status': 'ok', 'alerts': active})
+
+
+_PRIORITY_ORDER = {'Critical': 0, 'Warning': 1, 'Advisory': 2}
+
+
+@app.route('/api/emergency-alerts/active')
+def api_emergency_alerts_active():
+    _auto_expire_alerts()
+    now_manila = _manila_now().strftime('%Y-%m-%dT%H:%M')
+    alerts = _load_alerts()
+    active = [
+        a for a in alerts
+        if a.get('status') == 'active'
+        and (a.get('startDatetime') or '')[:16] <= now_manila
+        and (a.get('expirationDatetime') or '')[:16] >= now_manila
+    ]
+    if not active:
+        resp = jsonify({'active': False})
+        resp.headers['Cache-Control'] = 'no-store'
+        return resp
+    active.sort(key=lambda a: _PRIORITY_ORDER.get(a.get('priority', 'Advisory'), 99))
+    top = active[0]
+    resp = jsonify({
+        'active':             True,
+        'id':                 top['id'],
+        'title':              top['title'],
+        'alertType':          top['alertType'],
+        'priority':           top['priority'],
+        'targetAudience':     top['targetAudience'],
+        'targetArea':         top.get('targetArea', ''),
+        'message':            top['message'],
+        'instructions':       top.get('instructions', ''),
+        'showBanner':         top.get('showBanner', True),
+        'enablePopup':        top.get('enablePopup', False),
+        'version':            top.get('version', 1),
+        'updatedAt':          top.get('updatedAt', ''),
+        'updatedBy':          top.get('updatedBy', ''),
+        'startDatetime':      top.get('startDatetime', ''),
+        'expirationDatetime': top.get('expirationDatetime', ''),
+    })
+    resp.headers['Cache-Control'] = 'no-store'
+    return resp
+
+
+@app.route('/api/emergency-alerts/<alert_id>/public')
+def api_emergency_alert_detail(alert_id):
+    _auto_expire_alerts()
+    try:
+        res = (supabase.table('emergency_alerts')
+               .select('*')
+               .eq('id', alert_id)
+               .eq('status', 'active')
+               .limit(1)
+               .execute())
+        if not res.data:
+            return jsonify({'error': 'Alert not found or no longer active.'}), 404
+        alert = _row_to_alert(res.data[0])
+        now_manila = _manila_now().strftime('%Y-%m-%dT%H:%M')
+        if (alert.get('startDatetime') or '')[:16] > now_manila:
+            return jsonify({'error': 'Alert not yet started.'}), 404
+        if (alert.get('expirationDatetime') or '')[:16] < now_manila:
+            return jsonify({'error': 'Alert has expired.'}), 404
+        return jsonify({'active': True, 'alert': alert})
+    except Exception as exc:
+        return jsonify({'error': str(exc)}), 500
+
+
+@app.route('/emergency-alerts/<slug>')
+def emergency_alert_detail_page(slug):
+    return send_from_directory(BASE_DIR, 'emergency-alert-detail.html')
+
+
 # ── Static file serving ───────────────────────────────────────────────────────
 @app.route('/')
 def index():
