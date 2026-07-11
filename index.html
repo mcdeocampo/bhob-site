@@ -715,7 +715,7 @@
               if(prev) prev.classList.remove('selected');
               this.classList.add('selected');
               selDate = ds;
-              showFeatured(pickEarliest(as));
+              showFeatured(as);
             };
           })(dateStr, acts));
         } else {
@@ -749,25 +749,53 @@
       return cell;
     }
 
-    function showFeatured(act){
-      var cc = CATS[act.category] || {color:'#0d47a1', bg:'#e8f0fe'};
-      var timeMetas = '';
-      if (act.startTime) timeMetas += '<div class="brcal-feat-meta">'+metaIcon('time')+'<span>Start: '+esc(act.startTime)+'</span></div>';
-      if (act.endTime)   timeMetas += '<div class="brcal-feat-meta">'+metaIcon('time')+'<span>End: '+esc(act.endTime)+'</span></div>';
-      if (!act.startTime && !act.endTime && act.time) timeMetas += '<div class="brcal-feat-meta">'+metaIcon('time')+'<span>'+esc(act.time)+'</span></div>';
-      document.getElementById('brcal-featured').innerHTML =
-        '<div class="brcal-feat-inner">'+
-          (act.category ? '<span class="brcal-feat-cat" style="'+catStyle(act.category)+'">'+esc(act.category)+'</span>' : '')+
-          '<div class="brcal-feat-icon-wrap" style="background:'+cc.bg+'">'+catIcon(act.category, cc.color)+'</div>'+
-          '<h3 class="brcal-feat-title">'+esc(act.title)+'</h3>'+
-          '<div class="brcal-feat-metas">'+
-            '<div class="brcal-feat-meta">'+metaIcon('date')+'<span>'+fmtDateCal(act.date)+'</span></div>'+
-            timeMetas+
+    function showFeatured(acts){
+      if (!acts || !acts.length) { showFeaturedEmpty('No scheduled activities for this date.'); return; }
+      var sorted = acts.slice().sort(function(a, b){
+        var ta = a.startTime || 'zz:zz';
+        var tb = b.startTime || 'zz:zz';
+        return ta < tb ? -1 : ta > tb ? 1 : 0;
+      });
+      if (sorted.length === 1) {
+        var act = sorted[0];
+        var cc = CATS[act.category] || {color:'#0d47a1', bg:'#e8f0fe'};
+        var timeMetas = '';
+        if (act.startTime) timeMetas += '<div class="brcal-feat-meta">'+metaIcon('time')+'<span>Start: '+esc(act.startTime)+'</span></div>';
+        if (act.endTime)   timeMetas += '<div class="brcal-feat-meta">'+metaIcon('time')+'<span>End: '+esc(act.endTime)+'</span></div>';
+        if (!act.startTime && !act.endTime && act.time) timeMetas += '<div class="brcal-feat-meta">'+metaIcon('time')+'<span>'+esc(act.time)+'</span></div>';
+        document.getElementById('brcal-featured').innerHTML =
+          '<div class="brcal-feat-inner">'+
+            (act.category ? '<span class="brcal-feat-cat" style="'+catStyle(act.category)+'">'+esc(act.category)+'</span>' : '')+
+            '<div class="brcal-feat-icon-wrap" style="background:'+cc.bg+'">'+catIcon(act.category, cc.color)+'</div>'+
+            '<h3 class="brcal-feat-title">'+esc(act.title)+'</h3>'+
+            '<div class="brcal-feat-metas">'+
+              '<div class="brcal-feat-meta">'+metaIcon('date')+'<span>'+fmtDateCal(act.date)+'</span></div>'+
+              timeMetas+
+              (act.location ? '<div class="brcal-feat-meta">'+metaIcon('loc')+'<span>'+esc(act.location)+'</span></div>' : '')+
+            '</div>'+
+            (act.desc ? '<p class="brcal-feat-desc">'+esc(act.desc)+'</p>' : '')+
+            '<button class="btn btn-primary brcal-feat-btn" onclick="brcalOpenModal(\''+act.id+'\')">View Details</button>'+
+          '</div>';
+      } else {
+        var items = sorted.map(function(act){
+          var timeStr = '';
+          if (act.startTime) timeStr = act.startTime;
+          if (act.endTime)   timeStr += (timeStr ? ' – ' : '') + act.endTime;
+          if (!timeStr && act.time) timeStr = act.time;
+          return '<div class="brcal-feat-item">'+
+            (act.category ? '<span class="brcal-feat-cat" style="'+catStyle(act.category)+'">'+esc(act.category)+'</span>' : '')+
+            '<div class="brcal-feat-item-title">'+esc(act.title)+'</div>'+
+            (timeStr ? '<div class="brcal-feat-meta">'+metaIcon('time')+'<span>'+esc(timeStr)+'</span></div>' : '')+
             (act.location ? '<div class="brcal-feat-meta">'+metaIcon('loc')+'<span>'+esc(act.location)+'</span></div>' : '')+
-          '</div>'+
-          (act.desc ? '<p class="brcal-feat-desc">'+esc(act.desc)+'</p>' : '')+
-          '<button class="btn btn-primary brcal-feat-btn" onclick="brcalOpenModal(\''+act.id+'\')">View Details</button>'+
-        '</div>';
+            '<button class="btn btn-primary brcal-feat-btn" onclick="brcalOpenModal(\''+act.id+'\')">View Details</button>'+
+          '</div>';
+        }).join('');
+        document.getElementById('brcal-featured').innerHTML =
+          '<div class="brcal-feat-inner brcal-feat-multi">'+
+            '<div class="brcal-feat-date-hdr">'+metaIcon('date')+'<span>'+fmtDateCal(sorted[0].date)+'</span></div>'+
+            items+
+          '</div>';
+      }
     }
 
     function showFeaturedEmpty(msg){
@@ -910,8 +938,7 @@
 
     function showTodayDefault(){
       var todayActs = ACTS.filter(function(a){ return a.date === selDate; });
-      var earliest = pickEarliest(todayActs);
-      if (earliest) { showFeatured(earliest); }
+      if (todayActs.length) { showFeatured(todayActs); }
       else { showFeaturedEmpty('No scheduled activities for today.'); }
     }
 
