@@ -2294,7 +2294,17 @@ def admin_alerts_update(alert_id):
                .update(patch).eq('id', alert_id).select().execute())
         if not res.data:
             return jsonify({'error': 'Alert not found.'}), 404
-        return jsonify({'status': 'ok', 'alert': _row_to_alert(res.data[0])})
+        updated = _row_to_alert(res.data[0])
+        app.logger.info(
+            'EA_UPDATE alert_id=%s by=%s ip=%s prev_status=%s new_status=%s '
+            'prev_expiry=%s new_expiry=%s version=%s',
+            alert_id, admin_name,
+            request.remote_addr,
+            cur.get('status'), updated.get('status'),
+            cur.get('expiration_datetime'), updated.get('expirationDatetime'),
+            updated.get('version'),
+        )
+        return jsonify({'status': 'ok', 'alert': updated})
     except Exception as exc:
         return jsonify({'error': f'Update failed: {exc}'}), 500
 
@@ -2425,7 +2435,9 @@ def api_emergency_alerts_public():
     _auto_expire_alerts()
     alerts = _load_alerts()
     active = [a for a in alerts if a.get('status') == 'active']
-    return jsonify({'status': 'ok', 'alerts': active})
+    resp = jsonify({'status': 'ok', 'alerts': active})
+    resp.headers['Cache-Control'] = 'no-store'
+    return resp
 
 
 _PRIORITY_ORDER = {'Critical': 0, 'Warning': 1, 'Advisory': 2}
@@ -2473,6 +2485,10 @@ def api_emergency_alerts_active():
 @app.route('/api/emergency-alerts/<alert_id>/public')
 def api_emergency_alert_detail(alert_id):
     _auto_expire_alerts()
+    def _no_store(response, status=200):
+        response.headers['Cache-Control'] = 'no-store'
+        response.status_code = status
+        return response
     try:
         res = (supabase.table('emergency_alerts')
                .select('*')
@@ -2481,16 +2497,16 @@ def api_emergency_alert_detail(alert_id):
                .limit(1)
                .execute())
         if not res.data:
-            return jsonify({'error': 'Alert not found or no longer active.'}), 404
+            return _no_store(jsonify({'error': 'Alert not found or no longer active.'}), 404)
         alert = _row_to_alert(res.data[0])
         now_manila = _manila_now().strftime('%Y-%m-%dT%H:%M')
         if (alert.get('startDatetime') or '')[:16] > now_manila:
-            return jsonify({'error': 'Alert not yet started.'}), 404
+            return _no_store(jsonify({'error': 'Alert not yet started.'}), 404)
         if (alert.get('expirationDatetime') or '')[:16] < now_manila:
-            return jsonify({'error': 'Alert has expired.'}), 404
-        return jsonify({'active': True, 'alert': alert})
+            return _no_store(jsonify({'error': 'Alert has expired.'}), 404)
+        return _no_store(jsonify({'active': True, 'alert': alert}))
     except Exception as exc:
-        return jsonify({'error': str(exc)}), 500
+        return _no_store(jsonify({'error': str(exc)}), 500)
 
 
 @app.route('/emergency-alerts/<slug>')
