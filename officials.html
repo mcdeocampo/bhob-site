@@ -57,7 +57,7 @@
 
     <!-- Punong Barangay — Featured Card -->
     <div class="officials-feature-wrap">
-      <article class="official-featured reveal" aria-label="Punong Barangay">
+      <article class="official-featured reveal" id="punong-article" aria-label="Punong Barangay">
         <div class="ofc-photo">
           <img src="assets/images/officials/official-1.jpg" alt="Punong Barangay Hon. Benedicto Sta. Ana">
         </div>
@@ -65,7 +65,7 @@
           <span class="ofc-badge">Punong Barangay</span>
           <h2 class="ofc-name">Hon. Benedicto Sta. Ana</h2>
           <div class="ofc-divider"></div>
-          <p class="ofc-role">Overall Barangay Leadership</p>
+          <p class="ofc-role"></p>
         </div>
       </article>
     </div>
@@ -74,6 +74,7 @@
     <div class="officials-divider">
       <span>Barangay Council &amp; Staff</span>
     </div>
+    <p id="sb-section-desc" style="text-align:center;max-width:680px;margin:0 auto 1rem;color:var(--text-muted,#64748b);line-height:1.7;font-size:.97rem"></p>
 
     <!-- Remaining 10 officials -->
     <div class="officials-council-grid">
@@ -161,77 +162,48 @@
   <script src="assets/js/main.js"></script>
   <script src="assets/js/emergency-alert.js?v=1"></script>
   <script>
-  (function() {
-    var featureWrap = document.querySelector('.officials-feature-wrap');
-    var councilGrid = document.querySelector('.officials-council-grid');
-    if (!featureWrap || !councilGrid) return;
-
-    function photoSrc(url) {
-      if (!url) return '';
-      return url.indexOf('http') === 0 ? url : '/' + url;
+(function(){
+  var PA=document.getElementById('punong-article');
+  var CG=document.querySelector('.officials-council-grid');
+  if(!PA&&!CG)return;
+  function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+  function src(u){return u?(u.indexOf('http')===0?u:'/'+u):'';}
+  var PH='';
+  Promise.all([
+    fetch('/api/officials').then(function(r){return r.json();}),
+    fetch('/api/site-settings').then(function(r){return r.json();})
+  ]).then(function(results){
+    var d=results[0],s=results[1];
+    var punongDesc=s.officials_punong_description||'';
+    var sbDesc=s.officials_sb_description||'';
+    var sbEl=document.getElementById('sb-section-desc');
+    if(sbEl)sbEl.innerHTML=esc(sbDesc).replace(/\n/g,'<br>');
+    var all=(d.officials||[]).filter(function(o){return o.status==='published';});
+    if(!all.length)return;
+    var punong=null,others=[];
+    all.forEach(function(o){if(o.isPunong&&!punong)punong=o;else others.push(o);});
+    if(PA&&punong){
+      var ph=punong.photoUrl?'<img src="'+esc(src(punong.photoUrl))+'" alt="'+esc(punong.fullName)+'" onerror="this.style.display=\'none\'">':PH;
+      PA.innerHTML='<div class="ofc-photo">'+ph+'</div>'+
+        '<div class="ofc-details">'+
+        '<span class="ofc-badge">'+esc(punong.position||'Punong Barangay')+'</span>'+
+        '<h2 class="ofc-name">'+esc(punong.fullName)+'</h2>'+
+        '<div class="ofc-divider"></div>'+
+        '<p class="ofc-role">'+esc(punongDesc).replace(/\n/g,'<br>')+'</p>'+
+        '</div>';
+      if(window.revealObserver)PA.querySelectorAll('.reveal').forEach(function(el){window.revealObserver.observe(el);});
     }
-
-    function esc(s) {
-      return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-    }
-
-    function renderFeatured(o) {
-      var src = photoSrc(o.photoUrl);
-      var imgHtml = src
-        ? '<img src="' + esc(src) + '" alt="' + esc(o.position + ' ' + o.fullName) + '" onerror="this.style.display=\'none\'">'
-        : '';
-      featureWrap.innerHTML =
-        '<article class="official-featured reveal" aria-label="Punong Barangay">' +
-          '<div class="ofc-photo">' + imgHtml + '</div>' +
-          '<div class="ofc-details">' +
-            '<span class="ofc-badge">' + esc(o.position) + '</span>' +
-            '<h2 class="ofc-name">' + esc(o.fullName) + '</h2>' +
-            '<div class="ofc-divider"></div>' +
-            '<p class="ofc-role">' + esc(o.roleDescription) + '</p>' +
-          '</div>' +
-        '</article>';
-    }
-
-    function renderCouncil(others) {
-      var delays = ['', ' delay-1', ' delay-2', ' delay-3'];
-      councilGrid.innerHTML = others.map(function(o, i) {
-        var src = photoSrc(o.photoUrl);
-        var imgHtml = src
-          ? '<img src="' + esc(src) + '" alt="' + esc(o.position + ' ' + o.fullName) + '" onerror="this.style.display=\'none\'">'
-          : '';
-        return '<article class="official-card reveal' + delays[i % 4] + '">' +
-          imgHtml +
-          '<h3>' + esc(o.fullName) + '</h3>' +
-          '<span>' + esc(o.position) + '</span>' +
-          '<p>' + esc(o.roleDescription) + '</p>' +
-        '</article>';
+    if(CG&&others.length){
+      var DL=['','delay-1','delay-2','delay-3'];
+      CG.innerHTML=others.map(function(o,i){
+        var ph=o.photoUrl?'<img src="'+esc(src(o.photoUrl))+'" alt="'+esc(o.fullName)+'" onerror="this.style.display=\'none\'">':PH;
+        return '<article class="official-card reveal'+(DL[i%4]?' '+DL[i%4]:'')+'">'+ph+'<h3>'+esc(o.fullName)+'</h3><span>'+esc(o.position)+'</span><p>'+esc(o.roleDescription||'')+'</p></article>';
       }).join('');
+      if(window.revealObserver)CG.querySelectorAll('.reveal').forEach(function(el){window.revealObserver.observe(el);});
     }
-
-    function reobserve(container) {
-      if (window.revealObserver) {
-        container.querySelectorAll('.reveal').forEach(function(el) {
-          window.revealObserver.observe(el);
-        });
-      }
-    }
-
-    fetch('/api/officials')
-      .then(function(r) { return r.json(); })
-      .then(function(d) {
-        if (!d.officials || d.officials.length === 0) return;
-        var punong = null;
-        var others = [];
-        d.officials.forEach(function(o) {
-          if (o.isPunong && !punong) punong = o;
-          else others.push(o);
-        });
-        if (punong) { renderFeatured(punong); reobserve(featureWrap); }
-        if (others.length) { renderCouncil(others); reobserve(councilGrid); }
-      })
-      .catch(function() { /* silent — static fallback stays */ });
-  })();
-  </script>
+  }).catch(function(){/* silent — static fallback stays */});
+})();
+</script>
   <script>
   fetch('/api/site-settings').then(function(r){return r.json();}).then(function(d){
     if(!d)return;

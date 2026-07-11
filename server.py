@@ -1768,8 +1768,10 @@ def admin_site_settings_put():
         'police_card_label', 'police_card_number',
         'social_facebook_url', 'social_linkedin_url', 'social_instagram_url',
         'sk_facebook_title', 'sk_facebook_subtitle', 'sk_facebook_url',
+        'officials_punong_description', 'officials_sb_description',
     }
-    patch = {k: _clean(v, 300) for k, v in d.items() if k in ALLOWED_KEYS}
+    _LONG_KEYS = {'officials_punong_description', 'officials_sb_description'}
+    patch = {k: _clean(v, 500 if k in _LONG_KEYS else 300) for k, v in d.items() if k in ALLOWED_KEYS}
     if not patch:
         return jsonify({'error': 'No valid fields provided'}), 400
     try:
@@ -2535,7 +2537,29 @@ def static_files(filename):
 
 
 # ── Bootstrap ─────────────────────────────────────────────────────────────────
+def _ensure_initial_settings():
+    defaults = {
+        'officials_punong_description': (
+            'The Punong Barangay is committed to building a safe, united, and progressive '
+            'community through effective leadership, transparent governance, and active citizen '
+            'engagement, delivering responsive public services and promoting community well-being.'
+        ),
+        'officials_sb_description': (
+            'The Barangay Council serves as the legislative body of the barangay, enacting '
+            'local ordinances, approving resolutions, and advancing programs that strengthen '
+            'public services and community welfare.'
+        ),
+    }
+    try:
+        existing = _load_site_settings()
+        to_seed = {k: v for k, v in defaults.items() if k not in existing}
+        if to_seed:
+            _upsert_site_settings(to_seed)
+    except Exception as exc:
+        print(f'[BHOB] WARNING: Could not seed initial settings: {exc}', flush=True)
+
 _ensure_initial_user()
+_ensure_initial_settings()
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
