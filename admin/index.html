@@ -395,9 +395,9 @@ a{text-decoration:none;color:inherit}
 .img-url-note{font-size:.72rem;color:var(--gray);margin-top:5px;word-break:break-all;
   background:var(--bg);padding:4px 8px;border-radius:4px;display:none}
 .img-url-note.show-note{display:block}
-.default-imgs{margin-top:10px;border-top:1px solid var(--border);padding-top:10px}
+.default-imgs{margin-top:10px;border-top:1px solid var(--border);padding-top:10px;display:flex;flex-direction:column;align-items:flex-end}
 .default-imgs label{font-size:.72rem;color:var(--gray);display:block;margin-bottom:7px;font-weight:500}
-.default-imgs-row{display:flex;gap:7px;flex-wrap:wrap}
+.default-imgs-row{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end}
 .di-btn{border:2px solid transparent;border-radius:6px;overflow:hidden;
   cursor:pointer;transition:border-color .15s;background:none;padding:0}
 .di-btn:hover,.di-btn.sel{border-color:var(--blue)}
@@ -1473,12 +1473,11 @@ a{text-decoration:none;color:inherit}
             <div class="img-upload-row">
               <label class="btn-upload-file" for="f-img-file">Upload Image</label>
               <input type="file" id="f-img-file" accept=".jpg,.jpeg,.png,.webp" style="display:none">
-              <span style="font-size:.75rem;color:var(--gray)">or choose a default:</span>
             </div>
             <div class="img-url-note" id="img-url-note"></div>
             <div class="img-hint">JPG, PNG, WebP — max 5 MB</div>
             <div class="default-imgs">
-              <label>Default images:</label>
+              <label>Default Images</label>
               <div class="default-imgs-row">
                 <button type="button" class="di-btn" data-url="assets/images/announcements/announcement-1.jpg"><img src="../assets/images/announcements/announcement-1.jpg" alt="Default 1"></button>
                 <button type="button" class="di-btn" data-url="assets/images/announcements/announcement-2.jpg"><img src="../assets/images/announcements/announcement-2.jpg" alt="Default 2"></button>
