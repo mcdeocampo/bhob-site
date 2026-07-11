@@ -1369,8 +1369,6 @@ a{text-decoration:none;color:inherit}
           <div class="form-grid">
             <div class="field"><label>Phone</label><input type="text" id="ss-barangay-phone"></div>
             <div class="field"><label>Email</label><input type="text" id="ss-barangay-email"></div>
-            <div class="field"><label>Facebook URL</label><input type="text" id="ss-barangay-facebook"></div>
-            <div class="field"><label>Other Social Media URL</label><input type="text" id="ss-barangay-social"></div>
             <div class="field field-full"><label>Address</label><input type="text" id="ss-barangay-address"></div>
           </div>
           <div class="settings-acts">
@@ -3814,8 +3812,7 @@ async function loadSiteSettings() {
       ['ss-copyright-suffix',  d.copyright_suffix],
       ['ss-barangay-phone',    d.barangay_phone],
       ['ss-barangay-email',    d.barangay_email],
-      ['ss-barangay-facebook', d.barangay_facebook],
-      ['ss-barangay-social',   d.barangay_social],
+
       ['ss-barangay-address',  d.barangay_address],
       ['ss-hp-hotline-label',   d.homepage_hotline_label],
       ['ss-hp-hotline-number',  d.homepage_hotline_number],
@@ -3854,8 +3851,6 @@ async function saveBarangaySettings() {
   const payload = {
     barangay_phone:    ($('ss-barangay-phone')   || {}).value || '',
     barangay_email:    ($('ss-barangay-email')   || {}).value || '',
-    barangay_facebook: ($('ss-barangay-facebook')|| {}).value || '',
-    barangay_social:   ($('ss-barangay-social')  || {}).value || '',
     barangay_address:  ($('ss-barangay-address') || {}).value || '',
   };
   try {
