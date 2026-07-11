@@ -308,6 +308,10 @@ a{text-decoration:none;color:inherit}
 .ann-thumb-ph{width:80px;height:45px;border-radius:6px;flex-shrink:0;
   background:var(--bg);display:flex;align-items:center;justify-content:center;
   font-size:1.4rem;color:#cbd5e1}
+.cal-thumb-icon{width:80px;height:45px;border-radius:8px;flex-shrink:0;
+  background:linear-gradient(135deg,#0891b2,#22d3ee);
+  display:flex;align-items:center;justify-content:center;color:#fff;
+  box-shadow:0 2px 6px rgba(8,145,178,.3)}
 .ann-body{flex:1;min-width:0}
 .ann-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:3px}
 .badge{padding:2px 8px;border-radius:20px;font-size:.65rem;font-weight:700;text-transform:uppercase}
@@ -4079,7 +4083,7 @@ function renderCalList() {
     const timeStr = [a.startTime, a.endTime].filter(Boolean).join(' – ');
     const statusLabel = CAL_STATUS_LABEL[a.status] || a.status;
     return `<div class="ann-card" data-id="${a.id}">
-      <div class="ann-thumb-ph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+      <div class="cal-thumb-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
       <div class="ann-body">
         <div class="ann-meta">
           <span class="badge badge-${a.status}">${statusLabel}</span>
