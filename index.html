@@ -754,7 +754,13 @@
       var sorted = acts.slice().sort(function(a, b){
         var ta = a.startTime || 'zz:zz';
         var tb = b.startTime || 'zz:zz';
-        return ta < tb ? -1 : ta > tb ? 1 : 0;
+        if (ta !== tb) return ta < tb ? -1 : 1;
+        var ea = a.endTime || 'zz:zz';
+        var eb = b.endTime || 'zz:zz';
+        if (ea !== eb) return ea < eb ? -1 : 1;
+        var na = (a.title || '').toLowerCase();
+        var nb = (b.title || '').toLowerCase();
+        return na < nb ? -1 : na > nb ? 1 : 0;
       });
       if (sorted.length === 1) {
         var act = sorted[0];
