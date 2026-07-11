@@ -74,11 +74,11 @@ a{text-decoration:none;color:inherit}
 #login-wrap .field input:focus{border-color:#2563eb;background:#fff;
   box-shadow:0 0 0 4px rgba(37,99,235,.12)}
 #login-wrap .btn-primary{height:46px;border-radius:12px;font-size:.9rem;font-weight:700;
-  background:linear-gradient(110deg,#1a56db 0%,#0ea5e9 100%);
-  box-shadow:0 8px 24px rgba(26,86,219,.38),0 2px 6px rgba(26,86,219,.22);
+  background:linear-gradient(110deg,var(--navy) 0%,var(--teal) 100%);
+  box-shadow:0 8px 24px rgba(16,33,63,.38),0 2px 6px rgba(16,33,63,.22);
   letter-spacing:.04em;margin-top:8px}
 #login-wrap .btn-primary:hover{filter:brightness(1.09);
-  box-shadow:0 12px 32px rgba(26,86,219,.46);transform:translateY(-2px)}
+  box-shadow:0 12px 32px rgba(16,33,63,.46);transform:translateY(-2px)}
 #login-wrap .btn-primary:active{transform:translateY(0);filter:brightness(.97)}
 @media(max-width:520px){
   .login-inner{padding:24px 20px 0}
@@ -237,30 +237,62 @@ a{text-decoration:none;color:inherit}
 .quick-icon svg{width:21px;height:21px;display:block}
 .quick-label{font-size:.83rem;font-weight:600;color:var(--text);line-height:1.3;flex:1;min-width:0}
 .quick-arrow{margin-left:auto;color:#cbd5e1;font-size:.85rem;flex-shrink:0}
+.dash-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:14px}
+@media(max-width:1024px){.dash-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:640px){.dash-grid{grid-template-columns:1fr}}
+.dash-card{background:var(--card);border:1px solid var(--border);border-radius:16px;
+  display:flex;flex-direction:column;cursor:pointer;
+  transition:box-shadow .2s,transform .15s;overflow:hidden}
+.dash-card:hover{box-shadow:0 8px 28px rgba(0,0,0,.09);transform:translateY(-2px)}
+.dash-card-top{height:4px;width:100%}
+.dash-card-body{padding:20px 22px;flex:1;display:flex;flex-direction:column;gap:16px}
+.dash-card-head{display:flex;align-items:center;gap:12px}
+.dash-card-icon{width:46px;min-width:46px;height:46px;border-radius:13px;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.dash-card-icon svg{width:23px;height:23px}
+.dash-card-title{font-size:.9rem;font-weight:700;color:var(--text);line-height:1.25}
+.dash-card-sub{font-size:.7rem;color:#94a3b8;margin-top:2px}
+.dash-card-stats{display:flex;background:#f8fafc;border-radius:10px;
+  overflow:hidden;border:1px solid var(--border)}
+.dash-card-stat{flex:1;display:flex;flex-direction:column;align-items:center;
+  padding:10px 8px;border-right:1px solid var(--border)}
+.dash-card-stat:last-child{border-right:none}
+.dash-card-num{font-size:1.5rem;font-weight:800;line-height:1;
+  color:var(--text);letter-spacing:-.03em}
+.dash-card-lbl{font-size:.58rem;color:#94a3b8;text-transform:uppercase;
+  letter-spacing:.05em;margin-top:3px;white-space:nowrap}
+.dash-card-foot{display:flex;align-items:center;justify-content:flex-end;gap:4px;
+  font-size:.75rem;font-weight:600;color:#94a3b8;padding:10px 22px 16px;margin-top:auto}
+.dash-card-foot svg{width:14px;height:14px}
+.dc-muted{color:#94a3b8!important}
+.ea-panel{display:block}
 
 /* ─── ANNOUNCEMENTS ──────────────────────────────────────── */
 .page-hdr{display:flex;align-items:flex-start;justify-content:space-between;
-  margin-bottom:20px;gap:12px;flex-wrap:wrap}
-.page-hdr h2{font-size:1.3rem;font-weight:700}
-.page-hdr p{font-size:.8rem;color:var(--gray);margin-top:2px}
+  margin-bottom:20px;gap:12px;flex-wrap:wrap;padding-bottom:18px;border-bottom:1px solid var(--border)}
+.page-hdr h2{font-size:1.45rem;font-weight:800;color:var(--navy);letter-spacing:-.025em}
+.page-hdr p{font-size:.82rem;color:var(--gray);margin-top:4px;line-height:1.5}
 .btn-new{display:flex;align-items:center;gap:6px;padding:9px 18px;
-  background:var(--blue);color:#fff;border:none;border-radius:var(--radius);
-  font-size:.85rem;font-weight:600;transition:background .2s;white-space:nowrap}
-.btn-new:hover{background:var(--blue-hover)}
+  background:linear-gradient(135deg,var(--navy),var(--teal));color:#fff;border:none;border-radius:10px;
+  font-size:.85rem;font-weight:600;transition:all .18s;white-space:nowrap;
+  box-shadow:0 2px 8px rgba(16,33,63,.25)}
+.btn-new:hover{filter:brightness(1.09);box-shadow:0 5px 16px rgba(16,33,63,.32);transform:translateY(-1px)}
 .toolbar{display:flex;align-items:center;gap:10px;margin-bottom:18px;flex-wrap:wrap}
 .search-wrap{position:relative;flex:1;min-width:180px}
 .search-wrap svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);
   width:14px;height:14px;color:#94a3b8;pointer-events:none}
-.search-input{width:100%;padding:8px 12px 8px 32px;border:1px solid var(--border);
-  border-radius:var(--radius);font-size:.85rem;outline:none;background:#fff;transition:border-color .2s}
-.search-input:focus{border-color:var(--blue)}
-.tabs{display:flex;gap:3px;background:#e2e8f0;padding:3px;border-radius:8px}
-.tab{padding:5px 14px;border:none;background:none;border-radius:6px;
+.search-input{width:100%;padding:8px 12px 8px 32px;border:1.5px solid var(--border);
+  border-radius:10px;font-size:.85rem;outline:none;background:#fff;transition:border-color .2s,box-shadow .2s}
+.search-input::placeholder{color:#b0bec5}
+.search-input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+.tabs{display:flex;gap:3px;background:#eef2f7;padding:4px;border-radius:10px}
+.tab{padding:5px 14px;border:none;background:none;border-radius:7px;
   font-size:.78rem;font-weight:500;color:var(--gray);transition:all .15s;white-space:nowrap}
-.tab.active{background:#fff;color:var(--blue);box-shadow:0 1px 3px rgba(0,0,0,.08);font-weight:600}
-.ann-list{display:flex;flex-direction:column;gap:8px}
-.ann-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
-  padding:12px 14px;display:flex;align-items:flex-start;gap:12px;transition:box-shadow .2s}
+.tab.active{background:#fff;color:var(--blue);box-shadow:0 1px 3px rgba(0,0,0,.08);font-weight:700}
+.tab:hover:not(.active){background:rgba(255,255,255,.6);color:var(--text)}
+.ann-list{display:flex;flex-direction:column;gap:10px}
+.ann-card{background:var(--card);border:1px solid var(--border);border-radius:12px;
+  padding:14px 16px;display:flex;align-items:flex-start;gap:14px;transition:box-shadow .2s}
 .ann-card:hover{box-shadow:0 2px 8px rgba(0,0,0,.07)}
 .ann-thumb{width:80px;height:45px;object-fit:cover;object-position:center center;border-radius:6px;flex-shrink:0;background:var(--bg)}
 .ann-thumb-ph{width:80px;height:45px;border-radius:6px;flex-shrink:0;
@@ -272,22 +304,28 @@ a{text-decoration:none;color:inherit}
 .badge-published{background:#dcfce7;color:#15803d}
 .badge-draft{background:#fef3c7;color:#b45309}
 .badge-hidden{background:#f1f5f9;color:#64748b}
+.badge-scheduled{background:#eff6ff;color:#1d4ed8}
+.badge-ongoing{background:#dcfce7;color:#15803d}
+.badge-completed{background:#f0fdf4;color:#166534}
+.badge-cancelled{background:#fff5f5;color:#b91c1c}
+.badge-archived{background:#f1f5f9;color:#64748b}
 .ann-date{font-size:.72rem;color:var(--gray)}
 .cat-tag{font-size:.68rem;color:var(--blue);font-weight:500;
   background:rgba(37,99,235,.08);padding:1px 7px;border-radius:10px}
 .feat-tag{font-size:.68rem;color:var(--amber);font-weight:500;
   background:rgba(245,158,11,.1);padding:1px 7px;border-radius:10px}
-.ann-title{font-size:.88rem;font-weight:600;white-space:nowrap;
-  overflow:hidden;text-overflow:ellipsis;margin-bottom:2px}
-.ann-desc{font-size:.75rem;color:var(--gray);line-height:1.4;
+.ann-title{font-size:.88rem;font-weight:700;color:var(--navy);white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis;margin-bottom:2px;letter-spacing:-.01em}
+.ann-desc{font-size:.75rem;color:#64748b;line-height:1.5;
   overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
 .ann-actions{display:flex;gap:5px;flex-shrink:0;align-items:center}
-.btn-act{padding:5px 10px;border:1px solid var(--border);border-radius:6px;
+.btn-act{padding:5px 10px;border:1.5px solid var(--border);border-radius:6px;
   background:#fff;font-size:.73rem;font-weight:500;color:var(--gray);
   transition:all .15s;white-space:nowrap}
-.btn-act:hover{border-color:var(--blue);color:var(--blue)}
+.btn-act:hover{border-color:var(--blue);color:var(--blue);background:rgba(37,99,235,.04)}
 .btn-act.danger:hover{border-color:var(--red);color:var(--red);background:#fff5f5}
-.empty-state{text-align:center;padding:60px 20px}
+.empty-state{text-align:center;padding:60px 20px;
+  background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:2px dashed #e2e8f0;border-radius:14px}
 .empty-state .es-icon{font-size:2.5rem;margin-bottom:12px}
 .empty-state h3{font-size:1rem;font-weight:600;margin-bottom:6px;color:var(--text)}
 .empty-state p{font-size:.82rem;color:var(--gray)}
@@ -320,7 +358,7 @@ a{text-decoration:none;color:inherit}
   border-bottom:1px solid var(--border);position:sticky;top:0;background:#fff;z-index:1;
   border-radius:16px 16px 0 0;position:relative}
 .modal-head::after{content:'';position:absolute;left:0;top:0;right:0;height:3px;
-  background:linear-gradient(90deg,#1e3a5f,#2563eb,#06b6d4);border-radius:16px 16px 0 0;pointer-events:none}
+  background:linear-gradient(90deg,var(--navy),var(--teal),var(--gold));border-radius:16px 16px 0 0;pointer-events:none}
 .modal-head h3{font-size:1rem;font-weight:700;color:var(--navy);letter-spacing:-.015em}
 .btn-close{background:#f1f5f9;border:1px solid var(--border);font-size:.85rem;color:#64748b;
   padding:5px 10px;border-radius:8px;line-height:1.4;transition:all .15s}
@@ -378,7 +416,7 @@ a{text-decoration:none;color:inherit}
 #force-pw-overlay.open{display:flex}
 .force-pw-card{background:#fff;border-radius:14px;width:100%;max-width:460px;
   box-shadow:0 24px 64px rgba(0,0,0,.35);overflow:hidden;max-height:95vh;overflow-y:auto}
-.force-pw-head{background:linear-gradient(135deg,#1e3a5f,#2563eb);
+.force-pw-head{background:linear-gradient(135deg,var(--navy),var(--teal));
   padding:22px 24px;color:#fff;display:flex;align-items:flex-start;gap:14px}
 .force-pw-icon{width:40px;height:40px;background:rgba(255,255,255,.15);
   border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
@@ -443,14 +481,14 @@ a{text-decoration:none;color:inherit}
 .order-badge{font-size:.65rem;color:#94a3b8;font-weight:600;min-width:18px;
   text-align:center;flex-shrink:0;line-height:1;padding-top:2px}
 .save-order-bar{display:none;align-items:center;justify-content:space-between;gap:12px;
-  background:#eff6ff;border:1px solid #bfdbfe;border-radius:var(--radius);
-  padding:9px 14px;margin-bottom:12px}
+  background:linear-gradient(90deg,#eff6ff,#f0fdf4);border:1px solid #bfdbfe;border-radius:10px;
+  padding:10px 16px;margin-bottom:12px}
 .save-order-bar.visible{display:flex}
 .save-order-bar p{font-size:.79rem;color:#1d4ed8;margin:0}
-.btn-save-order{padding:6px 16px;background:var(--blue);color:#fff;border:none;
+.btn-save-order{padding:7px 20px;background:linear-gradient(135deg,var(--navy),var(--teal));color:#fff;border:none;
   border-radius:var(--radius);font-size:.79rem;font-weight:600;white-space:nowrap;
-  transition:background .15s}
-.btn-save-order:hover{background:var(--blue-hover)}
+  transition:all .15s;box-shadow:0 2px 6px rgba(16,33,63,.2)}
+.btn-save-order:hover{filter:brightness(1.08);box-shadow:0 4px 12px rgba(16,33,63,.28);transform:translateY(-1px)}
 
 /* ─── DOWNLOAD FORMS ─────────────────────────────────────── */
 .file-type-badge{display:inline-flex;align-items:center;justify-content:center;
@@ -494,7 +532,7 @@ a{text-decoration:none;color:inherit}
 .dash-ea-lbl{font-size:.62rem;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;margin-top:4px;white-space:nowrap}
 .dash-ea-arrow{color:#cbd5e1;flex-shrink:0;margin-left:8px}
 .dash-ea-arrow svg{width:18px;height:18px;display:block}
-.dc-red{color:#dc2626!important}.dc-green{color:var(--green)!important}.dc-amber{color:var(--amber)!important}
+.dc-red{color:#dc2626!important}.dc-green{color:var(--green)!important}.dc-amber{color:var(--amber)!important}.dc-muted{color:#94a3b8!important}
 .ea-subtab-bar{display:flex;gap:3px;background:#eef2f7;padding:4px;border-radius:10px;margin-bottom:22px;flex-wrap:wrap}
 .ea-subtab{padding:7px 18px;border:none;background:none;border-radius:7px;font-size:.82rem;font-weight:500;color:#64748b;transition:all .15s;white-space:nowrap;cursor:pointer}
 .ea-subtab.active{background:#fff;color:var(--blue);box-shadow:0 1px 4px rgba(0,0,0,.1);font-weight:700}
@@ -761,69 +799,161 @@ a{text-decoration:none;color:inherit}
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
         </div>
       </div>
-      <div class="dash-section-label">Announcements Overview</div>
-      <div class="stat-grid">
-        <div class="stat-card stat-total" onclick="goAnnouncements('all')">
-          <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
-          <div class="stat-num" id="stat-total">—</div>
-          <div class="stat-label">Total Announcements</div>
-          <div class="stat-hint">Click to view all</div>
+      <div class="dash-grid">
+        <div class="dash-card" onclick="goAnnouncements('all')">
+          <div class="dash-card-top" style="background:linear-gradient(90deg,var(--navy),var(--blue-2))"></div>
+          <div class="dash-card-body">
+            <div class="dash-card-head">
+              <div class="dash-card-icon" style="background:#eef2f9;color:var(--navy)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+              </div>
+              <div>
+                <div class="dash-card-title">Announcements</div>
+                <div class="dash-card-sub">Public notices &amp; news</div>
+              </div>
+            </div>
+            <div class="dash-card-stats">
+              <div class="dash-card-stat">
+                <span class="dash-card-num" id="stat-total">-</span>
+                <span class="dash-card-lbl">Total</span>
+              </div>
+              <div class="dash-card-stat">
+                <span class="dash-card-num dc-green" id="stat-pub">-</span>
+                <span class="dash-card-lbl">Published</span>
+              </div>
+              <div class="dash-card-stat">
+                <span class="dash-card-num dc-amber" id="stat-draft">-</span>
+                <span class="dash-card-lbl">Drafts</span>
+              </div>
+              <div class="dash-card-stat">
+                <span class="dash-card-num dc-muted" id="stat-hidden">-</span>
+                <span class="dash-card-lbl">Hidden</span>
+              </div>
+            </div>
+          </div>
+          <div class="dash-card-foot">Manage <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div>
         </div>
-        <div class="stat-card stat-published" onclick="goAnnouncements('published')">
-          <div class="stat-icon" style="background:#e6f9f0;color:#16a34a"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
-          <div class="stat-num" id="stat-pub">—</div>
-          <div class="stat-label">Published</div>
-          <div class="stat-hint">Live on website</div>
+
+        <div class="dash-card" onclick="showSection('initiatives')">
+          <div class="dash-card-top" style="background:linear-gradient(90deg,var(--blue-2),var(--teal))"></div>
+          <div class="dash-card-body">
+            <div class="dash-card-head">
+              <div class="dash-card-icon" style="background:#e6f7f4;color:var(--teal-dark)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              </div>
+              <div>
+                <div class="dash-card-title">Community Initiatives</div>
+                <div class="dash-card-sub">Projects &amp; programs</div>
+              </div>
+            </div>
+            <div class="dash-card-stats">
+              <div class="dash-card-stat">
+                <span class="dash-card-num" id="dash-init-total">-</span>
+                <span class="dash-card-lbl">Total</span>
+              </div>
+              <div class="dash-card-stat">
+                <span class="dash-card-num dc-green" id="dash-init-pub">-</span>
+                <span class="dash-card-lbl">Published</span>
+              </div>
+              <div class="dash-card-stat">
+                <span class="dash-card-num dc-amber" id="dash-init-draft">-</span>
+                <span class="dash-card-lbl">Drafts</span>
+              </div>
+              <div class="dash-card-stat">
+                <span class="dash-card-num dc-muted" id="dash-init-hidden">-</span>
+                <span class="dash-card-lbl">Hidden</span>
+              </div>
+            </div>
+          </div>
+          <div class="dash-card-foot">Manage <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div>
         </div>
-        <div class="stat-card stat-draft" onclick="goAnnouncements('draft')">
-          <div class="stat-icon" style="background:#fff8e6;color:#d97706"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></div>
-          <div class="stat-num" id="stat-draft">—</div>
-          <div class="stat-label">Drafts</div>
-          <div class="stat-hint">Awaiting publish</div>
+
+        <div class="dash-card" onclick="showSection('forms')">
+          <div class="dash-card-top" style="background:linear-gradient(90deg,var(--teal),#4dd0c4)"></div>
+          <div class="dash-card-body">
+            <div class="dash-card-head">
+              <div class="dash-card-icon" style="background:#e6f7f4;color:var(--teal-dark)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              </div>
+              <div>
+                <div class="dash-card-title">Download Forms</div>
+                <div class="dash-card-sub" id="dash-forms-hint">Downloadable documents</div>
+              </div>
+            </div>
+            <div class="dash-card-stats">
+              <div class="dash-card-stat">
+                <span class="dash-card-num" id="dash-forms-total">-</span>
+                <span class="dash-card-lbl">Total</span>
+              </div>
+              <div class="dash-card-stat">
+                <span class="dash-card-num dc-green" id="dash-forms-pub">-</span>
+                <span class="dash-card-lbl">Published</span>
+              </div>
+            </div>
+          </div>
+          <div class="dash-card-foot">Manage <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div>
         </div>
-        <div class="stat-card stat-hidden" onclick="goAnnouncements('hidden')">
-          <div class="stat-icon" style="background:#f1f5f9;color:#94a3b8"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg></div>
-          <div class="stat-num" id="stat-hidden">—</div>
-          <div class="stat-label">Hidden</div>
-          <div class="stat-hint">Not publicly visible</div>
+
+        <div class="dash-card" onclick="showSection('officials')">
+          <div class="dash-card-top" style="background:linear-gradient(90deg,#0891b2,#22d3ee)"></div>
+          <div class="dash-card-body">
+            <div class="dash-card-head">
+              <div class="dash-card-icon" style="background:#ecfeff;color:#0891b2">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              </div>
+              <div>
+                <div class="dash-card-title">Officials</div>
+                <div class="dash-card-sub">Barangay officials roster</div>
+              </div>
+            </div>
+            <div class="dash-card-stats">
+              <div class="dash-card-stat" style="flex:none;padding:12px 32px">
+                <span class="dash-card-num" id="dash-officials-total">-</span>
+                <span class="dash-card-lbl">On Record</span>
+              </div>
+            </div>
+          </div>
+          <div class="dash-card-foot">Manage <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div>
         </div>
-      </div>
-      <div class="dash-section-label">Quick Actions</div>
-      <div class="quick-grid">
-        <div class="quick-card" onclick="showSection('announcements')">
-          <span class="quick-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg></span>
-          <span class="quick-label">Announcements</span>
-          <span class="quick-arrow">›</span>
+
+        <div class="dash-card" onclick="showSection('calendar')">
+          <div class="dash-card-top" style="background:linear-gradient(90deg,var(--green),#4ade80)"></div>
+          <div class="dash-card-body">
+            <div class="dash-card-head">
+              <div class="dash-card-icon" style="background:#f0fdf4;color:var(--green)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              </div>
+              <div>
+                <div class="dash-card-title">Barangay Calendar</div>
+                <div class="dash-card-sub">Events &amp; activities</div>
+              </div>
+            </div>
+            <div class="dash-card-stats">
+              <div class="dash-card-stat" style="flex:none;padding:12px 32px">
+                <span class="dash-card-num dc-green" id="dash-cal-upcoming">-</span>
+                <span class="dash-card-lbl">Upcoming (30d)</span>
+              </div>
+            </div>
+          </div>
+          <div class="dash-card-foot">Manage <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div>
         </div>
-        <div class="quick-card" onclick="showSection('initiatives')">
-          <span class="quick-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span>
-          <span class="quick-label">Community Initiatives</span>
-          <span class="quick-arrow">›</span>
-        </div>
-        <div class="quick-card" onclick="showSection('forms')">
-          <span class="quick-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span>
-          <span class="quick-label">Download Forms</span>
-          <span class="quick-arrow">›</span>
-        </div>
-        <div class="quick-card" onclick="showSection('officials')">
-          <span class="quick-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
-          <span class="quick-label">Officials</span>
-          <span class="quick-arrow">›</span>
-        </div>
-        <div class="quick-card" onclick="showSection('calendar')">
-          <span class="quick-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>
-          <span class="quick-label">Barangay Calendar</span>
-          <span class="quick-arrow">&gt;</span>
-        </div>
-        <div class="quick-card" onclick="showSection('alerts')">
-          <span class="quick-icon" style="background:#fee2e2;color:#dc2626"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
-          <span class="quick-label">Emergency Alerts</span>
-          <span class="quick-arrow">›</span>
-        </div>
-        <div class="quick-card" onclick="showSection('settings')">
-          <span class="quick-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>
-          <span class="quick-label">Settings</span>
-          <span class="quick-arrow">›</span>
+
+        <div class="dash-card" onclick="showSection('settings')">
+          <div class="dash-card-top" style="background:linear-gradient(90deg,#475569,#94a3b8)"></div>
+          <div class="dash-card-body">
+            <div class="dash-card-head">
+              <div class="dash-card-icon" style="background:#f8fafc;color:#475569">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+              </div>
+              <div>
+                <div class="dash-card-title">Settings</div>
+                <div class="dash-card-sub">Site config &amp; hotlines</div>
+              </div>
+            </div>
+            <div class="dash-card-stats" style="justify-content:center;padding:8px 0">
+            </div>
+          </div>
+          <div class="dash-card-foot">Open <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div>
         </div>
       </div>
     </section>
@@ -1935,6 +2065,7 @@ async function loadAll() {
   try { await loadOfficials(); } catch {}
   try { await loadCalendarActivities(); } catch {}
   try { await loadAlerts(); } catch {}
+  updateDashCards();
 }
 
 function updateStats() {
@@ -1943,6 +2074,23 @@ function updateStats() {
   $('stat-pub').textContent    = a.filter(x=>x.status==='published').length;
   $('stat-draft').textContent  = a.filter(x=>x.status==='draft').length;
   $('stat-hidden').textContent = a.filter(x=>x.status==='hidden').length;
+}
+
+function updateDashCards() {
+  const ini = SI.initiatives || [];
+  $('dash-init-total').textContent  = ini.length;
+  $('dash-init-pub').textContent    = ini.filter(x=>x.status==='published').length;
+  $('dash-init-draft').textContent  = ini.filter(x=>x.status==='draft').length;
+  $('dash-init-hidden').textContent = ini.filter(x=>x.status==='hidden').length;
+  const frm = SF.forms || [];
+  $('dash-forms-total').textContent = frm.length;
+  $('dash-forms-pub').textContent   = frm.filter(x=>x.status==='published').length;
+  $('dash-officials-total').textContent = (SO.officials || []).length;
+  const now = new Date(); const limit = new Date(now); limit.setDate(limit.getDate()+30);
+  $('dash-cal-upcoming').textContent = (SC.activities || []).filter(a => {
+    if (!a.date) return false;
+    const d = new Date(a.date); return d >= now && d <= limit;
+  }).length;
 }
 
 // ── Emergency Alerts ────────────────────────────────────────────────────────
