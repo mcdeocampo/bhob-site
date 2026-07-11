@@ -248,8 +248,8 @@
         <!-- Upcoming Activity Cards -->
         <div class="brcal-upcoming-wrap reveal delay-1">
           <div class="brcal-section-label">
-            <span class="brcal-section-label-pill">Upcoming</span>
-            <h3 class="brcal-upcoming-heading">Upcoming Activities</h3>
+            <span class="brcal-section-label-pill">Today</span>
+            <h3 class="brcal-upcoming-heading">Today's Activities</h3>
           </div>
           <div class="brcal-cards-grid" id="brcal-cards-grid"></div>
         </div>
@@ -812,25 +812,58 @@
         '</div>';
     }
 
+    /* ── Today's activity cards ─────────────────────────────── */
+    function liveStatus(act){
+      if (act.status === 'archived' || act.status === 'cancelled') return act.status;
+      if (!act.startTime) return act.status || 'scheduled';
+      var now = new Date();
+      var cur = now.getHours() * 60 + now.getMinutes();
+      var hm = function(t){ var p = (t||'').split(':'); return parseInt(p[0]||0)*60+parseInt(p[1]||0); };
+      var start = hm(act.startTime);
+      if (act.endTime) {
+        var end = hm(act.endTime);
+        if (cur > end)   return 'completed';
+        if (cur >= start) return 'ongoing';
+      } else {
+        if (cur >= start) return 'ongoing';
+      }
+      return 'scheduled';
+    }
+    var STATUS_ICON  = {scheduled:'⏳', ongoing:'🟢', completed:'✅', cancelled:'❌', archived:'📁'};
+    var STATUS_LABEL = {scheduled:'Upcoming', ongoing:'Ongoing', completed:'Completed', cancelled:'Cancelled', archived:'Archived'};
     function renderCards(){
-      var now = new Date(); now.setHours(0,0,0,0);
-      var upcoming = ACTS.filter(function(a){ return new Date(a.date+'T00:00:00')>=now && a.status !== 'completed' && a.status !== 'archived'; })
-        .sort(function(a,b){ return a.date<b.date?-1:a.date>b.date?1:0; }).slice(0,6);
+      var todayStr = selDate;
+      var todayActs = ACTS.filter(function(a){ return a.date === todayStr && a.status !== 'archived'; })
+        .sort(function(a,b){
+          var ta = a.startTime || 'zz:zz', tb = b.startTime || 'zz:zz';
+          if (ta !== tb) return ta < tb ? -1 : 1;
+          var ea = a.endTime || 'zz:zz', eb = b.endTime || 'zz:zz';
+          if (ea !== eb) return ea < eb ? -1 : 1;
+          var na = (a.title||'').toLowerCase(), nb = (b.title||'').toLowerCase();
+          return na < nb ? -1 : na > nb ? 1 : 0;
+        });
       var grid = document.getElementById('brcal-cards-grid');
-      if(!upcoming.length){
-        grid.innerHTML='<p class="brcal-no-upcoming">No upcoming activities at this time.</p>';
+      if (!todayActs.length) {
+        grid.innerHTML = '<p class="brcal-no-upcoming">No activities scheduled for today.</p>';
         return;
       }
-      grid.innerHTML = upcoming.map(function(a){
+      grid.innerHTML = todayActs.map(function(a){
+        var st = liveStatus(a);
+        var timeStr = '';
+        if (a.startTime) timeStr = a.startTime;
+        if (a.endTime)   timeStr += (timeStr ? ' – ' : '') + a.endTime;
+        if (!timeStr && a.time) timeStr = a.time;
         return '<article class="brcal-card">'+
-          '<span class="brcal-feat-cat" style="'+catStyle(a.category)+'">'+esc(a.category)+'</span>'+
+          '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;">'+
+            '<span class="brcal-feat-cat" style="'+catStyle(a.category)+'">'+esc(a.category)+'</span>'+
+            '<span class="brcal-status-badge brcal-status-'+st+'">'+(STATUS_ICON[st]||'')+'&nbsp;'+esc(STATUS_LABEL[st]||st)+'</span>'+
+          '</div>'+
           '<h4 class="brcal-card-title">'+esc(a.title)+'</h4>'+
           '<div class="brcal-card-metas">'+
-            '<div class="brcal-feat-meta">'+metaIcon('date')+'<span>'+fmtDateCal(a.date)+'</span></div>'+
-            '<div class="brcal-feat-meta">'+metaIcon('time')+'<span>'+esc(a.time)+'</span></div>'+
-            '<div class="brcal-feat-meta">'+metaIcon('loc')+'<span>'+esc(a.location)+'</span></div>'+
+            (timeStr ? '<div class="brcal-feat-meta">'+metaIcon('time')+'<span>'+esc(timeStr)+'</span></div>' : '')+
+            (a.location ? '<div class="brcal-feat-meta">'+metaIcon('loc')+'<span>'+esc(a.location)+'</span></div>' : '')+
           '</div>'+
-          '<p class="brcal-card-desc">'+esc(a.desc)+'</p>'+
+          (a.desc ? '<p class="brcal-card-desc">'+esc(a.desc)+'</p>' : '')+
           '<button class="brcal-card-btn" onclick="brcalOpenModal(\''+a.id+'\')">View Details →</button>'+
         '</article>';
       }).join('');
