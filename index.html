@@ -584,7 +584,7 @@
         }
       });
     })
-    .catch(function() { /* keep static footer */ });
+    .catch(function(err) { console.error('[settings] /api/site-settings fetch failed:', err); });
   </script>
 
   <!-- ── Lightbox ───────────────────────────────────────────── -->

@@ -251,7 +251,7 @@
     if(sig&&d.social_instagram_url){sig.href=d.social_instagram_url;sig.style.display='';}
     var ssk=document.getElementById('social-link-sk');
     if(ssk&&d.sk_facebook_url){ssk.href=d.sk_facebook_url;ssk.target='_blank';ssk.style.display='';}
-  }).catch(function(){});
+  }).catch(function(err){ console.error('[contact] site-settings fetch failed:', err); });
   </script>
 </body>
 </html>

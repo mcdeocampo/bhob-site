@@ -1681,14 +1681,15 @@ def _load_site_settings():
 
 
 def _upsert_site_settings(patch):
-    """Save each key/value into site_settings using update-then-insert to avoid
-    relying on a unique constraint for ON CONFLICT resolution."""
+    """Save each key/value into site_settings using update-then-insert.
+    Uses .select() on the UPDATE so supabase-py v2 returns affected rows
+    rather than an empty list, allowing correct insert-on-miss detection."""
     now = datetime.now(timezone.utc).isoformat()
     for key, value in patch.items():
         val = str(value)
         res = supabase.table('site_settings').update(
             {'value': val, 'updated_at': now}
-        ).eq('key', key).execute()
+        ).eq('key', key).select().execute()
         if res.data:
             print(f'[settings] updated {key}={repr(val)}', flush=True)
         else:
@@ -1735,7 +1736,9 @@ def _hotline_bulk_order(order_map):
 # ── Public — site settings & emergency hotlines ───────────────────────────────
 @app.route('/api/site-settings')
 def api_site_settings():
-    return jsonify(_load_site_settings())
+    resp = jsonify(_load_site_settings())
+    resp.headers['Cache-Control'] = 'no-store'
+    return resp
 
 
 @app.route('/api/emergency-hotlines')
@@ -1775,11 +1778,12 @@ def admin_site_settings_put():
         import traceback
         print('[settings] FAILED to save:', traceback.format_exc(), flush=True)
         return jsonify({'error': 'Database write failed — check Render logs'}), 500
-    # Verify write by re-reading
+    # Verify write by re-reading — return error if DB doesn't reflect what we sent
     saved = _load_site_settings()
     failed = [k for k, v in patch.items() if v and saved.get(k) != v]
     if failed:
-        print(f'[settings] WARNING: keys not confirmed in DB after write: {failed}', flush=True)
+        print(f'[settings] ERROR: keys not confirmed in DB after write: {failed}', flush=True)
+        return jsonify({'error': f'Save appeared to succeed but DB does not reflect the new values for: {failed}. Check Render logs.'}), 500
     return jsonify({'ok': True, 'updated': list(patch.keys())})
 
 

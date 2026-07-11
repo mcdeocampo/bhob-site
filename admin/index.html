@@ -3832,56 +3832,76 @@ async function loadSiteSettings() {
 }
 
 async function saveFooterSettings() {
-  const payload = {
-    footer_phone:     ($('ss-footer-phone')    || {}).value || '',
-    footer_email:     ($('ss-footer-email')    || {}).value || '',
-    copyright_year:   ($('ss-copyright-year')  || {}).value || '',
-    copyright_owner:  ($('ss-copyright-owner') || {}).value || '',
-    copyright_suffix: ($('ss-copyright-suffix')|| {}).value || '',
-  };
+  const phone  = (($('ss-footer-phone')    || {}).value || '').trim();
+  const email  = (($('ss-footer-email')    || {}).value || '').trim();
+  const year   = (($('ss-copyright-year')  || {}).value || '').trim();
+  const owner  = (($('ss-copyright-owner') || {}).value || '').trim();
+  const suffix = (($('ss-copyright-suffix')|| {}).value || '').trim();
+  const payload = {};
+  if (phone)  payload.footer_phone     = phone;
+  if (email)  payload.footer_email     = email;
+  if (year)   payload.copyright_year   = year;
+  if (owner)  payload.copyright_owner  = owner;
+  if (suffix) payload.copyright_suffix = suffix;
+  if (!Object.keys(payload).length) { toast('No values entered — fill in at least one field', 'err'); return; }
   try {
     const r = await adminFetch('/admin/api/site-settings', { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
     const d = await r.json();
     if (!r.ok) { toast(d.error || 'Save failed', 'err'); return; }
     toast('Footer * Copyright saved', 'ok');
+    await loadSiteSettings();
   } catch(e) { if (e.message !== 'unauthorized') toast('Save failed', 'err'); }
 }
 
 async function saveBarangaySettings() {
-  const payload = {
-    barangay_phone:    ($('ss-barangay-phone')   || {}).value || '',
-    barangay_email:    ($('ss-barangay-email')   || {}).value || '',
-    barangay_address:  ($('ss-barangay-address') || {}).value || '',
-  };
+  const phone   = (($('ss-barangay-phone')   || {}).value || '').trim();
+  const email   = (($('ss-barangay-email')   || {}).value || '').trim();
+  const address = (($('ss-barangay-address') || {}).value || '').trim();
+  const payload = {};
+  if (phone)   payload.barangay_phone   = phone;
+  if (email)   payload.barangay_email   = email;
+  if (address) payload.barangay_address = address;
+  if (!Object.keys(payload).length) { toast('No values entered — fill in at least one field', 'err'); return; }
   try {
     const r = await adminFetch('/admin/api/site-settings', { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
     const d = await r.json();
     if (!r.ok) { toast(d.error || 'Save failed', 'err'); return; }
     toast('Barangay Hall Info saved', 'ok');
+    await loadSiteSettings();
   } catch(e) { if (e.message !== 'unauthorized') toast('Save failed', 'err'); }
 }
 
 async function saveHomepageContactSettings() {
+  // Social URLs are intentionally allowed to be empty (empty = hide the icon).
+  // Hotline labels/numbers skip empty to avoid clearing required display text.
+  const label   = (($('ss-hp-hotline-label')   || {}).value || '').trim();
+  const number  = (($('ss-hp-hotline-number')  || {}).value || '').trim();
+  const desc    = (($('ss-hp-hotline-desc')    || {}).value || '').trim();
+  const emLabel = (($('ss-hp-emergency-label') || {}).value || '').trim();
+  const emNum   = (($('ss-hp-emergency-number')|| {}).value || '').trim();
+  const plLabel = (($('ss-hp-police-label')    || {}).value || '').trim();
+  const plNum   = (($('ss-hp-police-number')   || {}).value || '').trim();
   const payload = {
-    homepage_hotline_label:       ($('ss-hp-hotline-label')   || {}).value || '',
-    homepage_hotline_number:      ($('ss-hp-hotline-number')  || {}).value || '',
-    homepage_hotline_description: ($('ss-hp-hotline-desc')    || {}).value || '',
-    emergency_card_label:         ($('ss-hp-emergency-label') || {}).value || '',
-    emergency_card_number:        ($('ss-hp-emergency-number')|| {}).value || '',
-    police_card_label:            ($('ss-hp-police-label')    || {}).value || '',
-    police_card_number:           ($('ss-hp-police-number')   || {}).value || '',
-    social_facebook_url:          ($('ss-hp-social-facebook') || {}).value || '',
-    social_linkedin_url:          ($('ss-hp-social-linkedin') || {}).value || '',
-    social_instagram_url:         ($('ss-hp-social-instagram')|| {}).value || '',
-    sk_facebook_title:            ($('ss-hp-sk-title')        || {}).value || '',
-    sk_facebook_subtitle:         ($('ss-hp-sk-subtitle')     || {}).value || '',
-    sk_facebook_url:              ($('ss-hp-sk-url')          || {}).value || '',
+    social_facebook_url:  ($('ss-hp-social-facebook') || {}).value || '',
+    social_linkedin_url:  ($('ss-hp-social-linkedin') || {}).value || '',
+    social_instagram_url: ($('ss-hp-social-instagram')|| {}).value || '',
+    sk_facebook_title:    ($('ss-hp-sk-title')        || {}).value || '',
+    sk_facebook_subtitle: ($('ss-hp-sk-subtitle')     || {}).value || '',
+    sk_facebook_url:      ($('ss-hp-sk-url')          || {}).value || '',
   };
+  if (label)   payload.homepage_hotline_label       = label;
+  if (number)  payload.homepage_hotline_number      = number;
+  if (desc)    payload.homepage_hotline_description = desc;
+  if (emLabel) payload.emergency_card_label         = emLabel;
+  if (emNum)   payload.emergency_card_number        = emNum;
+  if (plLabel) payload.police_card_label            = plLabel;
+  if (plNum)   payload.police_card_number           = plNum;
   try {
     const r = await adminFetch('/admin/api/site-settings', { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
     const d = await r.json();
     if (!r.ok) { toast(d.error || 'Save failed', 'err'); return; }
     toast('Homepage Contact * Social saved', 'ok');
+    await loadSiteSettings();
   } catch(e) { if (e.message !== 'unauthorized') toast('Save failed', 'err'); }
 }
 
