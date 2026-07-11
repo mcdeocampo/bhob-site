@@ -18888,8 +18888,8 @@ body[data-page="officials.html"] .official-featured .ofc-photo {
 }
 
 body[data-page="officials.html"] .official-featured .ofc-photo img {
-  width: 96px;
-  height: 96px;
+  width: 120px;
+  height: 120px;
   border-radius: 50%;
   object-fit: cover;
   border: 4px solid #ddeeff;
@@ -19078,8 +19078,8 @@ body[data-page="officials.html"] .officials-council-grid .official-card p {
     max-width: 420px;
   }
   body[data-page="officials.html"] .official-featured .ofc-photo img {
-    width: 88px;
-    height: 88px;
+    width: 110px;
+    height: 110px;
   }
   body[data-page="officials.html"] .ofc-divider {
     margin: 8px auto;
@@ -19105,8 +19105,8 @@ body[data-page="officials.html"] .officials-council-grid .official-card p {
     max-width: 100%;
   }
   body[data-page="officials.html"] .official-featured .ofc-photo img {
-    width: 76px;
-    height: 76px;
+    width: 96px;
+    height: 96px;
   }
   body[data-page="officials.html"] .ofc-name {
     font-size: 1.05rem;
@@ -19276,8 +19276,8 @@ body[data-page="officials.html"] .officials-divider span::before {
     gap: 14px !important;
   }
   body[data-page="officials.html"] .official-featured .ofc-photo img {
-    width: 72px !important;
-    height: 72px !important;
+    width: 100px !important;
+    height: 100px !important;
   }
   body[data-page="officials.html"] .officials-divider { margin-bottom: 24px !important; }
   /* 4-column grid */
@@ -19323,8 +19323,8 @@ body[data-page="officials.html"] .officials-divider span::before {
     gap: 16px !important;
   }
   body[data-page="officials.html"] .official-featured .ofc-photo img {
-    width: 80px !important;
-    height: 80px !important;
+    width: 108px !important;
+    height: 108px !important;
   }
   body[data-page="officials.html"] .officials-divider { margin-bottom: 24px !important; }
   /* 5-column grid with comfortable spacing */
@@ -19349,6 +19349,10 @@ body[data-page="officials.html"] .officials-divider span::before {
   body[data-page="officials.html"] .officials-section {
     padding-bottom: 180px !important;
   }
+  body[data-page="officials.html"] .official-featured .ofc-photo img {
+    width: 124px !important;
+    height: 124px !important;
+  }
   body[data-page="officials.html"] .officials-council-grid {
     max-width: 1320px !important;
     gap: 26px !important;
@@ -19367,6 +19371,10 @@ body[data-page="officials.html"] .officials-divider span::before {
 @media (min-width: 1920px) {
   body[data-page="officials.html"] .officials-section {
     padding-bottom: 220px !important;
+  }
+  body[data-page="officials.html"] .official-featured .ofc-photo img {
+    width: 136px !important;
+    height: 136px !important;
   }
   body[data-page="officials.html"] .officials-council-grid {
     max-width: 1460px !important;
