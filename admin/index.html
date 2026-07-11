@@ -3837,13 +3837,13 @@ async function saveFooterSettings() {
   const year   = (($('ss-copyright-year')  || {}).value || '').trim();
   const owner  = (($('ss-copyright-owner') || {}).value || '').trim();
   const suffix = (($('ss-copyright-suffix')|| {}).value || '').trim();
-  const payload = {};
-  if (phone)  payload.footer_phone     = phone;
-  if (email)  payload.footer_email     = email;
-  if (year)   payload.copyright_year   = year;
-  if (owner)  payload.copyright_owner  = owner;
-  if (suffix) payload.copyright_suffix = suffix;
-  if (!Object.keys(payload).length) { toast('No values entered — fill in at least one field', 'err'); return; }
+  const payload = {
+    footer_phone:     phone,
+    footer_email:     email,
+    copyright_year:   year,
+    copyright_owner:  owner,
+    copyright_suffix: suffix,
+  };
   try {
     const r = await adminFetch('/admin/api/site-settings', { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
     const d = await r.json();
@@ -3857,11 +3857,11 @@ async function saveBarangaySettings() {
   const phone   = (($('ss-barangay-phone')   || {}).value || '').trim();
   const email   = (($('ss-barangay-email')   || {}).value || '').trim();
   const address = (($('ss-barangay-address') || {}).value || '').trim();
-  const payload = {};
-  if (phone)   payload.barangay_phone   = phone;
-  if (email)   payload.barangay_email   = email;
-  if (address) payload.barangay_address = address;
-  if (!Object.keys(payload).length) { toast('No values entered — fill in at least one field', 'err'); return; }
+  const payload = {
+    barangay_phone:   phone,
+    barangay_email:   email,
+    barangay_address: address,
+  };
   try {
     const r = await adminFetch('/admin/api/site-settings', { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
     const d = await r.json();
@@ -3882,20 +3882,20 @@ async function saveHomepageContactSettings() {
   const plLabel = (($('ss-hp-police-label')    || {}).value || '').trim();
   const plNum   = (($('ss-hp-police-number')   || {}).value || '').trim();
   const payload = {
-    social_facebook_url:  ($('ss-hp-social-facebook') || {}).value || '',
-    social_linkedin_url:  ($('ss-hp-social-linkedin') || {}).value || '',
-    social_instagram_url: ($('ss-hp-social-instagram')|| {}).value || '',
-    sk_facebook_title:    ($('ss-hp-sk-title')        || {}).value || '',
-    sk_facebook_subtitle: ($('ss-hp-sk-subtitle')     || {}).value || '',
-    sk_facebook_url:      ($('ss-hp-sk-url')          || {}).value || '',
+    social_facebook_url:        ($('ss-hp-social-facebook') || {}).value || '',
+    social_linkedin_url:        ($('ss-hp-social-linkedin') || {}).value || '',
+    social_instagram_url:       ($('ss-hp-social-instagram')|| {}).value || '',
+    sk_facebook_title:          ($('ss-hp-sk-title')        || {}).value || '',
+    sk_facebook_subtitle:       ($('ss-hp-sk-subtitle')     || {}).value || '',
+    sk_facebook_url:            ($('ss-hp-sk-url')          || {}).value || '',
+    homepage_hotline_label:       label,
+    homepage_hotline_number:      number,
+    homepage_hotline_description: desc,
+    emergency_card_label:         emLabel,
+    emergency_card_number:        emNum,
+    police_card_label:            plLabel,
+    police_card_number:           plNum,
   };
-  if (label)   payload.homepage_hotline_label       = label;
-  if (number)  payload.homepage_hotline_number      = number;
-  if (desc)    payload.homepage_hotline_description = desc;
-  if (emLabel) payload.emergency_card_label         = emLabel;
-  if (emNum)   payload.emergency_card_number        = emNum;
-  if (plLabel) payload.police_card_label            = plLabel;
-  if (plNum)   payload.police_card_number           = plNum;
   try {
     const r = await adminFetch('/admin/api/site-settings', { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
     const d = await r.json();

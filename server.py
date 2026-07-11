@@ -1780,7 +1780,7 @@ def admin_site_settings_put():
         return jsonify({'error': 'Database write failed — check Render logs'}), 500
     # Verify write by re-reading — return error if DB doesn't reflect what we sent
     saved = _load_site_settings()
-    failed = [k for k, v in patch.items() if v and saved.get(k) != v]
+    failed = [k for k, v in patch.items() if saved.get(k) != v]
     if failed:
         print(f'[settings] ERROR: keys not confirmed in DB after write: {failed}', flush=True)
         return jsonify({'error': f'Save appeared to succeed but DB does not reflect the new values for: {failed}. Check Render logs.'}), 500

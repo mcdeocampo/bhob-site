@@ -554,11 +554,11 @@
         if (bottom) bottom.textContent = '© ' + year + ' ' + owner + (suffix ? '. ' + suffix : '');
       }
       var emailEl = document.querySelector('.footer-email');
-      if (emailEl && d.footer_email) { emailEl.textContent = d.footer_email; emailEl.href = 'mailto:' + d.footer_email; }
+      if (emailEl) { if (d.footer_email) { emailEl.textContent = d.footer_email; emailEl.href = 'mailto:' + d.footer_email; } else { emailEl.textContent = ''; emailEl.removeAttribute('href'); } }
       var phoneEl = document.querySelector('.footer-phone');
-      if (phoneEl && d.footer_phone) { phoneEl.textContent = d.footer_phone; phoneEl.href = 'tel:' + d.footer_phone.replace(/[\s\-().]/g,''); }
+      if (phoneEl) { if (d.footer_phone) { phoneEl.textContent = d.footer_phone; phoneEl.href = 'tel:' + d.footer_phone.replace(/[\s\-().]/g,''); } else { phoneEl.textContent = ''; phoneEl.removeAttribute('href'); } }
       var addrEl = document.querySelector('.footer-address');
-      if (addrEl && d.barangay_address) addrEl.textContent = d.barangay_address;
+      if (addrEl) addrEl.textContent = d.barangay_address || '';
       // Homepage hotline card text
       var hpMap = [
         ['hp-hotline-label',   d.homepage_hotline_label],
