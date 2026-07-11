@@ -1329,7 +1329,7 @@ a{text-decoration:none;color:inherit}
 
         <!-- Footer & Copyright: left column -->
         <div class="settings-card">
-          <h3>Footer &amp; Copyright</h3>
+          <h3>Footer * Copyright</h3>
           <p class="settings-desc">Update the contact and copyright text displayed in the public website footer.</p>
           <div class="form-grid">
             <div class="field"><label>Footer Phone</label><input type="text" id="ss-footer-phone"></div>
@@ -1339,7 +1339,7 @@ a{text-decoration:none;color:inherit}
             <div class="field field-full"><label>Copyright Suffix</label><input type="text" id="ss-copyright-suffix"></div>
           </div>
           <div class="settings-acts">
-            <button class="btn-publish" onclick="saveFooterSettings()">Save Footer &amp; Copyright</button>
+            <button class="btn-publish" onclick="saveFooterSettings()">Save Footer * Copyright</button>
           </div>
         </div>
 
@@ -1361,7 +1361,7 @@ a{text-decoration:none;color:inherit}
 
         <!-- Homepage Contact & Social Links: full width, grouped sections -->
         <div class="settings-card settings-grid-full">
-          <h3>Homepage Contact &amp; Social Links</h3>
+          <h3>Homepage Contact * Social Links</h3>
           <p class="settings-desc">Update the emergency card text and social page URLs displayed on the public homepage.</p>
 
           <div class="settings-subtitle">Barangay Hotline</div>
@@ -1398,7 +1398,7 @@ a{text-decoration:none;color:inherit}
           </div>
 
           <div class="settings-acts">
-            <button class="btn-publish" onclick="saveHomepageContactSettings()">Save Homepage Contact &amp; Social</button>
+            <button class="btn-publish" onclick="saveHomepageContactSettings()">Save Homepage Contact * Social</button>
           </div>
         </div>
 
@@ -3828,7 +3828,7 @@ async function saveFooterSettings() {
     const r = await adminFetch('/admin/api/site-settings', { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
     const d = await r.json();
     if (!r.ok) { toast(d.error || 'Save failed', 'err'); return; }
-    toast('Footer & Copyright saved', 'ok');
+    toast('Footer * Copyright saved', 'ok');
   } catch(e) { if (e.message !== 'unauthorized') toast('Save failed', 'err'); }
 }
 
@@ -3868,7 +3868,7 @@ async function saveHomepageContactSettings() {
     const r = await adminFetch('/admin/api/site-settings', { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
     const d = await r.json();
     if (!r.ok) { toast(d.error || 'Save failed', 'err'); return; }
-    toast('Homepage Contact & Social saved', 'ok');
+    toast('Homepage Contact * Social saved', 'ok');
   } catch(e) { if (e.message !== 'unauthorized') toast('Save failed', 'err'); }
 }
 
