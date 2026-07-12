@@ -18217,6 +18217,13 @@ html, body { overflow-x: hidden; max-width: 100%; }
   }
 }
 
+/* ── Footer copyright: reserve room so the fixed back-to-top button never covers the text on mobile ── */
+@media (max-width: 480px) {
+  .site-footer .footer-bottom {
+    padding-bottom: 76px !important;
+  }
+}
+
 /* ═══════════════════════════════════════════════════
    SERVICES PAGE — ACCORDION SECTION BACKGROUND
    Soft official blue tint behind the accordion list.
@@ -19270,7 +19277,7 @@ body[data-page="officials.html"] .officials-divider span::before {
     margin: 0 !important;
   }
   /* padding-top handled by .page-hero + .section-pad standard rule */
-  body[data-page="officials.html"] .officials-feature-wrap { margin-bottom: 20px !important; }
+  body[data-page="officials.html"] .officials-feature-wrap { margin-bottom: 36px !important; }
   body[data-page="officials.html"] .official-featured {
     padding: 12px 20px !important;
     gap: 14px !important;
@@ -19279,7 +19286,7 @@ body[data-page="officials.html"] .officials-divider span::before {
     width: 100px !important;
     height: 100px !important;
   }
-  body[data-page="officials.html"] .officials-divider { margin-bottom: 24px !important; }
+  body[data-page="officials.html"] .officials-divider { margin-bottom: 10px !important; }
   /* 4-column grid */
   body[data-page="officials.html"] .officials-section .officials-council-grid {
     grid-template-columns: repeat(4, 1fr) !important;
@@ -19317,7 +19324,7 @@ body[data-page="officials.html"] .officials-divider span::before {
     margin: 0 !important;
   }
   /* padding-top handled by .page-hero + .section-pad standard rule */
-  body[data-page="officials.html"] .officials-feature-wrap { margin-bottom: 20px !important; }
+  body[data-page="officials.html"] .officials-feature-wrap { margin-bottom: 36px !important; }
   body[data-page="officials.html"] .official-featured {
     padding: 14px 22px !important;
     gap: 16px !important;
@@ -19326,7 +19333,7 @@ body[data-page="officials.html"] .officials-divider span::before {
     width: 108px !important;
     height: 108px !important;
   }
-  body[data-page="officials.html"] .officials-divider { margin-bottom: 24px !important; }
+  body[data-page="officials.html"] .officials-divider { margin-bottom: 10px !important; }
   /* 5-column grid with comfortable spacing */
   body[data-page="officials.html"] .officials-section .officials-council-grid {
     grid-template-columns: repeat(5, 1fr) !important;
