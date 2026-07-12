@@ -408,7 +408,7 @@ def api_contact():
         '<tr><td style="padding:28px 32px 20px">'
         '<p style="margin:0 0 16px;font-size:15px;color:#1e293b">Dear <strong>' + _esc2(name) + '</strong>,</p>'
         '<p style="margin:0 0 14px;font-size:14px;color:#475569;line-height:1.7">'
-        'Thank you for reaching out to the <strong>Barangay Hulo Office</strong> through our official website. '
+        'Thank you for reaching out to the <strong>Barangay Hulo</strong> through our official website. '
         'This email confirms that we have successfully received your inquiry.</p>'
         '<p style="margin:0 0 20px;font-size:14px;color:#475569;line-height:1.7">'
         'Our team will carefully review your submission and respond as soon as possible during official office hours. '
