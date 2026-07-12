@@ -4276,13 +4276,13 @@ function confirmCalDel(id, title) {
   calDelId = id;
   $('confirm-title').textContent = 'Delete activity?';
   $('confirm-msg').textContent = `"${title}" will be permanently removed.`;
-  $('confirm-overlay').style.display = 'flex';
+  $('confirm-overlay').classList.add('open');
   $('confirm-yes').onclick = doCalDel;
 }
 
 async function doCalDel() {
   if (!calDelId) return;
-  $('confirm-overlay').style.display = 'none';
+  $('confirm-overlay').classList.remove('open');
   try {
     const r = await adminFetch(`/admin/api/calendar-activities/${calDelId}`, { method:'DELETE' });
     if (r.ok) {
