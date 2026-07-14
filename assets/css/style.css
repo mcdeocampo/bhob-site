@@ -21536,7 +21536,7 @@ body.dir2-modal-lock{overflow:hidden}
       "list";
   }
   .dir2-toolbar{flex-direction:column;align-items:stretch}
-  .dir2-search,.dir2-sort,.dir2-nearme-btn{flex:none;width:100%}
+  .dir2-search-wrap,.dir2-search,.dir2-sort,.dir2-nearme-btn{flex:none;width:100%}
   .dir2-cats h2{margin-bottom:8px}
   .dir2-chip-rail{flex-direction:row;overflow-x:auto;padding-bottom:6px;gap:8px;-webkit-overflow-scrolling:touch}
   .dir2-subchip-rail{flex-direction:row;overflow-x:auto;padding-bottom:6px;gap:8px;-webkit-overflow-scrolling:touch}
@@ -21546,7 +21546,7 @@ body.dir2-modal-lock{overflow:hidden}
 }
 @media (max-width:480px){
   .dir2-item{flex-direction:column}
-  .dir2-item-logo{width:100%;height:120px;border-radius:var(--radius-sm)}
+  .dir2-item-logo{flex:0 0 auto;width:100%;height:120px;border-radius:var(--radius-sm)}
   .dir2-modal-overlay{padding:20px 12px}
   .dir2-modal-cover{height:150px}
 }
