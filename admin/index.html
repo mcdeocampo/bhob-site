@@ -843,7 +843,7 @@ a{text-decoration:none;color:inherit}
         </div>
         <div class="sidebar-user-info">
           <div class="sidebar-user-name" id="sidebar-user-name">admin</div>
-          <div class="sidebar-user-role">Administrator</div>
+          <div class="sidebar-user-role" id="sidebar-user-role">Administrator</div>
         </div>
       </div>
       <button class="btn-logout" id="btn-logout">
@@ -1646,6 +1646,23 @@ a{text-decoration:none;color:inherit}
             <button class="btn-cancel" onclick="resetSettingsForm()">Cancel</button>
             <button class="btn-publish" id="cp-submit" onclick="submitChangePassword()">Change Password</button>
           </div>
+        </div>
+
+        <!-- Root-only: Administrator password recovery -->
+        <div class="settings-card settings-grid-full" id="root-reset-card" style="display:none">
+          <h3>Administrator Password Recovery</h3>
+          <p class="settings-desc">Reset the Administrator account's password if it's been forgotten or the account is locked out. This immediately invalidates the current Administrator password.</p>
+          <div class="settings-acts" style="justify-content:flex-start;margin-top:4px">
+            <button class="btn-publish" id="root-reset-btn" onclick="rootResetAdminPassword()">Reset Administrator Password</button>
+          </div>
+          <div id="root-reset-result" style="display:none;margin-top:14px;padding:14px;border-radius:10px;background:var(--soft-gold,#fdf6e3);border:1px solid rgba(0,0,0,.08)">
+            <div style="font-size:.82rem;font-weight:700;margin-bottom:6px">New password for <span id="root-reset-username"></span> — copy it now, it will not be shown again:</div>
+            <div style="display:flex;gap:8px;align-items:center">
+              <input type="text" id="root-reset-pw" readonly style="flex:1;font-family:monospace;font-size:.92rem;padding:8px 10px;border-radius:8px;border:1px solid rgba(0,0,0,.15)">
+              <button type="button" class="btn-cancel" onclick="copyRootResetPw()">Copy</button>
+            </div>
+          </div>
+          <div id="root-reset-err" style="color:var(--red);font-size:.8rem;display:none;padding:5px 0 0"></div>
         </div>
 
         <!-- Emergency Hotlines: full width -->
@@ -2765,6 +2782,7 @@ a{text-decoration:none;color:inherit}
 
 // ── State ──────────────────────────────────────────────────────────────────
 const S = { announcements:[], filter:'all', search:'', editingId:null, imageUrl:'' };
+let CURRENT_ROLE = 'admin';
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 const $  = id => document.getElementById(id);
@@ -2832,7 +2850,7 @@ async function init() {
   try {
     const r = await fetch('/admin/check');
     const d = await r.json();
-    if (d.ok) showAdmin(d.user.username, d.user.fullName, d.user.forcePasswordChange);
+    if (d.ok) showAdmin(d.user.username, d.user.fullName, d.user.forcePasswordChange, d.user.role);
     else showLogin();
   } catch { showLogin(); }
 }
@@ -2846,12 +2864,16 @@ function showLogin() {
   $('login-err').style.display = 'none';
 }
 
-function showAdmin(username, fullName, forcePasswordChange) {
+function showAdmin(username, fullName, forcePasswordChange, role) {
   $('login-wrap').style.display = 'none';
   $('admin-app').classList.add('active');
   const display = username || 'admin';
   $('sidebar-user-name').textContent = display;
   $('dash-user').textContent = fullName || display;
+  CURRENT_ROLE = role === 'root' ? 'root' : 'admin';
+  $('sidebar-user-role').textContent = CURRENT_ROLE === 'root' ? 'Root' : 'Administrator';
+  const rootCard = $('root-reset-card');
+  if (rootCard) rootCard.style.display = CURRENT_ROLE === 'root' ? '' : 'none';
   if (forcePasswordChange) {
     showForcePwChange();
   } else {
@@ -2889,7 +2911,7 @@ $('btn-login').onclick = async () => {
       body: JSON.stringify({username:user, password:pass})
     });
     const d = await r.json();
-    if (d.ok) { showAdmin(d.user.username, d.user.fullName, d.forcePasswordChange); }
+    if (d.ok) { showAdmin(d.user.username, d.user.fullName, d.forcePasswordChange, d.user.role); }
     else { err.textContent = d.error || 'Login failed. Please try again.'; err.style.display='block'; }
   } catch { err.textContent='Connection error. Please try again.'; err.style.display='block'; }
   finally {
@@ -2993,6 +3015,57 @@ function resetSettingsForm() {
   ['cp-r-len','cp-r-upper','cp-r-lower','cp-r-num','cp-r-special'].forEach(id => {
     const e=$(id); if(e) e.classList.remove('met');
   });
+  const resultBox = $('root-reset-result');
+  if (resultBox) resultBox.style.display = 'none';
+  const rootErr = $('root-reset-err');
+  if (rootErr) rootErr.style.display = 'none';
+}
+
+// ── Root - Administrator password recovery ────────────────────────────────
+function rootResetAdminPassword() {
+  if (CURRENT_ROLE !== 'root') return;
+  $('confirm-icon-wrap').style.cssText = 'background:#fee2e2;color:#dc2626';
+  $('confirm-icon-wrap').innerHTML = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>';
+  $('confirm-title').textContent = 'Reset Administrator password?';
+  $('confirm-msg').textContent = 'Their current password will stop working immediately.';
+  $('confirm-yes').className = 'btn-del';
+  $('confirm-yes').textContent = 'Reset Password';
+  $('confirm-overlay').classList.add('open');
+  $('confirm-yes').onclick = doRootResetAdminPassword;
+}
+
+async function doRootResetAdminPassword() {
+  $('confirm-overlay').classList.remove('open');
+  const btn = $('root-reset-btn');
+  const errEl = $('root-reset-err');
+  errEl.style.display = 'none';
+  btn.disabled = true;
+  btn.textContent = 'Resetting...';
+  try {
+    const r = await adminFetch('/admin/api/root/reset-admin-password', { method: 'POST' });
+    const d = await r.json();
+    if (d.ok) {
+      $('root-reset-username').textContent = d.username;
+      $('root-reset-pw').value = d.newPassword;
+      $('root-reset-result').style.display = 'block';
+      toast('Administrator password reset.', 'ok');
+    } else {
+      errEl.textContent = d.error || 'Reset failed. Please try again.';
+      errEl.style.display = 'block';
+    }
+  } catch {
+    errEl.textContent = 'Connection error. Please try again.';
+    errEl.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Reset Administrator Password';
+  }
+}
+
+function copyRootResetPw() {
+  const inp = $('root-reset-pw');
+  if (!inp || !inp.value) return;
+  navigator.clipboard.writeText(inp.value).then(() => toast('Password copied to clipboard.', 'ok')).catch(() => {});
 }
 
 // ── Session monitor (checks every 5 min) ──────────────────────────────────

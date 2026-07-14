@@ -10,6 +10,7 @@ import uuid
 import hashlib
 import hmac
 import re
+import secrets
 import urllib.request
 import urllib.error
 from datetime import datetime, timezone, timedelta
@@ -107,6 +108,25 @@ def _wttr_color(code):
 
 
 # ── Password hashing ──────────────────────────────────────────────────────────
+def _generate_strong_password():
+    """
+    Random password guaranteed to satisfy _validate_pw_strength — used for
+    one-time resets (root bootstrap, root-initiated admin password reset).
+    Excludes visually-ambiguous characters (0/O, 1/l/I) since a human has to
+    read and retype it.
+    """
+    lower   = 'abcdefghjkmnpqrstuvwxyz'
+    upper   = 'ABCDEFGHJKMNPQRSTUVWXYZ'
+    digits  = '23456789'
+    special = '!@#$%^&*'
+    required = [secrets.choice(lower), secrets.choice(upper),
+                secrets.choice(digits), secrets.choice(special)]
+    pool = lower + upper + digits + special
+    chars = required + [secrets.choice(pool) for _ in range(10)]
+    secrets.SystemRandom().shuffle(chars)
+    return ''.join(chars)
+
+
 def _hash_pw(password):
     """Hash a password using PBKDF2-SHA256. Format: iterations:salt_hex:hash_hex"""
     salt = os.urandom(SALT_BYTES).hex()
@@ -237,6 +257,20 @@ def _get_user_by_username(username):
         res = (supabase.table('users')
                .select('*')
                .ilike('username', username.strip())
+               .limit(1)
+               .execute())
+        if res.data:
+            return _row_to_user(res.data[0])
+    except Exception:
+        pass
+    return None
+
+
+def _get_user_by_role(role):
+    try:
+        res = (supabase.table('users')
+               .select('*')
+               .eq('role', role)
                .limit(1)
                .execute())
         if res.data:
@@ -461,11 +495,11 @@ def api_contact():
 
 def _ensure_initial_user():
     """
-    Create the initial admin account only when no users exist in Supabase.
-    Never called when users already exist — never resets a changed password.
+    Create the initial admin account only when no admin account exists in Supabase.
+    Never called when one already exists — never resets a changed password.
     """
     try:
-        res = supabase.table('users').select('id').limit(1).execute()
+        res = supabase.table('users').select('id').eq('role', 'admin').limit(1).execute()
         if res.data:
             return
     except Exception as exc:
@@ -512,9 +546,87 @@ def _ensure_initial_user():
         print(f'[BHOB] ERROR: Could not create initial admin user: {exc}')
 
 
-# ── Audit logging — no-op (temporarily disabled; restore after migration stable) ──
-def _audit(*args, **kwargs):
-    pass
+def _ensure_root_user():
+    """
+    Create the permanent, hidden Root account only when it doesn't exist yet.
+    Same hashing/auth mechanism as the Administrator account. Reserved for
+    emergency recovery — never surfaced in any admin-facing list or API,
+    and never touched by day-to-day admin flows.
+    """
+    try:
+        res = supabase.table('users').select('id').eq('role', 'root').limit(1).execute()
+        if res.data:
+            return
+    except Exception as exc:
+        print(f'[BHOB] WARNING: Could not check for root account: {exc}')
+        return
+
+    username = 'root'
+    plain_pw = os.environ.get('ROOT_PASSWORD', '')
+    if not plain_pw:
+        plain_pw = _generate_strong_password()
+        print('[BHOB] -------------------------------------------------')
+        print('[BHOB] WARNING: No ROOT_PASSWORD set.')
+        print(f'[BHOB] Auto-generated Root password: {plain_pw}')
+        print('[BHOB] Log in as root and change this password immediately.')
+    else:
+        print('[BHOB] -------------------------------------------------')
+        print('[BHOB] Root account created from ROOT_PASSWORD env var.')
+        print('[BHOB] Log in as root and change this password immediately.')
+    pw_hash = _hash_pw(plain_pw)
+    print('[BHOB] -------------------------------------------------')
+
+    now = datetime.now(timezone.utc).isoformat()
+    row = {
+        'id':                    uuid.uuid4().hex,
+        'full_name':             'Root',
+        'username':              username,
+        'email':                 '',
+        'password_hash':         pw_hash,
+        'role':                  'root',
+        'status':                'active',
+        'force_password_change': True,
+        'failed_login_count':    0,
+        'locked_until':          None,
+        'last_login_at':         None,
+        'created_at':            now,
+        'updated_at':            now,
+    }
+    try:
+        supabase.table('users').insert(row).execute()
+        print('[BHOB] Root account created.')
+    except Exception as exc:
+        print(f'[BHOB] ERROR: Could not create root account: {exc}')
+
+
+# ── Audit logging ──────────────────────────────────────────────────────────────
+def _audit(event_type, message='', user_id=None, success=True):
+    """
+    Persist an audit trail entry. Denormalizes username/role at write time so
+    the trail stays readable even if the acting account is later changed.
+    Never raises — a logging failure must not break the caller's request.
+    """
+    username = None
+    role = None
+    if user_id:
+        u = _get_user_by_id(user_id)
+        if u:
+            username = u.get('username')
+            role = u.get('role')
+    try:
+        supabase.table('audit_logs').insert({
+            'id':         uuid.uuid4().hex,
+            'event_type': event_type,
+            'message':    message,
+            'user_id':    user_id,
+            'username':   username,
+            'role':       role,
+            'success':    bool(success),
+            'ip_address': request.remote_addr,
+            'created_at': datetime.now(timezone.utc).isoformat(),
+        }).execute()
+    except Exception as exc:
+        print(f'[BHOB] WARNING: audit log write failed: {exc}')
 
 
 # ── Session helpers ───────────────────────────────────────────────────────────
@@ -569,6 +681,31 @@ def admin_auth_only(f):
         if not user or user.get('status') != 'active':
             session.clear()
             return jsonify({'error': 'unauthorized'}), 401
+        return f(*args, **kwargs)
+    return decorated
+
+
+def root_required(f):
+    """
+    Root-only guard: everything admin_required checks, plus role == 'root'.
+    An authenticated Administrator hitting a root-only route (including via
+    direct API request or URL manipulation) gets 403, not a fallthrough.
+    """
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        if not _session_valid():
+            return jsonify({'error': 'unauthorized'}), 401
+        user = _get_user_by_id(session.get('admin_user_id'))
+        if not user or user.get('status') != 'active':
+            session.clear()
+            return jsonify({'error': 'unauthorized'}), 401
+        if user.get('forcePasswordChange', False):
+            return jsonify({
+                'error': 'password_change_required',
+                'message': 'You must change your password before continuing.',
+            }), 403
+        if user.get('role') != 'root':
+            return jsonify({'error': 'forbidden'}), 403
         return f(*args, **kwargs)
     return decorated
 
@@ -1313,6 +1450,43 @@ def admin_change_password():
     return jsonify({
         'ok':      True,
         'message': 'Password changed successfully. Please log in with your new password.',
+    })
+
+
+# ── Root — Administrator password recovery ────────────────────────────────────
+@app.route('/admin/api/root/reset-admin-password', methods=['POST'])
+@root_required
+def root_reset_admin_password():
+    """
+    Root-only emergency recovery: overwrite the Administrator account's
+    password with a freshly generated one and force a change on next login.
+    Also clears any lockout, since "forgot password" and "locked out" are
+    the two scenarios this exists for. Root can never target its own
+    account through this route — it's hardcoded to role='admin'.
+    """
+    admin_user = _get_user_by_role('admin')
+    if not admin_user:
+        return jsonify({'error': 'No Administrator account found.'}), 404
+
+    new_pw = _generate_strong_password()
+    admin_user['passwordHash']        = _hash_pw(new_pw)
+    admin_user['forcePasswordChange'] = True
+    admin_user['failedLoginCount']    = 0
+    admin_user['lockedUntil']         = None
+    _update_user(admin_user)
+
+    root_id = session.get('admin_user_id')
+    _audit(
+        'admin_password_reset_by_root',
+        f"Root reset the Administrator ({admin_user['username']}) password",
+        user_id=root_id,
+    )
+
+    return jsonify({
+        'ok':          True,
+        'username':    admin_user['username'],
+        'newPassword': new_pw,
+        'message':     'Administrator password has been reset. Copy it now — it will not be shown again.',
     })
 
 
@@ -3951,6 +4125,7 @@ def admin_upload_emergency_gallery():
 
 
 _ensure_initial_user()
+_ensure_root_user()
 _ensure_initial_settings()
 
 if __name__ == '__main__':
