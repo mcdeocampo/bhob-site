@@ -21528,7 +21528,7 @@ body.dir2-modal-lock{overflow:hidden}
 }
 @media (max-width:768px){
   .dir2-grid{
-    grid-template-columns:1fr;
+    grid-template-columns:minmax(0,1fr);
     grid-template-areas:
       "toolbar"
       "cats"
