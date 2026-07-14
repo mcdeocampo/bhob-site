@@ -21312,3 +21312,19 @@ body[data-page="contact.html"] .contact-card-modern .contact-social-featured {
   .ea-popup-foot{padding:16px 18px;gap:8px}
   .ea-popup-btn-detail,.ea-popup-btn-close{flex:1 1 auto}
 }
+
+/* Public Services CMS — new optional banner image on an expanded service card.
+   Additive only: base .accordion-item/.service-meta rules above are untouched. */
+body[data-page="services.html"] .svc-banner{
+  width:100%;
+  max-height:220px;
+  object-fit:cover;
+  border-radius:14px;
+  display:block;
+  margin:0 0 16px;
+}
+body[data-page="services.html"] .service-meta span a{
+  color:var(--civic-blue,#155eef);
+  font-weight:600;
+  text-decoration:underline;
+}

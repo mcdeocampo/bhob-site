@@ -766,6 +766,178 @@ def _form_bulk_order(order_map):
         ).eq('id', form_id).execute()
 
 
+# ── Public services data helpers (Supabase) ──────────────────────────────────
+def _row_to_pubservice(row):
+    return {
+        'id':               row['id'],
+        'title':            row.get('title', ''),
+        'shortDescription': row.get('short_description', ''),
+        'description':      row.get('description', ''),
+        'iconType':         row.get('icon_type', 'preset'),
+        'icon':             row.get('icon', ''),
+        'bannerImage':      row.get('banner_image', ''),
+        'processingTime':   row.get('processing_time', ''),
+        'fee':              row.get('fee', ''),
+        'office':           row.get('office', ''),
+        'processingHours':  row.get('processing_hours', ''),
+        'contactNumber':    row.get('contact_number', ''),
+        'contactEmail':     row.get('contact_email', ''),
+        'notes':            row.get('notes', ''),
+        'status':           row.get('status', 'draft'),
+        'displayOrder':     row.get('display_order', 0),
+        'createdBy':        row.get('created_by', ''),
+        'updatedBy':        row.get('updated_by', ''),
+        'createdAt':        row.get('created_at', ''),
+        'updatedAt':        row.get('updated_at', ''),
+    }
+
+
+def _load_pubservices():
+    try:
+        res = supabase.table('public_services').select('*').execute()
+        return [_row_to_pubservice(r) for r in (res.data or [])]
+    except Exception:
+        return []
+
+
+def _load_pubservice_children(service_id):
+    """Fetch requirements/steps/files for one service, ordered for display."""
+    try:
+        reqs = (supabase.table('public_service_requirements')
+                .select('*').eq('service_id', service_id)
+                .order('display_order').execute().data or [])
+    except Exception:
+        reqs = []
+    try:
+        steps = (supabase.table('public_service_steps')
+                 .select('*').eq('service_id', service_id)
+                 .order('display_order').execute().data or [])
+    except Exception:
+        steps = []
+    try:
+        files = (supabase.table('public_service_files')
+                 .select('*').eq('service_id', service_id)
+                 .order('display_order').execute().data or [])
+    except Exception:
+        files = []
+    return {
+        'requirements': [r.get('requirement', '') for r in reqs],
+        'steps':        [s.get('step_description', '') for s in steps],
+        'files':        [{'filename': f.get('filename', ''),
+                           'filepath': f.get('filepath', ''),
+                           'filesize': f.get('filesize', 0)} for f in files],
+    }
+
+
+def _load_pubservices_full():
+    """All services with their requirements/steps/files inlined — one round trip for callers."""
+    services = _load_pubservices()
+    for svc in services:
+        svc.update(_load_pubservice_children(svc['id']))
+    return services
+
+
+def _pubservice_create(svc_dict):
+    row = {
+        'id':                svc_dict['id'],
+        'title':             svc_dict.get('title', ''),
+        'short_description': svc_dict.get('shortDescription', ''),
+        'description':       svc_dict.get('description', ''),
+        'icon_type':         svc_dict.get('iconType', 'preset'),
+        'icon':              svc_dict.get('icon', ''),
+        'banner_image':      svc_dict.get('bannerImage', ''),
+        'processing_time':   svc_dict.get('processingTime', ''),
+        'fee':               svc_dict.get('fee', ''),
+        'office':            svc_dict.get('office', ''),
+        'processing_hours':  svc_dict.get('processingHours', ''),
+        'contact_number':    svc_dict.get('contactNumber', ''),
+        'contact_email':     svc_dict.get('contactEmail', ''),
+        'notes':             svc_dict.get('notes', ''),
+        'status':            svc_dict.get('status', 'draft'),
+        'display_order':     int(svc_dict.get('displayOrder', 0)),
+        'created_by':        svc_dict.get('createdBy', ''),
+        'updated_by':        svc_dict.get('updatedBy', ''),
+        'created_at':        svc_dict.get('createdAt', ''),
+        'updated_at':        svc_dict.get('updatedAt', ''),
+    }
+    res = supabase.table('public_services').insert(row).execute()
+    return _row_to_pubservice(res.data[0]) if res.data else svc_dict
+
+
+def _pubservice_update(service_id, patch_dict):
+    now = datetime.now(timezone.utc).isoformat()
+    row = {'updated_at': now}
+    field_map = {
+        'title': 'title', 'shortDescription': 'short_description',
+        'description': 'description', 'iconType': 'icon_type', 'icon': 'icon',
+        'bannerImage': 'banner_image', 'processingTime': 'processing_time',
+        'fee': 'fee', 'office': 'office', 'processingHours': 'processing_hours',
+        'contactNumber': 'contact_number', 'contactEmail': 'contact_email',
+        'notes': 'notes', 'status': 'status', 'displayOrder': 'display_order',
+        'updatedBy': 'updated_by',
+    }
+    for camel, snake in field_map.items():
+        if camel in patch_dict:
+            row[snake] = patch_dict[camel]
+    res = (supabase.table('public_services')
+           .update(row)
+           .eq('id', service_id)
+           .execute())
+    return _row_to_pubservice(res.data[0]) if res.data else None
+
+
+def _pubservice_delete(service_id):
+    res = supabase.table('public_services').delete().eq('id', service_id).execute()
+    return bool(res.data)
+
+
+def _pubservice_bulk_order(order_map):
+    now = datetime.now(timezone.utc).isoformat()
+    for service_id, order in order_map.items():
+        supabase.table('public_services').update(
+            {'display_order': order, 'updated_at': now}
+        ).eq('id', service_id).execute()
+
+
+def _pubservice_save_requirements(service_id, items):
+    supabase.table('public_service_requirements').delete().eq('service_id', service_id).execute()
+    rows = [{'id': uuid.uuid4().hex, 'service_id': service_id,
+              'requirement': _clean(t, 300), 'display_order': i}
+             for i, t in enumerate(items) if _clean(t, 300)]
+    if rows:
+        supabase.table('public_service_requirements').insert(rows).execute()
+
+
+def _pubservice_save_steps(service_id, items):
+    supabase.table('public_service_steps').delete().eq('service_id', service_id).execute()
+    rows = [{'id': uuid.uuid4().hex, 'service_id': service_id, 'step_number': i + 1,
+              'step_description': _clean(t, 500), 'display_order': i}
+             for i, t in enumerate(items) if _clean(t, 500)]
+    if rows:
+        supabase.table('public_service_steps').insert(rows).execute()
+
+
+def _pubservice_save_files(service_id, items):
+    supabase.table('public_service_files').delete().eq('service_id', service_id).execute()
+    rows = []
+    for i, f in enumerate(items or []):
+        if not isinstance(f, dict):
+            continue
+        filepath = _clean(f.get('filepath'), 500)
+        if not filepath:
+            continue
+        rows.append({
+            'id':            uuid.uuid4().hex,
+            'service_id':    service_id,
+            'filename':      _clean(f.get('filename'), 200),
+            'filepath':      filepath,
+            'filesize':      int(f.get('filesize') or 0),
+            'display_order': i,
+        })
+    if rows:
+        supabase.table('public_service_files').insert(rows).execute()
+
+
 # ── Officials helpers ─────────────────────────────────────────────────────────
 def _row_to_official(row):
     return {
@@ -964,6 +1136,15 @@ def api_forms():
     published.sort(key=lambda x: x.get('updatedAt', ''), reverse=True)
     published.sort(key=_order_key)
     return jsonify({'status': 'ok', 'forms': published})
+
+
+# ── Public services API ───────────────────────────────────────────────────────
+@app.route('/api/public-services')
+def api_public_services():
+    all_svc   = _load_pubservices_full()
+    published = [s for s in all_svc if s.get('status') == 'published']
+    published.sort(key=_order_key)
+    return jsonify({'status': 'ok', 'services': published})
 
 
 # ── Public page clean URLs (no .html required) ───────────────────────────────
@@ -1419,6 +1600,152 @@ def admin_forms_delete(form_id):
     return jsonify({'status': 'ok'})
 
 
+# ── Admin — public services CRUD ──────────────────────────────────────────────
+@app.route('/admin/api/public-services')
+@admin_required
+def admin_pubsvc_list():
+    services = _load_pubservices_full()
+    services.sort(key=_order_key)
+    return jsonify({'status': 'ok', 'services': services})
+
+
+@app.route('/admin/api/public-services', methods=['POST'])
+@admin_required
+def admin_pubsvc_create():
+    d = request.get_json(silent=True) or {}
+    title = _clean(d.get('title'), 200)
+    if not title:
+        return jsonify({'error': 'Service title is required.'}), 400
+    all_svc = _load_pubservices()
+    now = datetime.now(timezone.utc).isoformat()
+    status = d.get('status', 'draft')
+    if status not in ('draft', 'published', 'hidden'):
+        status = 'draft'
+    icon_type = d.get('iconType', 'preset')
+    if icon_type not in ('preset', 'upload'):
+        icon_type = 'preset'
+    min_order = min((s.get('displayOrder', 1) for s in all_svc), default=1)
+    admin_name = _current_admin_name()
+    svc = {
+        'id':               uuid.uuid4().hex,
+        'title':            title,
+        'shortDescription': _clean(d.get('shortDescription'), 500),
+        'description':      _clean(d.get('description'), 10000),
+        'iconType':         icon_type,
+        'icon':             _clean(d.get('icon'), 300),
+        'bannerImage':      _clean(d.get('bannerImage'), 300),
+        'processingTime':   _clean(d.get('processingTime'), 150),
+        'fee':              _clean(d.get('fee'), 150),
+        'office':           _clean(d.get('office'), 200),
+        'processingHours':  _clean(d.get('processingHours'), 150),
+        'contactNumber':    _clean(d.get('contactNumber'), 50),
+        'contactEmail':     _clean(d.get('contactEmail'), 150),
+        'notes':            _clean(d.get('notes'), 3000),
+        'status':           status,
+        'displayOrder':     min_order - 1,
+        'createdBy':        admin_name,
+        'updatedBy':        admin_name,
+        'createdAt':        now,
+        'updatedAt':        now,
+    }
+    svc = _pubservice_create(svc)
+    requirements = d.get('requirements')
+    steps = d.get('steps')
+    files = d.get('files')
+    if isinstance(requirements, list):
+        _pubservice_save_requirements(svc['id'], requirements)
+    if isinstance(steps, list):
+        _pubservice_save_steps(svc['id'], steps)
+    if isinstance(files, list):
+        _pubservice_save_files(svc['id'], files)
+    svc.update(_load_pubservice_children(svc['id']))
+    return jsonify({'status': 'ok', 'service': svc}), 201
+
+
+@app.route('/admin/api/public-services/reorder', methods=['PUT'])
+@admin_required
+def admin_pubsvc_reorder():
+    items = request.get_json(silent=True) or []
+    if not isinstance(items, list):
+        return jsonify({'error': 'Invalid payload'}), 400
+    order_map = {}
+    for item in items:
+        if isinstance(item, dict) and 'id' in item:
+            try:
+                order_map[str(item['id'])] = int(item['displayOrder'])
+            except (ValueError, TypeError, KeyError):
+                pass
+    _pubservice_bulk_order(order_map)
+    return jsonify({'status': 'ok'})
+
+
+@app.route('/admin/api/public-services/<service_id>', methods=['PUT'])
+@admin_required
+def admin_pubsvc_update(service_id):
+    d = request.get_json(silent=True) or {}
+    patch = {}
+    for field, maxlen in [('title', 200), ('shortDescription', 500), ('description', 10000),
+                          ('icon', 300), ('bannerImage', 300), ('processingTime', 150),
+                          ('fee', 150), ('office', 200), ('processingHours', 150),
+                          ('contactNumber', 50), ('contactEmail', 150), ('notes', 3000)]:
+        if field in d:
+            patch[field] = _clean(d[field], maxlen)
+    if 'iconType' in d and d['iconType'] in ('preset', 'upload'):
+        patch['iconType'] = d['iconType']
+    if 'status' in d and d['status'] in ('draft', 'published', 'hidden'):
+        patch['status'] = d['status']
+    if 'displayOrder' in d:
+        patch['displayOrder'] = int(d['displayOrder'])
+    patch['updatedBy'] = _current_admin_name()
+    svc = _pubservice_update(service_id, patch)
+    if not svc:
+        return jsonify({'error': 'Not found'}), 404
+    if 'requirements' in d and isinstance(d['requirements'], list):
+        _pubservice_save_requirements(service_id, d['requirements'])
+    if 'steps' in d and isinstance(d['steps'], list):
+        _pubservice_save_steps(service_id, d['steps'])
+    if 'files' in d and isinstance(d['files'], list):
+        _pubservice_save_files(service_id, d['files'])
+    svc.update(_load_pubservice_children(service_id))
+    return jsonify({'status': 'ok', 'service': svc})
+
+
+@app.route('/admin/api/public-services/<service_id>', methods=['DELETE'])
+@admin_required
+def admin_pubsvc_delete(service_id):
+    if not _pubservice_delete(service_id):
+        return jsonify({'error': 'Not found'}), 404
+    return jsonify({'status': 'ok'})
+
+
+@app.route('/admin/api/public-services/<service_id>/duplicate', methods=['POST'])
+@admin_required
+def admin_pubsvc_duplicate(service_id):
+    src = next((s for s in _load_pubservices() if s['id'] == service_id), None)
+    if not src:
+        return jsonify({'error': 'Not found'}), 404
+    children = _load_pubservice_children(service_id)
+    now = datetime.now(timezone.utc).isoformat()
+    admin_name = _current_admin_name()
+    all_svc = _load_pubservices()
+    min_order = min((s.get('displayOrder', 1) for s in all_svc), default=1)
+    new_svc = dict(src)
+    new_svc['id']          = uuid.uuid4().hex
+    new_svc['title']       = f"{src['title']} (Copy)"
+    new_svc['status']      = 'draft'
+    new_svc['displayOrder'] = min_order - 1
+    new_svc['createdBy']   = admin_name
+    new_svc['updatedBy']   = admin_name
+    new_svc['createdAt']   = now
+    new_svc['updatedAt']   = now
+    new_svc = _pubservice_create(new_svc)
+    _pubservice_save_requirements(new_svc['id'], children['requirements'])
+    _pubservice_save_steps(new_svc['id'], children['steps'])
+    _pubservice_save_files(new_svc['id'], children['files'])
+    new_svc.update(_load_pubservice_children(new_svc['id']))
+    return jsonify({'status': 'ok', 'service': new_svc}), 201
+
+
 # ── Image upload (Supabase Storage) ──────────────────────────────────────────
 ALLOWED_EXT = {'jpg', 'jpeg', 'png', 'webp'}
 MAX_BYTES   = 5 * 1024 * 1024
@@ -1550,6 +1877,75 @@ def admin_upload_form_file():
     original_name = os.path.basename(f.filename)
     try:
         url = _upload_to_storage(data, 'forms', ext)
+    except Exception as exc:
+        return jsonify({'error': f'Upload failed: {exc}'}), 500
+    return jsonify({
+        'status':   'ok',
+        'url':      url,
+        'fileName': original_name,
+        'fileType': ext,
+        'fileSize': len(data),
+    })
+
+
+@app.route('/admin/api/upload/pubservice-icon', methods=['POST'])
+@admin_required
+def admin_upload_pubservice_icon():
+    f = request.files.get('image')
+    if not f or not f.filename:
+        return jsonify({'error': 'No file selected'}), 400
+    ext = f.filename.rsplit('.', 1)[-1].lower() if '.' in f.filename else ''
+    if ext not in ALLOWED_EXT:
+        return jsonify({'error': 'Invalid file type. Use JPG, PNG, or WebP.'}), 400
+    data = f.read(MAX_BYTES + 1)
+    if len(data) > MAX_BYTES:
+        return jsonify({'error': 'File too large (max 5 MB)'}), 400
+    data, ext = _optimize_image(data, ext)
+    try:
+        url = _upload_to_storage(data, 'pubservices', ext)
+    except Exception as exc:
+        return jsonify({'error': f'Upload failed: {exc}'}), 500
+    return jsonify({'status': 'ok', 'url': url})
+
+
+@app.route('/admin/api/upload/pubservice-banner', methods=['POST'])
+@admin_required
+def admin_upload_pubservice_banner():
+    f = request.files.get('image')
+    if not f or not f.filename:
+        return jsonify({'error': 'No file selected'}), 400
+    ext = f.filename.rsplit('.', 1)[-1].lower() if '.' in f.filename else ''
+    if ext not in ALLOWED_EXT:
+        return jsonify({'error': 'Invalid file type. Use JPG, PNG, or WebP.'}), 400
+    data = f.read(MAX_BYTES + 1)
+    if len(data) > MAX_BYTES:
+        return jsonify({'error': 'File too large (max 5 MB)'}), 400
+    data, ext = _optimize_image(data, ext)
+    try:
+        url = _upload_to_storage(data, 'pubservices', ext)
+    except Exception as exc:
+        return jsonify({'error': f'Upload failed: {exc}'}), 500
+    return jsonify({'status': 'ok', 'url': url})
+
+
+@app.route('/admin/api/upload/pubservice-file', methods=['POST'])
+@admin_required
+def admin_upload_pubservice_file():
+    """Upload a downloadable form attached to a public service (PDF, DOC, DOCX). Max 10 MB."""
+    f = request.files.get('file')
+    if not f or not f.filename:
+        return jsonify({'error': 'No file selected'}), 400
+    ext = f.filename.rsplit('.', 1)[-1].lower() if '.' in f.filename else ''
+    allowed = {'pdf', 'doc', 'docx'}
+    if ext not in allowed:
+        return jsonify({'error': 'Invalid file type. Only PDF, DOC, and DOCX are allowed.'}), 400
+    max_bytes = 10 * 1024 * 1024
+    data = f.read(max_bytes + 1)
+    if len(data) > max_bytes:
+        return jsonify({'error': 'File too large (max 10 MB)'}), 400
+    original_name = os.path.basename(f.filename)
+    try:
+        url = _upload_to_storage(data, 'pubservice-files', ext)
     except Exception as exc:
         return jsonify({'error': f'Upload failed: {exc}'}), 500
     return jsonify({
