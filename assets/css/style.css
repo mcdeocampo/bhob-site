@@ -21547,6 +21547,7 @@ body.dir2-modal-lock{overflow:hidden}
 @media (max-width:480px){
   .dir2-item{flex-direction:column}
   .dir2-item-logo{flex:0 0 auto;width:100%;height:120px;border-radius:var(--radius-sm)}
+  .dir2-item-logo-img{object-fit:contain;padding:10px;box-sizing:border-box}
   .dir2-modal-overlay{padding:20px 12px}
   .dir2-modal-cover{height:150px}
 }
