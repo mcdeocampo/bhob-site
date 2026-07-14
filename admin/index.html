@@ -934,6 +934,41 @@ a{text-decoration:none;color:inherit}
           <div class="dash-card-foot">Manage <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div>
         </div>
 
+        <!-- Public Services -->
+        <div class="dash-card" onclick="showSection('pubservices')">
+          <div class="dash-card-top" style="background:linear-gradient(90deg,#0d9488,#2dd4bf)"></div>
+          <div class="dash-card-body">
+            <div class="dash-card-head">
+              <div class="dash-card-icon" style="background:#f0fdfa;color:#0d9488">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              </div>
+              <div>
+                <div class="dash-card-title">Public Services</div>
+                <div class="dash-card-sub">Clearances * Assistance</div>
+              </div>
+            </div>
+            <div class="dash-card-stats">
+              <div class="dash-card-stat">
+                <span class="dash-card-num" id="dash-psvc-total">-</span>
+                <span class="dash-card-lbl">Total</span>
+              </div>
+              <div class="dash-card-stat">
+                <span class="dash-card-num dc-green" id="dash-psvc-pub">-</span>
+                <span class="dash-card-lbl">Published</span>
+              </div>
+              <div class="dash-card-stat">
+                <span class="dash-card-num dc-amber" id="dash-psvc-draft">-</span>
+                <span class="dash-card-lbl">Drafts</span>
+              </div>
+              <div class="dash-card-stat">
+                <span class="dash-card-num dc-muted" id="dash-psvc-hidden">-</span>
+                <span class="dash-card-lbl">Hidden</span>
+              </div>
+            </div>
+          </div>
+          <div class="dash-card-foot">Manage <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div>
+        </div>
+
         <!-- Officials -->
         <div class="dash-card" onclick="showSection('officials')">
           <div class="dash-card-top" style="background:linear-gradient(90deg,#0891b2,#22d3ee)"></div>
@@ -2306,6 +2341,11 @@ function updateDashCards() {
   $('dash-forms-pub').textContent   = frm.filter(x=>x.status==='published').length;
   $('dash-forms-hint').textContent  = frm.length + ' Forms Total';
   $('dash-officials-total').textContent = (SO.officials || []).length;
+  const psvc = SPS.services || [];
+  $('dash-psvc-total').textContent  = psvc.length;
+  $('dash-psvc-pub').textContent    = psvc.filter(x=>x.status==='published').length;
+  $('dash-psvc-draft').textContent  = psvc.filter(x=>x.status==='draft').length;
+  $('dash-psvc-hidden').textContent = psvc.filter(x=>x.status==='hidden').length;
   const now = new Date(); const limit = new Date(now); limit.setDate(limit.getDate()+30);
   $('dash-cal-upcoming').textContent = (SC.activities || []).filter(a => {
     if (!a.date) return false;
