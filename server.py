@@ -1150,7 +1150,7 @@ def api_public_services():
 # ── Public page clean URLs (no .html required) ───────────────────────────────
 _PUBLIC_PAGES = [
     'about', 'officials', 'announcements',
-    'transparency', 'downloads', 'contact',
+    'transparency', 'downloads', 'contact', 'directory',
 ]
 
 _PAGE_ALIASES = {
@@ -2953,6 +2953,1002 @@ def _ensure_initial_settings():
             _upsert_site_settings(to_seed)
     except Exception as exc:
         print(f'[BHOB] WARNING: Could not seed initial settings: {exc}', flush=True)
+
+# ── Directory Module ──────────────────────────────────────────────────────────
+# Community Map / Business Directory / Organization Directory / Emergency
+# Directory — mirrors the existing community-initiatives / officials / forms
+# pattern exactly: _row_to_X converters, _X_create/_update/_delete helpers, a
+# public read-only endpoint filtered to status='published', and an
+# @admin_required CRUD endpoint set.
+
+# Directory categories (all 4 modules) are not hardcoded Python lists — they
+# live in directory_category_groups / directory_subcategories (Category
+# Management, admin panel), scoped per module. See the helpers below.
+
+# Maps a module key to the directory table that stores items tagged with its
+# categories — used only for the "still in use, deactivate instead" delete
+# check. Adding a brand-new module's own directory table is inherently a code
+# change (new table + routes); the category system itself imposes no fixed
+# list of module keys, so an admin can create categories for a module that
+# doesn't have a table yet without touching this file.
+DIR_CATEGORY_MODULE_TABLE = {
+    'business': 'directory_businesses',
+    'map': 'directory_map_locations',
+    'organization': 'directory_organizations',
+    'emergency': 'directory_emergency',
+}
+
+
+# ── Category Management (all 4 Directory modules) ────────────────────────────
+def _load_category_groups(module=None):
+    try:
+        q = supabase.table('directory_category_groups').select('*')
+        if module:
+            q = q.eq('module', module)
+        res = q.execute()
+        return res.data or []
+    except Exception:
+        return []
+
+
+def _load_subcategories(module=None):
+    try:
+        q = supabase.table('directory_subcategories').select('*')
+        if module:
+            q = q.eq('module', module)
+        res = q.execute()
+        return res.data or []
+    except Exception:
+        return []
+
+
+def _row_to_category_group(g):
+    return {
+        'id': g['id'], 'module': g.get('module', ''), 'name': g.get('name', ''), 'icon': g.get('icon', ''),
+        'color': g.get('color', 'blue'), 'displayOrder': g.get('display_order', 0),
+        'active': g.get('active', True),
+    }
+
+
+def _row_to_subcategory(s):
+    return {
+        'id': s['id'], 'module': s.get('module', ''), 'groupId': s.get('group_id', ''), 'name': s.get('name', ''),
+        'description': s.get('description', ''), 'displayOrder': s.get('display_order', 0),
+        'active': s.get('active', True),
+    }
+
+
+def _category_groups_with_subs(module, active_only):
+    groups = _load_category_groups(module)
+    subs = _load_subcategories(module)
+    if active_only:
+        groups = [g for g in groups if g.get('active', True)]
+        subs = [s for s in subs if s.get('active', True)]
+    groups.sort(key=lambda g: g.get('display_order', 0))
+    subs.sort(key=lambda s: s.get('display_order', 0))
+    out = []
+    for g in groups:
+        gsubs = [_row_to_subcategory(s) for s in subs if s.get('group_id') == g['id']]
+        row = _row_to_category_group(g)
+        row['subcategories'] = gsubs
+        out.append(row)
+    return out
+
+
+def _all_modules_categories(active_only):
+    # Discovers modules dynamically from the data itself (not a hardcoded
+    # list), so a module created purely through the admin API shows up here
+    # with no code change.
+    modules = sorted(set(g.get('module', '') for g in _load_category_groups() if g.get('module')))
+    return {m: _category_groups_with_subs(m, active_only) for m in modules}
+
+
+def _active_category_names(module):
+    return set(s.get('name', '') for s in _load_subcategories(module) if s.get('active', True))
+
+
+def _default_category(module, active_names):
+    if module == 'business' and 'General Services' in active_names:
+        return 'General Services'
+    return sorted(active_names)[0] if active_names else ''
+
+
+def _to_float(v):
+    try:
+        return float(v)
+    except (TypeError, ValueError):
+        return None
+
+
+# ── Community Map helpers ─────────────────────────────────────────────────────
+def _row_to_dirmap(row):
+    return {
+        'id': row['id'], 'name': row.get('name', ''), 'category': row.get('category', ''),
+        'description': row.get('description', ''), 'address': row.get('address', ''),
+        'contact': row.get('contact', ''), 'hours': row.get('hours', ''),
+        'imageUrl': row.get('image_url', ''),
+        'lat': row.get('lat'), 'lng': row.get('lng'),
+        'status': row.get('status', 'draft'),
+        'featured': row.get('featured', False), 'verified': row.get('verified', False),
+        'website': row.get('website', ''), 'email': row.get('email', ''),
+        'facebook': row.get('facebook', ''), 'keywords': row.get('keywords', ''),
+        'gallery': row.get('gallery') or [],
+        'hoursOpen': row.get('hours_open', ''), 'hoursClose': row.get('hours_close', ''),
+        'hoursIs24h': row.get('hours_is_24h', False),
+        'createdAt': row.get('created_at', ''), 'updatedAt': row.get('updated_at', ''),
+    }
+
+
+def _load_dirmap():
+    try:
+        res = supabase.table('directory_map_locations').select('*').execute()
+        return [_row_to_dirmap(r) for r in (res.data or [])]
+    except Exception:
+        return []
+
+
+def _dirmap_create(d):
+    row = {
+        'id': d['id'], 'name': d.get('name', ''), 'category': d.get('category', ''),
+        'description': d.get('description', ''), 'address': d.get('address', ''),
+        'contact': d.get('contact', ''), 'hours': d.get('hours', ''),
+        'image_url': d.get('imageUrl', ''),
+        'lat': d.get('lat'), 'lng': d.get('lng'), 'status': d.get('status', 'draft'),
+        'featured': d.get('featured', False), 'verified': d.get('verified', False),
+        'website': d.get('website', ''), 'email': d.get('email', ''),
+        'facebook': d.get('facebook', ''), 'keywords': d.get('keywords', ''),
+        'gallery': d.get('gallery') or [],
+        'hours_open': d.get('hoursOpen', ''), 'hours_close': d.get('hoursClose', ''),
+        'hours_is_24h': d.get('hoursIs24h', False),
+        'created_at': d.get('createdAt', ''), 'updated_at': d.get('updatedAt', ''),
+    }
+    res = supabase.table('directory_map_locations').insert(row).execute()
+    return _row_to_dirmap(res.data[0]) if res.data else d
+
+
+def _dirmap_update(item_id, patch):
+    now = datetime.now(timezone.utc).isoformat()
+    row = {'updated_at': now}
+    for camel, snake in [('name', 'name'), ('category', 'category'), ('description', 'description'),
+                         ('address', 'address'), ('contact', 'contact'), ('hours', 'hours'),
+                         ('imageUrl', 'image_url'), ('lat', 'lat'), ('lng', 'lng'), ('status', 'status'),
+                         ('featured', 'featured'), ('verified', 'verified'),
+                         ('website', 'website'), ('email', 'email'), ('facebook', 'facebook'),
+                         ('keywords', 'keywords'), ('gallery', 'gallery'),
+                         ('hoursOpen', 'hours_open'), ('hoursClose', 'hours_close'), ('hoursIs24h', 'hours_is_24h')]:
+        if camel in patch:
+            row[snake] = patch[camel]
+    res = supabase.table('directory_map_locations').update(row).eq('id', item_id).execute()
+    return _row_to_dirmap(res.data[0]) if res.data else None
+
+
+def _dirmap_delete(item_id):
+    res = supabase.table('directory_map_locations').delete().eq('id', item_id).execute()
+    return bool(res.data)
+
+
+# ── Business Directory helpers ────────────────────────────────────────────────
+def _row_to_dirbiz(row):
+    return {
+        'id': row['id'], 'name': row.get('name', ''), 'category': row.get('category', ''),
+        'description': row.get('description', ''), 'address': row.get('address', ''),
+        'contact': row.get('contact', ''), 'hours': row.get('hours', ''),
+        'imageUrl': row.get('image_url', ''), 'social': row.get('social_link', ''),
+        'lat': row.get('lat'), 'lng': row.get('lng'),
+        'status': row.get('status', 'draft'),
+        'featured': row.get('featured', False), 'verified': row.get('verified', False),
+        'website': row.get('website', ''), 'email': row.get('email', ''),
+        'keywords': row.get('keywords', ''), 'gallery': row.get('gallery') or [],
+        'hoursOpen': row.get('hours_open', ''), 'hoursClose': row.get('hours_close', ''),
+        'hoursIs24h': row.get('hours_is_24h', False),
+        'createdAt': row.get('created_at', ''), 'updatedAt': row.get('updated_at', ''),
+    }
+
+
+def _load_dirbiz():
+    try:
+        res = supabase.table('directory_businesses').select('*').execute()
+        return [_row_to_dirbiz(r) for r in (res.data or [])]
+    except Exception:
+        return []
+
+
+def _dirbiz_create(d):
+    row = {
+        'id': d['id'], 'name': d.get('name', ''), 'category': d.get('category', ''),
+        'description': d.get('description', ''), 'address': d.get('address', ''),
+        'contact': d.get('contact', ''), 'hours': d.get('hours', ''),
+        'image_url': d.get('imageUrl', ''), 'social_link': d.get('social', ''),
+        'lat': d.get('lat'), 'lng': d.get('lng'), 'status': d.get('status', 'draft'),
+        'featured': d.get('featured', False), 'verified': d.get('verified', False),
+        'website': d.get('website', ''), 'email': d.get('email', ''),
+        'keywords': d.get('keywords', ''), 'gallery': d.get('gallery') or [],
+        'hours_open': d.get('hoursOpen', ''), 'hours_close': d.get('hoursClose', ''),
+        'hours_is_24h': d.get('hoursIs24h', False),
+        'created_at': d.get('createdAt', ''), 'updated_at': d.get('updatedAt', ''),
+    }
+    res = supabase.table('directory_businesses').insert(row).execute()
+    return _row_to_dirbiz(res.data[0]) if res.data else d
+
+
+def _dirbiz_update(item_id, patch):
+    now = datetime.now(timezone.utc).isoformat()
+    row = {'updated_at': now}
+    field_map = {'name': 'name', 'category': 'category', 'description': 'description',
+                 'address': 'address', 'contact': 'contact', 'hours': 'hours',
+                 'imageUrl': 'image_url', 'social': 'social_link',
+                 'lat': 'lat', 'lng': 'lng', 'status': 'status',
+                 'featured': 'featured', 'verified': 'verified',
+                 'website': 'website', 'email': 'email', 'keywords': 'keywords', 'gallery': 'gallery',
+                 'hoursOpen': 'hours_open', 'hoursClose': 'hours_close', 'hoursIs24h': 'hours_is_24h'}
+    for camel, snake in field_map.items():
+        if camel in patch:
+            row[snake] = patch[camel]
+    res = supabase.table('directory_businesses').update(row).eq('id', item_id).execute()
+    return _row_to_dirbiz(res.data[0]) if res.data else None
+
+
+def _dirbiz_delete(item_id):
+    res = supabase.table('directory_businesses').delete().eq('id', item_id).execute()
+    return bool(res.data)
+
+
+# ── Organization Directory helpers ────────────────────────────────────────────
+def _row_to_dirorg(row):
+    return {
+        'id': row['id'], 'name': row.get('name', ''), 'category': row.get('category', ''),
+        'description': row.get('description', ''), 'contactPerson': row.get('contact_person', ''),
+        'officers': row.get('officers') or [], 'contactDetails': row.get('contact_details', ''),
+        'programs': row.get('programs', ''), 'location': row.get('location', ''),
+        'imageUrl': row.get('image_url', ''),
+        'lat': row.get('lat'), 'lng': row.get('lng'),
+        'status': row.get('status', 'draft'),
+        'featured': row.get('featured', False), 'verified': row.get('verified', False),
+        'website': row.get('website', ''), 'email': row.get('email', ''),
+        'facebook': row.get('facebook', ''), 'keywords': row.get('keywords', ''),
+        'gallery': row.get('gallery') or [],
+        'createdAt': row.get('created_at', ''), 'updatedAt': row.get('updated_at', ''),
+    }
+
+
+def _load_dirorg():
+    try:
+        res = supabase.table('directory_organizations').select('*').execute()
+        return [_row_to_dirorg(r) for r in (res.data or [])]
+    except Exception:
+        return []
+
+
+def _dirorg_create(d):
+    row = {
+        'id': d['id'], 'name': d.get('name', ''), 'category': d.get('category', ''),
+        'description': d.get('description', ''), 'contact_person': d.get('contactPerson', ''),
+        'officers': d.get('officers') or [], 'contact_details': d.get('contactDetails', ''),
+        'programs': d.get('programs', ''), 'location': d.get('location', ''),
+        'image_url': d.get('imageUrl', ''),
+        'lat': d.get('lat'), 'lng': d.get('lng'), 'status': d.get('status', 'draft'),
+        'featured': d.get('featured', False), 'verified': d.get('verified', False),
+        'website': d.get('website', ''), 'email': d.get('email', ''),
+        'facebook': d.get('facebook', ''), 'keywords': d.get('keywords', ''),
+        'gallery': d.get('gallery') or [],
+        'created_at': d.get('createdAt', ''), 'updated_at': d.get('updatedAt', ''),
+    }
+    res = supabase.table('directory_organizations').insert(row).execute()
+    return _row_to_dirorg(res.data[0]) if res.data else d
+
+
+def _dirorg_update(item_id, patch):
+    now = datetime.now(timezone.utc).isoformat()
+    row = {'updated_at': now}
+    field_map = {'name': 'name', 'category': 'category', 'description': 'description',
+                 'contactPerson': 'contact_person', 'officers': 'officers',
+                 'contactDetails': 'contact_details', 'programs': 'programs', 'location': 'location',
+                 'imageUrl': 'image_url', 'lat': 'lat', 'lng': 'lng', 'status': 'status',
+                 'featured': 'featured', 'verified': 'verified',
+                 'website': 'website', 'email': 'email', 'facebook': 'facebook',
+                 'keywords': 'keywords', 'gallery': 'gallery'}
+    for camel, snake in field_map.items():
+        if camel in patch:
+            row[snake] = patch[camel]
+    res = supabase.table('directory_organizations').update(row).eq('id', item_id).execute()
+    return _row_to_dirorg(res.data[0]) if res.data else None
+
+
+def _dirorg_delete(item_id):
+    res = supabase.table('directory_organizations').delete().eq('id', item_id).execute()
+    return bool(res.data)
+
+
+# ── Emergency Directory helpers ───────────────────────────────────────────────
+def _row_to_direm(row):
+    return {
+        'id': row['id'], 'name': row.get('name', ''), 'category': row.get('category', ''),
+        'number': row.get('number', ''), 'altNumber': row.get('alt_number', ''),
+        'address': row.get('address', ''), 'services': row.get('services', ''),
+        'imageUrl': row.get('image_url', ''),
+        'lat': row.get('lat'), 'lng': row.get('lng'),
+        'status': row.get('status', 'draft'),
+        'featured': row.get('featured', False), 'verified': row.get('verified', False),
+        'website': row.get('website', ''), 'email': row.get('email', ''),
+        'facebook': row.get('facebook', ''), 'keywords': row.get('keywords', ''),
+        'gallery': row.get('gallery') or [],
+        'createdAt': row.get('created_at', ''), 'updatedAt': row.get('updated_at', ''),
+    }
+
+
+def _load_direm():
+    try:
+        res = supabase.table('directory_emergency').select('*').execute()
+        return [_row_to_direm(r) for r in (res.data or [])]
+    except Exception:
+        return []
+
+
+def _direm_create(d):
+    row = {
+        'id': d['id'], 'name': d.get('name', ''), 'category': d.get('category', ''),
+        'number': d.get('number', ''), 'alt_number': d.get('altNumber', ''),
+        'address': d.get('address', ''), 'services': d.get('services', ''),
+        'image_url': d.get('imageUrl', ''),
+        'lat': d.get('lat'), 'lng': d.get('lng'), 'status': d.get('status', 'draft'),
+        'featured': d.get('featured', False), 'verified': d.get('verified', False),
+        'website': d.get('website', ''), 'email': d.get('email', ''),
+        'facebook': d.get('facebook', ''), 'keywords': d.get('keywords', ''),
+        'gallery': d.get('gallery') or [],
+        'created_at': d.get('createdAt', ''), 'updated_at': d.get('updatedAt', ''),
+    }
+    res = supabase.table('directory_emergency').insert(row).execute()
+    return _row_to_direm(res.data[0]) if res.data else d
+
+
+def _direm_update(item_id, patch):
+    now = datetime.now(timezone.utc).isoformat()
+    row = {'updated_at': now}
+    field_map = {'name': 'name', 'category': 'category', 'number': 'number',
+                 'altNumber': 'alt_number', 'address': 'address', 'services': 'services',
+                 'imageUrl': 'image_url', 'lat': 'lat', 'lng': 'lng', 'status': 'status',
+                 'featured': 'featured', 'verified': 'verified',
+                 'website': 'website', 'email': 'email', 'facebook': 'facebook',
+                 'keywords': 'keywords', 'gallery': 'gallery'}
+    for camel, snake in field_map.items():
+        if camel in patch:
+            row[snake] = patch[camel]
+    res = supabase.table('directory_emergency').update(row).eq('id', item_id).execute()
+    return _row_to_direm(res.data[0]) if res.data else None
+
+
+def _direm_delete(item_id):
+    res = supabase.table('directory_emergency').delete().eq('id', item_id).execute()
+    return bool(res.data)
+
+
+# ── Directory — public read-only endpoints (published only) ──────────────────
+@app.route('/api/directory/map')
+def api_dir_map():
+    items = [x for x in _load_dirmap() if x.get('status') == 'published']
+    items.sort(key=lambda x: x.get('name', ''))
+    return jsonify({'status': 'ok', 'locations': items})
+
+
+@app.route('/api/directory/businesses')
+def api_dir_businesses():
+    items = [x for x in _load_dirbiz() if x.get('status') == 'published']
+    items.sort(key=lambda x: x.get('name', ''))
+    return jsonify({'status': 'ok', 'businesses': items})
+
+
+@app.route('/api/directory/organizations')
+def api_dir_organizations():
+    items = [x for x in _load_dirorg() if x.get('status') == 'published']
+    items.sort(key=lambda x: x.get('name', ''))
+    return jsonify({'status': 'ok', 'organizations': items})
+
+
+@app.route('/api/directory/emergency')
+def api_dir_emergency():
+    items = [x for x in _load_direm() if x.get('status') == 'published']
+    items.sort(key=lambda x: x.get('name', ''))
+    return jsonify({'status': 'ok', 'contacts': items})
+
+
+@app.route('/api/directory/categories')
+def api_directory_categories():
+    return jsonify({'status': 'ok', 'modules': _all_modules_categories(active_only=True)})
+
+
+# ── Directory — admin CRUD: Category Management (all 4 modules) ──────────────
+@app.route('/admin/api/directory/categories')
+@admin_required
+def admin_directory_categories():
+    return jsonify({'status': 'ok', 'modules': _all_modules_categories(active_only=False)})
+
+
+@app.route('/admin/api/directory/categories/groups', methods=['POST'])
+@admin_required
+def admin_category_group_create():
+    d = request.get_json(silent=True) or {}
+    name = _clean(d.get('name'), 60)
+    module = _clean(d.get('module'), 40)
+    if not name:
+        return jsonify({'error': 'Category name is required'}), 400
+    if not module:
+        return jsonify({'error': 'Module is required'}), 400
+    row = {
+        'id': uuid.uuid4().hex, 'module': module, 'name': name, 'icon': _clean(d.get('icon'), 8),
+        'color': d.get('color') if d.get('color') in ('blue', 'teal', 'gold', 'red') else 'blue',
+        'display_order': int(d.get('displayOrder') or 0), 'active': bool(d.get('active', True)),
+    }
+    try:
+        res = supabase.table('directory_category_groups').insert(row).execute()
+    except Exception as exc:
+        return jsonify({'error': f'Could not create category (name may already exist in this module): {exc}'}), 400
+    return jsonify({'status': 'ok', 'group': _row_to_category_group(res.data[0])}), 201
+
+
+@app.route('/admin/api/directory/categories/groups/<group_id>', methods=['PUT'])
+@admin_required
+def admin_category_group_update(group_id):
+    d = request.get_json(silent=True) or {}
+    patch = {}
+    if 'name' in d:
+        name = _clean(d['name'], 60)
+        if not name:
+            return jsonify({'error': 'Category name is required'}), 400
+        patch['name'] = name
+    if 'icon' in d:
+        patch['icon'] = _clean(d['icon'], 8)
+    if 'color' in d and d['color'] in ('blue', 'teal', 'gold', 'red'):
+        patch['color'] = d['color']
+    if 'displayOrder' in d:
+        patch['display_order'] = int(d['displayOrder'] or 0)
+    if 'active' in d:
+        patch['active'] = bool(d['active'])
+    try:
+        res = supabase.table('directory_category_groups').update(patch).eq('id', group_id).execute()
+    except Exception as exc:
+        return jsonify({'error': f'Could not update category: {exc}'}), 400
+    if not res.data:
+        return jsonify({'error': 'Not found'}), 404
+    return jsonify({'status': 'ok', 'group': _row_to_category_group(res.data[0])})
+
+
+@app.route('/admin/api/directory/categories/groups/<group_id>', methods=['DELETE'])
+@admin_required
+def admin_category_group_delete(group_id):
+    subs = supabase.table('directory_subcategories').select('id').eq('group_id', group_id).execute()
+    if subs.data:
+        return jsonify({'error': 'This category still has subcategories — deactivate it instead of deleting.'}), 400
+    res = supabase.table('directory_category_groups').delete().eq('id', group_id).execute()
+    if not res.data:
+        return jsonify({'error': 'Not found'}), 404
+    return jsonify({'status': 'ok'})
+
+
+@app.route('/admin/api/directory/categories/subcategories', methods=['POST'])
+@admin_required
+def admin_subcategory_create():
+    d = request.get_json(silent=True) or {}
+    name = _clean(d.get('name'), 80)
+    group_id = d.get('groupId')
+    if not name:
+        return jsonify({'error': 'Subcategory name is required'}), 400
+    groups_by_id = {g['id']: g for g in _load_category_groups()}
+    if group_id not in groups_by_id:
+        return jsonify({'error': 'Invalid category group'}), 400
+    row = {
+        # module is always derived from the parent group, never trusted from
+        # the client, so a subcategory can never end up in a different
+        # module than the group it lives under.
+        'id': uuid.uuid4().hex, 'module': groups_by_id[group_id]['module'], 'group_id': group_id, 'name': name,
+        'description': _clean(d.get('description'), 300),
+        'display_order': int(d.get('displayOrder') or 0), 'active': bool(d.get('active', True)),
+    }
+    try:
+        res = supabase.table('directory_subcategories').insert(row).execute()
+    except Exception as exc:
+        return jsonify({'error': f'Could not create subcategory (name may already exist in this module): {exc}'}), 400
+    return jsonify({'status': 'ok', 'subcategory': _row_to_subcategory(res.data[0])}), 201
+
+
+@app.route('/admin/api/directory/categories/subcategories/<sub_id>', methods=['PUT'])
+@admin_required
+def admin_subcategory_update(sub_id):
+    d = request.get_json(silent=True) or {}
+    patch = {}
+    if 'name' in d:
+        name = _clean(d['name'], 80)
+        if not name:
+            return jsonify({'error': 'Subcategory name is required'}), 400
+        patch['name'] = name
+    if 'description' in d:
+        patch['description'] = _clean(d['description'], 300)
+    if 'groupId' in d:
+        groups_by_id = {g['id']: g for g in _load_category_groups()}
+        if d['groupId'] not in groups_by_id:
+            return jsonify({'error': 'Invalid category group'}), 400
+        patch['group_id'] = d['groupId']
+        patch['module'] = groups_by_id[d['groupId']]['module']
+    if 'displayOrder' in d:
+        patch['display_order'] = int(d['displayOrder'] or 0)
+    if 'active' in d:
+        patch['active'] = bool(d['active'])
+    try:
+        res = supabase.table('directory_subcategories').update(patch).eq('id', sub_id).execute()
+    except Exception as exc:
+        return jsonify({'error': f'Could not update subcategory: {exc}'}), 400
+    if not res.data:
+        return jsonify({'error': 'Not found'}), 404
+    return jsonify({'status': 'ok', 'subcategory': _row_to_subcategory(res.data[0])})
+
+
+@app.route('/admin/api/directory/categories/subcategories/<sub_id>', methods=['DELETE'])
+@admin_required
+def admin_subcategory_delete(sub_id):
+    sub = supabase.table('directory_subcategories').select('name,module').eq('id', sub_id).execute()
+    if not sub.data:
+        return jsonify({'error': 'Not found'}), 404
+    table = DIR_CATEGORY_MODULE_TABLE.get(sub.data[0].get('module'))
+    if table:
+        in_use = supabase.table(table).select('id').eq('category', sub.data[0]['name']).limit(1).execute()
+        if in_use.data:
+            return jsonify({'error': 'Still in use by existing entries — deactivate it instead of deleting.'}), 400
+    supabase.table('directory_subcategories').delete().eq('id', sub_id).execute()
+    return jsonify({'status': 'ok'})
+
+
+# ── Directory — admin CRUD: Community Map ─────────────────────────────────────
+@app.route('/admin/api/directory/map')
+@admin_required
+def admin_dirmap_list():
+    items = _load_dirmap()
+    items.sort(key=lambda x: x.get('name', ''))
+    return jsonify({'status': 'ok', 'locations': items})
+
+
+@app.route('/admin/api/directory/map', methods=['POST'])
+@admin_required
+def admin_dirmap_create():
+    d = request.get_json(silent=True) or {}
+    now = datetime.now(timezone.utc).isoformat()
+    status = d.get('status', 'draft')
+    if status not in ('draft', 'published', 'hidden'):
+        status = 'draft'
+    active_names = _active_category_names('map')
+    category = d.get('category') if d.get('category') in active_names else _default_category('map', active_names)
+    gallery = d.get('gallery') or []
+    if not isinstance(gallery, list):
+        gallery = []
+    gallery = [_clean(g, 500) for g in gallery if _clean(g, 500)]
+    item = {
+        'id': uuid.uuid4().hex, 'name': _clean(d.get('name'), 150), 'category': category,
+        'description': _clean(d.get('description'), 1000), 'address': _clean(d.get('address'), 300),
+        'contact': _clean(d.get('contact'), 100), 'hours': _clean(d.get('hours'), 150),
+        'imageUrl': _clean(d.get('imageUrl'), 300),
+        'lat': _to_float(d.get('lat')), 'lng': _to_float(d.get('lng')), 'status': status,
+        'featured': bool(d.get('featured')), 'verified': bool(d.get('verified')),
+        'website': _clean(d.get('website'), 300), 'email': _clean(d.get('email'), 200),
+        'facebook': _clean(d.get('facebook'), 300), 'keywords': _clean(d.get('keywords'), 300),
+        'gallery': gallery,
+        'hoursOpen': _clean(d.get('hoursOpen'), 20), 'hoursClose': _clean(d.get('hoursClose'), 20),
+        'hoursIs24h': bool(d.get('hoursIs24h')),
+        'createdAt': now, 'updatedAt': now,
+    }
+    item = _dirmap_create(item)
+    return jsonify({'status': 'ok', 'location': item}), 201
+
+
+@app.route('/admin/api/directory/map/<item_id>', methods=['PUT'])
+@admin_required
+def admin_dirmap_update(item_id):
+    d = request.get_json(silent=True) or {}
+    patch = {}
+    for field, maxlen in [('name', 150), ('description', 1000), ('address', 300),
+                          ('contact', 100), ('hours', 150), ('imageUrl', 300),
+                          ('website', 300), ('email', 200), ('facebook', 300), ('keywords', 300),
+                          ('hoursOpen', 20), ('hoursClose', 20)]:
+        if field in d:
+            patch[field] = _clean(d[field], maxlen)
+    if 'category' in d and d['category'] in _active_category_names('map'):
+        patch['category'] = d['category']
+    if 'lat' in d:
+        patch['lat'] = _to_float(d['lat'])
+    if 'lng' in d:
+        patch['lng'] = _to_float(d['lng'])
+    if 'status' in d and d['status'] in ('draft', 'published', 'hidden'):
+        patch['status'] = d['status']
+    if 'featured' in d:
+        patch['featured'] = bool(d['featured'])
+    if 'verified' in d:
+        patch['verified'] = bool(d['verified'])
+    if 'hoursIs24h' in d:
+        patch['hoursIs24h'] = bool(d['hoursIs24h'])
+    if 'gallery' in d:
+        gallery = d['gallery'] if isinstance(d['gallery'], list) else []
+        patch['gallery'] = [_clean(g, 500) for g in gallery if _clean(g, 500)]
+    item = _dirmap_update(item_id, patch)
+    if not item:
+        return jsonify({'error': 'Not found'}), 404
+    return jsonify({'status': 'ok', 'location': item})
+
+
+@app.route('/admin/api/directory/map/<item_id>', methods=['DELETE'])
+@admin_required
+def admin_dirmap_delete(item_id):
+    if not _dirmap_delete(item_id):
+        return jsonify({'error': 'Not found'}), 404
+    return jsonify({'status': 'ok'})
+
+
+# ── Directory — admin CRUD: Business Directory ───────────────────────────────
+@app.route('/admin/api/directory/businesses')
+@admin_required
+def admin_dirbiz_list():
+    items = _load_dirbiz()
+    items.sort(key=lambda x: x.get('name', ''))
+    return jsonify({'status': 'ok', 'businesses': items})
+
+
+@app.route('/admin/api/directory/businesses', methods=['POST'])
+@admin_required
+def admin_dirbiz_create():
+    d = request.get_json(silent=True) or {}
+    now = datetime.now(timezone.utc).isoformat()
+    status = d.get('status', 'draft')
+    if status not in ('draft', 'published', 'hidden'):
+        status = 'draft'
+    active_names = _active_category_names('business')
+    category = d.get('category') if d.get('category') in active_names else _default_category('business', active_names)
+    gallery = d.get('gallery') or []
+    if not isinstance(gallery, list):
+        gallery = []
+    gallery = [_clean(g, 500) for g in gallery if _clean(g, 500)]
+    item = {
+        'id': uuid.uuid4().hex, 'name': _clean(d.get('name'), 150), 'category': category,
+        'description': _clean(d.get('description'), 1000), 'address': _clean(d.get('address'), 300),
+        'contact': _clean(d.get('contact'), 100), 'hours': _clean(d.get('hours'), 150),
+        'imageUrl': _clean(d.get('imageUrl'), 300), 'social': _clean(d.get('social'), 300),
+        'lat': _to_float(d.get('lat')), 'lng': _to_float(d.get('lng')), 'status': status,
+        'featured': bool(d.get('featured')), 'verified': bool(d.get('verified')),
+        'website': _clean(d.get('website'), 300), 'email': _clean(d.get('email'), 200),
+        'keywords': _clean(d.get('keywords'), 300), 'gallery': gallery,
+        'hoursOpen': _clean(d.get('hoursOpen'), 20), 'hoursClose': _clean(d.get('hoursClose'), 20),
+        'hoursIs24h': bool(d.get('hoursIs24h')),
+        'createdAt': now, 'updatedAt': now,
+    }
+    item = _dirbiz_create(item)
+    return jsonify({'status': 'ok', 'business': item}), 201
+
+
+@app.route('/admin/api/directory/businesses/<item_id>', methods=['PUT'])
+@admin_required
+def admin_dirbiz_update(item_id):
+    d = request.get_json(silent=True) or {}
+    patch = {}
+    for field, maxlen in [('name', 150), ('description', 1000), ('address', 300),
+                          ('contact', 100), ('hours', 150), ('imageUrl', 300), ('social', 300),
+                          ('website', 300), ('email', 200), ('keywords', 300),
+                          ('hoursOpen', 20), ('hoursClose', 20)]:
+        if field in d:
+            patch[field] = _clean(d[field], maxlen)
+    if 'category' in d and d['category'] in _active_category_names('business'):
+        patch['category'] = d['category']
+    if 'lat' in d:
+        patch['lat'] = _to_float(d['lat'])
+    if 'lng' in d:
+        patch['lng'] = _to_float(d['lng'])
+    if 'status' in d and d['status'] in ('draft', 'published', 'hidden'):
+        patch['status'] = d['status']
+    if 'featured' in d:
+        patch['featured'] = bool(d['featured'])
+    if 'verified' in d:
+        patch['verified'] = bool(d['verified'])
+    if 'hoursIs24h' in d:
+        patch['hoursIs24h'] = bool(d['hoursIs24h'])
+    if 'gallery' in d:
+        gallery = d['gallery'] if isinstance(d['gallery'], list) else []
+        patch['gallery'] = [_clean(g, 500) for g in gallery if _clean(g, 500)]
+    item = _dirbiz_update(item_id, patch)
+    if not item:
+        return jsonify({'error': 'Not found'}), 404
+    return jsonify({'status': 'ok', 'business': item})
+
+
+@app.route('/admin/api/directory/businesses/<item_id>', methods=['DELETE'])
+@admin_required
+def admin_dirbiz_delete(item_id):
+    if not _dirbiz_delete(item_id):
+        return jsonify({'error': 'Not found'}), 404
+    return jsonify({'status': 'ok'})
+
+
+# ── Directory — admin CRUD: Organization Directory ────────────────────────────
+@app.route('/admin/api/directory/organizations')
+@admin_required
+def admin_dirorg_list():
+    items = _load_dirorg()
+    items.sort(key=lambda x: x.get('name', ''))
+    return jsonify({'status': 'ok', 'organizations': items})
+
+
+@app.route('/admin/api/directory/organizations', methods=['POST'])
+@admin_required
+def admin_dirorg_create():
+    d = request.get_json(silent=True) or {}
+    now = datetime.now(timezone.utc).isoformat()
+    status = d.get('status', 'draft')
+    if status not in ('draft', 'published', 'hidden'):
+        status = 'draft'
+    active_names = _active_category_names('organization')
+    category = d.get('category') if d.get('category') in active_names else _default_category('organization', active_names)
+    officers = d.get('officers') or []
+    if not isinstance(officers, list):
+        officers = []
+    officers = [_clean(o, 150) for o in officers if _clean(o, 150)]
+    gallery = d.get('gallery') or []
+    if not isinstance(gallery, list):
+        gallery = []
+    gallery = [_clean(g, 500) for g in gallery if _clean(g, 500)]
+    item = {
+        'id': uuid.uuid4().hex, 'name': _clean(d.get('name'), 150), 'category': category,
+        'description': _clean(d.get('description'), 1000), 'contactPerson': _clean(d.get('contactPerson'), 150),
+        'officers': officers, 'contactDetails': _clean(d.get('contactDetails'), 150),
+        'programs': _clean(d.get('programs'), 1000), 'location': _clean(d.get('location'), 300),
+        'imageUrl': _clean(d.get('imageUrl'), 300),
+        'lat': _to_float(d.get('lat')), 'lng': _to_float(d.get('lng')), 'status': status,
+        'featured': bool(d.get('featured')), 'verified': bool(d.get('verified')),
+        'website': _clean(d.get('website'), 300), 'email': _clean(d.get('email'), 200),
+        'facebook': _clean(d.get('facebook'), 300), 'keywords': _clean(d.get('keywords'), 300),
+        'gallery': gallery,
+        'createdAt': now, 'updatedAt': now,
+    }
+    item = _dirorg_create(item)
+    return jsonify({'status': 'ok', 'organization': item}), 201
+
+
+@app.route('/admin/api/directory/organizations/<item_id>', methods=['PUT'])
+@admin_required
+def admin_dirorg_update(item_id):
+    d = request.get_json(silent=True) or {}
+    patch = {}
+    for field, maxlen in [('name', 150), ('description', 1000), ('contactPerson', 150),
+                          ('contactDetails', 150), ('programs', 1000), ('location', 300), ('imageUrl', 300),
+                          ('website', 300), ('email', 200), ('facebook', 300), ('keywords', 300)]:
+        if field in d:
+            patch[field] = _clean(d[field], maxlen)
+    if 'category' in d and d['category'] in _active_category_names('organization'):
+        patch['category'] = d['category']
+    if 'officers' in d:
+        officers = d['officers'] if isinstance(d['officers'], list) else []
+        patch['officers'] = [_clean(o, 150) for o in officers if _clean(o, 150)]
+    if 'lat' in d:
+        patch['lat'] = _to_float(d['lat'])
+    if 'lng' in d:
+        patch['lng'] = _to_float(d['lng'])
+    if 'status' in d and d['status'] in ('draft', 'published', 'hidden'):
+        patch['status'] = d['status']
+    if 'featured' in d:
+        patch['featured'] = bool(d['featured'])
+    if 'verified' in d:
+        patch['verified'] = bool(d['verified'])
+    if 'gallery' in d:
+        gallery = d['gallery'] if isinstance(d['gallery'], list) else []
+        patch['gallery'] = [_clean(g, 500) for g in gallery if _clean(g, 500)]
+    item = _dirorg_update(item_id, patch)
+    if not item:
+        return jsonify({'error': 'Not found'}), 404
+    return jsonify({'status': 'ok', 'organization': item})
+
+
+@app.route('/admin/api/directory/organizations/<item_id>', methods=['DELETE'])
+@admin_required
+def admin_dirorg_delete(item_id):
+    if not _dirorg_delete(item_id):
+        return jsonify({'error': 'Not found'}), 404
+    return jsonify({'status': 'ok'})
+
+
+# ── Directory — admin CRUD: Emergency Directory ───────────────────────────────
+@app.route('/admin/api/directory/emergency')
+@admin_required
+def admin_direm_list():
+    items = _load_direm()
+    items.sort(key=lambda x: x.get('name', ''))
+    return jsonify({'status': 'ok', 'contacts': items})
+
+
+@app.route('/admin/api/directory/emergency', methods=['POST'])
+@admin_required
+def admin_direm_create():
+    d = request.get_json(silent=True) or {}
+    now = datetime.now(timezone.utc).isoformat()
+    status = d.get('status', 'draft')
+    if status not in ('draft', 'published', 'hidden'):
+        status = 'draft'
+    active_names = _active_category_names('emergency')
+    category = d.get('category') if d.get('category') in active_names else _default_category('emergency', active_names)
+    gallery = d.get('gallery') or []
+    if not isinstance(gallery, list):
+        gallery = []
+    gallery = [_clean(g, 500) for g in gallery if _clean(g, 500)]
+    item = {
+        'id': uuid.uuid4().hex, 'name': _clean(d.get('name'), 150), 'category': category,
+        'number': _clean(d.get('number'), 100), 'altNumber': _clean(d.get('altNumber'), 100),
+        'address': _clean(d.get('address'), 300), 'services': _clean(d.get('services'), 1000),
+        'imageUrl': _clean(d.get('imageUrl'), 300),
+        'lat': _to_float(d.get('lat')), 'lng': _to_float(d.get('lng')), 'status': status,
+        'featured': bool(d.get('featured')), 'verified': bool(d.get('verified')),
+        'website': _clean(d.get('website'), 300), 'email': _clean(d.get('email'), 200),
+        'facebook': _clean(d.get('facebook'), 300), 'keywords': _clean(d.get('keywords'), 300),
+        'gallery': gallery,
+        'createdAt': now, 'updatedAt': now,
+    }
+    item = _direm_create(item)
+    return jsonify({'status': 'ok', 'contact': item}), 201
+
+
+@app.route('/admin/api/directory/emergency/<item_id>', methods=['PUT'])
+@admin_required
+def admin_direm_update(item_id):
+    d = request.get_json(silent=True) or {}
+    patch = {}
+    for field, maxlen in [('name', 150), ('number', 100), ('altNumber', 100),
+                          ('address', 300), ('services', 1000), ('imageUrl', 300),
+                          ('website', 300), ('email', 200), ('facebook', 300), ('keywords', 300)]:
+        if field in d:
+            patch[field] = _clean(d[field], maxlen)
+    if 'category' in d and d['category'] in _active_category_names('emergency'):
+        patch['category'] = d['category']
+    if 'lat' in d:
+        patch['lat'] = _to_float(d['lat'])
+    if 'lng' in d:
+        patch['lng'] = _to_float(d['lng'])
+    if 'status' in d and d['status'] in ('draft', 'published', 'hidden'):
+        patch['status'] = d['status']
+    if 'featured' in d:
+        patch['featured'] = bool(d['featured'])
+    if 'verified' in d:
+        patch['verified'] = bool(d['verified'])
+    if 'gallery' in d:
+        gallery = d['gallery'] if isinstance(d['gallery'], list) else []
+        patch['gallery'] = [_clean(g, 500) for g in gallery if _clean(g, 500)]
+    item = _direm_update(item_id, patch)
+    if not item:
+        return jsonify({'error': 'Not found'}), 404
+    return jsonify({'status': 'ok', 'contact': item})
+
+
+@app.route('/admin/api/directory/emergency/<item_id>', methods=['DELETE'])
+@admin_required
+def admin_direm_delete(item_id):
+    if not _direm_delete(item_id):
+        return jsonify({'error': 'Not found'}), 404
+    return jsonify({'status': 'ok'})
+
+
+# ── Directory — business logo upload (reuses the existing upload pipeline) ────
+@app.route('/admin/api/upload/business-logo', methods=['POST'])
+@admin_required
+def admin_upload_business_logo():
+    f = request.files.get('image')
+    if not f or not f.filename:
+        return jsonify({'error': 'No file selected'}), 400
+    ext = f.filename.rsplit('.', 1)[-1].lower() if '.' in f.filename else ''
+    if ext not in ALLOWED_EXT:
+        return jsonify({'error': 'Invalid file type. Use JPG, PNG, or WebP.'}), 400
+    data = f.read(MAX_BYTES + 1)
+    if len(data) > MAX_BYTES:
+        return jsonify({'error': 'File too large (max 5 MB)'}), 400
+    data, ext = _optimize_image(data, ext)
+    try:
+        url = _upload_to_storage(data, 'business-directory', ext)
+    except Exception as exc:
+        return jsonify({'error': f'Upload failed: {exc}'}), 500
+    return jsonify({'status': 'ok', 'url': url})
+
+
+@app.route('/admin/api/upload/organization-logo', methods=['POST'])
+@admin_required
+def admin_upload_organization_logo():
+    f = request.files.get('image')
+    if not f or not f.filename:
+        return jsonify({'error': 'No file selected'}), 400
+    ext = f.filename.rsplit('.', 1)[-1].lower() if '.' in f.filename else ''
+    if ext not in ALLOWED_EXT:
+        return jsonify({'error': 'Invalid file type. Use JPG, PNG, or WebP.'}), 400
+    data = f.read(MAX_BYTES + 1)
+    if len(data) > MAX_BYTES:
+        return jsonify({'error': 'File too large (max 5 MB)'}), 400
+    data, ext = _optimize_image(data, ext)
+    try:
+        url = _upload_to_storage(data, 'organization-directory', ext)
+    except Exception as exc:
+        return jsonify({'error': f'Upload failed: {exc}'}), 500
+    return jsonify({'status': 'ok', 'url': url})
+
+
+@app.route('/admin/api/upload/emergency-logo', methods=['POST'])
+@admin_required
+def admin_upload_emergency_logo():
+    f = request.files.get('image')
+    if not f or not f.filename:
+        return jsonify({'error': 'No file selected'}), 400
+    ext = f.filename.rsplit('.', 1)[-1].lower() if '.' in f.filename else ''
+    if ext not in ALLOWED_EXT:
+        return jsonify({'error': 'Invalid file type. Use JPG, PNG, or WebP.'}), 400
+    data = f.read(MAX_BYTES + 1)
+    if len(data) > MAX_BYTES:
+        return jsonify({'error': 'File too large (max 5 MB)'}), 400
+    data, ext = _optimize_image(data, ext)
+    try:
+        url = _upload_to_storage(data, 'emergency-directory', ext)
+    except Exception as exc:
+        return jsonify({'error': f'Upload failed: {exc}'}), 500
+    return jsonify({'status': 'ok', 'url': url})
+
+
+@app.route('/admin/api/upload/map-location-image', methods=['POST'])
+@admin_required
+def admin_upload_map_location_image():
+    f = request.files.get('image')
+    if not f or not f.filename:
+        return jsonify({'error': 'No file selected'}), 400
+    ext = f.filename.rsplit('.', 1)[-1].lower() if '.' in f.filename else ''
+    if ext not in ALLOWED_EXT:
+        return jsonify({'error': 'Invalid file type. Use JPG, PNG, or WebP.'}), 400
+    data = f.read(MAX_BYTES + 1)
+    if len(data) > MAX_BYTES:
+        return jsonify({'error': 'File too large (max 5 MB)'}), 400
+    data, ext = _optimize_image(data, ext)
+    try:
+        url = _upload_to_storage(data, 'community-map', ext)
+    except Exception as exc:
+        return jsonify({'error': f'Upload failed: {exc}'}), 500
+    return jsonify({'status': 'ok', 'url': url})
+
+
+# ── Directory — gallery image uploads (one file per request, reuses the same
+#    optimize/storage pipeline as the single-logo uploads above) ─────────────
+def _upload_gallery_image(folder):
+    f = request.files.get('image')
+    if not f or not f.filename:
+        return jsonify({'error': 'No file selected'}), 400
+    ext = f.filename.rsplit('.', 1)[-1].lower() if '.' in f.filename else ''
+    if ext not in ALLOWED_EXT:
+        return jsonify({'error': 'Invalid file type. Use JPG, PNG, or WebP.'}), 400
+    data = f.read(MAX_BYTES + 1)
+    if len(data) > MAX_BYTES:
+        return jsonify({'error': 'File too large (max 5 MB)'}), 400
+    data, ext = _optimize_image(data, ext)
+    try:
+        url = _upload_to_storage(data, folder, ext)
+    except Exception as exc:
+        return jsonify({'error': f'Upload failed: {exc}'}), 500
+    return jsonify({'status': 'ok', 'url': url})
+
+
+@app.route('/admin/api/upload/map-location-gallery', methods=['POST'])
+@admin_required
+def admin_upload_map_location_gallery():
+    return _upload_gallery_image('community-map-gallery')
+
+
+@app.route('/admin/api/upload/business-gallery', methods=['POST'])
+@admin_required
+def admin_upload_business_gallery():
+    return _upload_gallery_image('business-directory-gallery')
+
+
+@app.route('/admin/api/upload/organization-gallery', methods=['POST'])
+@admin_required
+def admin_upload_organization_gallery():
+    return _upload_gallery_image('organization-directory-gallery')
+
+
+@app.route('/admin/api/upload/emergency-gallery', methods=['POST'])
+@admin_required
+def admin_upload_emergency_gallery():
+    return _upload_gallery_image('emergency-directory-gallery')
+
 
 _ensure_initial_user()
 _ensure_initial_settings()

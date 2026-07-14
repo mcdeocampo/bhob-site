@@ -408,6 +408,45 @@ a{text-decoration:none;color:inherit}
 .repeater-row-btns button.danger{color:#dc2626;border-color:#fecaca}
 .repeater-empty{font-size:.78rem;color:#94a3b8;font-style:italic;margin-bottom:8px}
 
+.gallery-area{border:2px dashed var(--border);border-radius:var(--radius);padding:14px;text-align:center;background:var(--bg)}
+.gallery-grid{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+.gallery-grid:empty{display:none;margin-bottom:0}
+.gallery-thumb{position:relative;width:72px;height:72px;border-radius:8px;overflow:hidden;border:1px solid var(--border)}
+.gallery-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.gallery-thumb button{position:absolute;top:2px;right:2px;width:20px;height:20px;border:none;border-radius:50%;background:rgba(0,0,0,.65);color:#fff;font-size:.7rem;line-height:1;cursor:pointer}
+
+.cat-group-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;margin-bottom:14px}
+.cat-group-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.cat-swatch{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex:0 0 auto}
+.cat-swatch--blue{background:rgba(13,71,161,.12);color:var(--blue)}
+.cat-swatch--teal{background:rgba(0,168,132,.12);color:var(--teal)}
+.cat-swatch--gold{background:rgba(246,196,69,.2);color:#8b6400}
+.cat-swatch--red{background:rgba(220,38,38,.12);color:var(--red)}
+.cat-group-name{font-weight:700;color:var(--text)}
+.cat-group-meta{font-size:.78rem;color:var(--gray)}
+.cat-group-actions{margin-left:auto;display:flex;gap:8px}
+.cat-sublist{margin-top:12px;padding-top:12px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:6px}
+.cat-sub-row{display:flex;align-items:center;gap:10px;padding:6px 0;font-size:.86rem}
+.cat-sub-name{flex:1}
+.cat-sub-inactive{color:var(--gray);text-decoration:line-through}
+.cat-sub-actions{display:flex;gap:6px;flex:0 0 auto}
+.btn-add-sub{margin-top:4px}
+
+.cat-select{position:relative}
+.cat-select-input{width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:6px;font-size:.86rem;background:var(--card);color:var(--text)}
+.cat-select-input:focus{outline:none;border-color:var(--blue)}
+.cat-select-dropdown{display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;max-height:220px;overflow-y:auto;background:var(--card);border:1px solid var(--border);border-radius:6px;box-shadow:0 8px 24px rgba(0,0,0,.12);z-index:20}
+.cat-select-dropdown.open{display:block}
+.cat-select-opt{padding:7px 12px 7px 22px;font-size:.84rem;cursor:pointer}
+.cat-select-opt:hover{background:var(--bg)}
+.cat-select-group-label{padding:7px 12px 3px;font-size:.7rem;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:.06em}
+.cat-select-empty{padding:10px 12px;font-size:.82rem;color:var(--gray)}
+
+/* Module tabs use longer labels than the other .tabs instances (status
+   filters) — scroll horizontally instead of overflowing on narrow screens. */
+#dircats-module-tabs{overflow-x:auto;-webkit-overflow-scrolling:touch;margin-bottom:16px}
+#dircats-module-tabs .tab{flex:0 0 auto}
+
 .default-imgs{margin-top:10px;border-top:1px solid var(--border);padding-top:10px}
 .default-imgs label{font-size:.72rem;color:var(--gray);display:block;margin-bottom:7px;font-weight:500;text-align:left}
 .default-imgs-row{display:flex;gap:7px;flex-wrap:wrap}
@@ -764,6 +803,27 @@ a{text-decoration:none;color:inherit}
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
         Barangay Calendar
       </button>
+      <div class="nav-label">Directory Management</div>
+      <button class="nav-item" data-sec="dirmap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 6v16l7-4 8 4 7-4V2l-7 4-8-4-7 4z"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+        Community Map
+      </button>
+      <button class="nav-item" data-sec="dirbiz">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l1-5h16l1 5"/><path d="M3 9h18v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9z"/><line x1="9" y1="13" x2="15" y2="13"/></svg>
+        Business Directory
+      </button>
+      <button class="nav-item" data-sec="dirorg">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Organization Directory
+      </button>
+      <button class="nav-item" data-sec="direm">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        Emergency Directory
+      </button>
+      <button class="nav-item" data-sec="dircats">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Category Management
+      </button>
       <div class="nav-label">Alerts</div>
       <button class="nav-item" data-sec="alerts">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
@@ -1015,6 +1075,33 @@ a{text-decoration:none;color:inherit}
           <div class="dash-card-foot">Manage <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div>
         </div>
 
+        <!-- Directory Management (combined: Map + Business + Organization + Emergency) -->
+        <div class="dash-card" onclick="showSection('dirmap')">
+          <div class="dash-card-top" style="background:linear-gradient(90deg,#4338ca,#818cf8)"></div>
+          <div class="dash-card-body">
+            <div class="dash-card-head">
+              <div class="dash-card-icon" style="background:#eef2ff;color:#4338ca">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 6v16l7-4 8 4 7-4V2l-7 4-8-4-7 4z"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+              </div>
+              <div>
+                <div class="dash-card-title">Directory Management</div>
+                <div class="dash-card-sub">Map * Business * Org * Emergency</div>
+              </div>
+            </div>
+            <div class="dash-card-stats">
+              <div class="dash-card-stat">
+                <span class="dash-card-num" id="dash-dir-total">-</span>
+                <span class="dash-card-lbl">Total Listings</span>
+              </div>
+              <div class="dash-card-stat">
+                <span class="dash-card-num dc-green" id="dash-dir-pub">-</span>
+                <span class="dash-card-lbl">Published</span>
+              </div>
+            </div>
+          </div>
+          <div class="dash-card-foot">Manage <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div>
+        </div>
+
         <!-- Settings -->
         <div class="dash-card" onclick="showSection('settings')">
           <div class="dash-card-top" style="background:linear-gradient(90deg,#475569,#94a3b8)"></div>
@@ -1254,6 +1341,135 @@ a{text-decoration:none;color:inherit}
         </select>
       </div>
       <div class="ann-list" id="cal-list"><div class="loading">Loading...</div></div>
+    </section>
+
+    <!-- Community Map -->
+    <section id="sec-dirmap" style="display:none">
+      <div class="page-hdr">
+        <div>
+          <h2>Community Map Management</h2>
+          <p>Manage locations shown on the public Directory page's Community Map.</p>
+        </div>
+        <button class="btn-new" id="btn-new-dirmap">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          New Location
+        </button>
+      </div>
+      <div class="toolbar">
+        <div class="search-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input class="search-input" id="dirmap-search" type="search" placeholder="Search...">
+        </div>
+        <div class="tabs" id="dirmap-tabs">
+          <button class="tab active" data-dmf="all">All</button>
+          <button class="tab" data-dmf="published">Published</button>
+          <button class="tab" data-dmf="draft">Draft</button>
+          <button class="tab" data-dmf="hidden">Hidden</button>
+        </div>
+      </div>
+      <div class="ann-list" id="dirmap-list"><div class="loading">Loading...</div></div>
+    </section>
+
+    <!-- Business Directory -->
+    <section id="sec-dirbiz" style="display:none">
+      <div class="page-hdr">
+        <div>
+          <h2>Business Directory Management</h2>
+          <p>Manage businesses shown on the public Directory page's Business Directory.</p>
+        </div>
+        <button class="btn-new" id="btn-new-dirbiz">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          New Business
+        </button>
+      </div>
+      <div class="toolbar">
+        <div class="search-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input class="search-input" id="dirbiz-search" type="search" placeholder="Search...">
+        </div>
+        <div class="tabs" id="dirbiz-tabs">
+          <button class="tab active" data-dbf="all">All</button>
+          <button class="tab" data-dbf="published">Published</button>
+          <button class="tab" data-dbf="draft">Draft</button>
+          <button class="tab" data-dbf="hidden">Hidden</button>
+        </div>
+      </div>
+      <div class="ann-list" id="dirbiz-list"><div class="loading">Loading...</div></div>
+    </section>
+
+    <!-- Organization Directory -->
+    <section id="sec-dirorg" style="display:none">
+      <div class="page-hdr">
+        <div>
+          <h2>Organization Directory Management</h2>
+          <p>Manage organizations shown on the public Directory page's Organization Directory.</p>
+        </div>
+        <button class="btn-new" id="btn-new-dirorg">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          New Organization
+        </button>
+      </div>
+      <div class="toolbar">
+        <div class="search-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input class="search-input" id="dirorg-search" type="search" placeholder="Search...">
+        </div>
+        <div class="tabs" id="dirorg-tabs">
+          <button class="tab active" data-dof="all">All</button>
+          <button class="tab" data-dof="published">Published</button>
+          <button class="tab" data-dof="draft">Draft</button>
+          <button class="tab" data-dof="hidden">Hidden</button>
+        </div>
+      </div>
+      <div class="ann-list" id="dirorg-list"><div class="loading">Loading...</div></div>
+    </section>
+
+    <!-- Emergency Directory -->
+    <section id="sec-direm" style="display:none">
+      <div class="page-hdr">
+        <div>
+          <h2>Emergency Directory Management</h2>
+          <p>Manage contacts shown on the public Directory page's Emergency Directory.</p>
+        </div>
+        <button class="btn-new" id="btn-new-direm">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          New Contact
+        </button>
+      </div>
+      <div class="toolbar">
+        <div class="search-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input class="search-input" id="direm-search" type="search" placeholder="Search...">
+        </div>
+        <div class="tabs" id="direm-tabs">
+          <button class="tab active" data-def="all">All</button>
+          <button class="tab" data-def="published">Published</button>
+          <button class="tab" data-def="draft">Draft</button>
+          <button class="tab" data-def="hidden">Hidden</button>
+        </div>
+      </div>
+      <div class="ann-list" id="direm-list"><div class="loading">Loading...</div></div>
+    </section>
+
+    <!-- Category Management -->
+    <section id="sec-dircats" style="display:none">
+      <div class="page-hdr">
+        <div>
+          <h2>Category Management</h2>
+          <p>Manage the categories and subcategories each Directory module can be tagged with.</p>
+        </div>
+        <button class="btn-new" id="btn-new-catgroup">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          New Category
+        </button>
+      </div>
+      <div class="tabs" id="dircats-module-tabs">
+        <button class="tab active" data-module="business">Business Directory</button>
+        <button class="tab" data-module="map">Map Locations</button>
+        <button class="tab" data-module="organization">Organization Directory</button>
+        <button class="tab" data-module="emergency">Emergency Directory</button>
+      </div>
+      <div id="dircats-list"><div class="loading">Loading...</div></div>
     </section>
 
     <!-- Emergency Alerts -->
@@ -1976,6 +2192,559 @@ a{text-decoration:none;color:inherit}
   </div>
 </div>
 
+<!-- ================== DIRECTORY: COMMUNITY MAP MODAL ================== -->
+<div class="overlay" id="dirmap-form-overlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="dirmap-modal-title">New Location</h3>
+      <button class="btn-close" id="btn-close-dirmap-form">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-section-label">Content</div>
+        <div class="field field-full">
+          <label>Location Name <span style="color:#ef4444">*</span></label>
+          <input type="text" id="dirmap-name" maxlength="150">
+        </div>
+        <div class="field">
+          <label>Category <span style="color:#ef4444">*</span></label>
+          <div class="cat-select">
+            <input type="text" id="dirmap-cat-input" class="cat-select-input" autocomplete="off">
+            <input type="hidden" id="dirmap-cat-value">
+            <div class="cat-select-dropdown" id="dirmap-cat-dropdown"></div>
+          </div>
+        </div>
+        <div class="field">
+          <label>Contact Number</label>
+          <input type="text" id="dirmap-contact" maxlength="100">
+        </div>
+        <div class="field field-full">
+          <label>Description</label>
+          <textarea id="dirmap-desc" rows="2" maxlength="1000"></textarea>
+        </div>
+        <div class="field field-full">
+          <label>Address</label>
+          <input type="text" id="dirmap-address" maxlength="300">
+        </div>
+        <div class="field">
+          <label>Operating Hours</label>
+          <input type="text" id="dirmap-hours" maxlength="150">
+        </div>
+        <div class="form-section-label">Media <span style="color:#94a3b8;font-size:.68rem;font-weight:600;text-transform:none;letter-spacing:normal">(optional)</span></div>
+        <div class="field field-full">
+          <label>Location Photo</label>
+          <div class="img-area" id="dirmap-drop-area">
+            <img class="img-preview" id="dirmap-img-preview" src="" alt="" style="display:none">
+            <div class="img-upload-row">
+              <label class="btn-upload-file" for="dirmap-img-file">Upload Image</label>
+              <input type="file" id="dirmap-img-file" accept=".jpg,.jpeg,.png,.webp" style="display:none">
+              <button type="button" class="btn-act" id="dirmap-img-remove" style="font-size:.7rem" onclick="clearDirMapImage()">Remove</button>
+            </div>
+            <div class="img-url-note" id="dirmap-img-url-note"></div>
+            <div class="img-hint">JPG, PNG, WebP - max 5 MB.</div>
+          </div>
+        </div>
+        <div class="form-section-label">Additional Details <span style="color:#94a3b8;font-size:.68rem;font-weight:600;text-transform:none;letter-spacing:normal">(optional)</span></div>
+        <div class="field">
+          <label>Website</label>
+          <input type="text" id="dirmap-website" maxlength="300">
+        </div>
+        <div class="field">
+          <label>Email</label>
+          <input type="email" id="dirmap-email" maxlength="200">
+        </div>
+        <div class="field">
+          <label>Facebook Page</label>
+          <input type="text" id="dirmap-facebook" maxlength="300">
+        </div>
+        <div class="field">
+          <label>Keywords <span style="color:#94a3b8;font-size:.68rem">(comma-separated)</span></label>
+          <input type="text" id="dirmap-keywords" maxlength="300">
+        </div>
+        <div class="field">
+          <label>Opens At</label>
+          <input type="time" id="dirmap-hours-open">
+        </div>
+        <div class="field">
+          <label>Closes At</label>
+          <input type="time" id="dirmap-hours-close">
+        </div>
+        <div class="field field-full">
+          <label><input type="checkbox" id="dirmap-hours-24h" style="width:auto;margin-right:6px">Open 24 Hours</label>
+        </div>
+        <div class="field">
+          <label><input type="checkbox" id="dirmap-featured" style="width:auto;margin-right:6px">Featured Listing</label>
+        </div>
+        <div class="field">
+          <label><input type="checkbox" id="dirmap-verified" style="width:auto;margin-right:6px">Verified</label>
+        </div>
+        <div class="field field-full">
+          <label>Photo Gallery <span style="color:#94a3b8;font-size:.68rem;font-weight:600;text-transform:none;letter-spacing:normal">(optional, up to 5 MB each)</span></label>
+          <div class="gallery-area" id="dirmap-gallery-area">
+            <div class="gallery-grid" id="dirmap-gallery-grid"></div>
+            <label class="btn-upload-file" for="dirmap-gallery-file">Add Photo</label>
+            <input type="file" id="dirmap-gallery-file" accept=".jpg,.jpeg,.png,.webp" style="display:none">
+          </div>
+        </div>
+        <div class="form-section-label">Map Coordinates</div>
+        <div class="field">
+          <label>Latitude</label>
+          <input type="number" step="any" id="dirmap-lat">
+        </div>
+        <div class="field">
+          <label>Longitude</label>
+          <input type="number" step="any" id="dirmap-lng">
+        </div>
+        <div class="form-section-label">Settings</div>
+        <div class="field">
+          <label>Status</label>
+          <div class="radio-row">
+            <div class="rc"><input type="radio" name="dirmap-status" id="dirmap-s-draft" value="draft" checked><label for="dirmap-s-draft">Draft</label></div>
+            <div class="rc"><input type="radio" name="dirmap-status" id="dirmap-s-pub" value="published"><label for="dirmap-s-pub">Published</label></div>
+            <div class="rc"><input type="radio" name="dirmap-status" id="dirmap-s-hidden" value="hidden"><label for="dirmap-s-hidden">Hidden</label></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-cancel" id="btn-cancel-dirmap">Cancel</button>
+      <button class="btn-draft" id="btn-dirmap-draft">Save Draft</button>
+      <button class="btn-publish" id="btn-dirmap-pub">Publish</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================== DIRECTORY: BUSINESS MODAL ================== -->
+<div class="overlay" id="dirbiz-form-overlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="dirbiz-modal-title">New Business</h3>
+      <button class="btn-close" id="btn-close-dirbiz-form">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-section-label">Content</div>
+        <div class="field field-full">
+          <label>Business Name <span style="color:#ef4444">*</span></label>
+          <input type="text" id="dirbiz-name" maxlength="150">
+        </div>
+        <div class="field">
+          <label>Category <span style="color:#ef4444">*</span></label>
+          <div class="cat-select">
+            <input type="text" id="dirbiz-cat-input" class="cat-select-input" autocomplete="off">
+            <input type="hidden" id="dirbiz-cat-value">
+            <div class="cat-select-dropdown" id="dirbiz-cat-dropdown"></div>
+          </div>
+        </div>
+        <div class="field">
+          <label>Contact Number</label>
+          <input type="text" id="dirbiz-contact" maxlength="100">
+        </div>
+        <div class="field field-full">
+          <label>Description</label>
+          <textarea id="dirbiz-desc" rows="2" maxlength="1000"></textarea>
+        </div>
+        <div class="field field-full">
+          <label>Address</label>
+          <input type="text" id="dirbiz-address" maxlength="300">
+        </div>
+        <div class="field">
+          <label>Operating Hours</label>
+          <input type="text" id="dirbiz-hours" maxlength="150">
+        </div>
+        <div class="field">
+          <label>Social Media Link</label>
+          <input type="text" id="dirbiz-social" maxlength="300">
+        </div>
+        <div class="form-section-label">Media</div>
+        <div class="field field-full">
+          <label>Business Image / Logo</label>
+          <div class="img-area" id="dirbiz-drop-area">
+            <img class="img-preview" id="dirbiz-img-preview" src="" alt="" style="display:none">
+            <div class="img-upload-row">
+              <label class="btn-upload-file" for="dirbiz-img-file">Upload Image</label>
+              <input type="file" id="dirbiz-img-file" accept=".jpg,.jpeg,.png,.webp" style="display:none">
+              <button type="button" class="btn-act" id="dirbiz-img-remove" style="font-size:.7rem" onclick="clearDirBizImage()">Remove</button>
+            </div>
+            <div class="img-url-note" id="dirbiz-img-url-note"></div>
+            <div class="img-hint">JPG, PNG, WebP - max 5 MB.</div>
+          </div>
+        </div>
+        <div class="form-section-label">Additional Details <span style="color:#94a3b8;font-size:.68rem;font-weight:600;text-transform:none;letter-spacing:normal">(optional)</span></div>
+        <div class="field">
+          <label>Website</label>
+          <input type="text" id="dirbiz-website" maxlength="300">
+        </div>
+        <div class="field">
+          <label>Email</label>
+          <input type="email" id="dirbiz-email" maxlength="200">
+        </div>
+        <div class="field">
+          <label>Keywords <span style="color:#94a3b8;font-size:.68rem">(comma-separated)</span></label>
+          <input type="text" id="dirbiz-keywords" maxlength="300">
+        </div>
+        <div class="field">
+          <label>Opens At</label>
+          <input type="time" id="dirbiz-hours-open">
+        </div>
+        <div class="field">
+          <label>Closes At</label>
+          <input type="time" id="dirbiz-hours-close">
+        </div>
+        <div class="field field-full">
+          <label><input type="checkbox" id="dirbiz-hours-24h" style="width:auto;margin-right:6px">Open 24 Hours</label>
+        </div>
+        <div class="field">
+          <label><input type="checkbox" id="dirbiz-featured" style="width:auto;margin-right:6px">Featured Listing</label>
+        </div>
+        <div class="field">
+          <label><input type="checkbox" id="dirbiz-verified" style="width:auto;margin-right:6px">Verified</label>
+        </div>
+        <div class="field field-full">
+          <label>Photo Gallery <span style="color:#94a3b8;font-size:.68rem;font-weight:600;text-transform:none;letter-spacing:normal">(optional, up to 5 MB each)</span></label>
+          <div class="gallery-area" id="dirbiz-gallery-area">
+            <div class="gallery-grid" id="dirbiz-gallery-grid"></div>
+            <label class="btn-upload-file" for="dirbiz-gallery-file">Add Photo</label>
+            <input type="file" id="dirbiz-gallery-file" accept=".jpg,.jpeg,.png,.webp" style="display:none">
+          </div>
+        </div>
+        <div class="form-section-label">Map Coordinates</div>
+        <div class="field">
+          <label>Latitude</label>
+          <input type="number" step="any" id="dirbiz-lat">
+        </div>
+        <div class="field">
+          <label>Longitude</label>
+          <input type="number" step="any" id="dirbiz-lng">
+        </div>
+        <div class="form-section-label">Settings</div>
+        <div class="field">
+          <label>Status</label>
+          <div class="radio-row">
+            <div class="rc"><input type="radio" name="dirbiz-status" id="dirbiz-s-draft" value="draft" checked><label for="dirbiz-s-draft">Draft</label></div>
+            <div class="rc"><input type="radio" name="dirbiz-status" id="dirbiz-s-pub" value="published"><label for="dirbiz-s-pub">Published</label></div>
+            <div class="rc"><input type="radio" name="dirbiz-status" id="dirbiz-s-hidden" value="hidden"><label for="dirbiz-s-hidden">Hidden</label></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-cancel" id="btn-cancel-dirbiz">Cancel</button>
+      <button class="btn-draft" id="btn-dirbiz-draft">Save Draft</button>
+      <button class="btn-publish" id="btn-dirbiz-pub">Publish</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================== DIRECTORY: ORGANIZATION MODAL ================== -->
+<div class="overlay" id="dirorg-form-overlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="dirorg-modal-title">New Organization</h3>
+      <button class="btn-close" id="btn-close-dirorg-form">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-section-label">Content</div>
+        <div class="field field-full">
+          <label>Organization Name <span style="color:#ef4444">*</span></label>
+          <input type="text" id="dirorg-name" maxlength="150">
+        </div>
+        <div class="field">
+          <label>Category <span style="color:#ef4444">*</span></label>
+          <div class="cat-select">
+            <input type="text" id="dirorg-cat-input" class="cat-select-input" autocomplete="off">
+            <input type="hidden" id="dirorg-cat-value">
+            <div class="cat-select-dropdown" id="dirorg-cat-dropdown"></div>
+          </div>
+        </div>
+        <div class="field">
+          <label>Contact Person</label>
+          <input type="text" id="dirorg-contact-person" maxlength="150">
+        </div>
+        <div class="field field-full">
+          <label>Description</label>
+          <textarea id="dirorg-desc" rows="2" maxlength="1000"></textarea>
+        </div>
+        <div class="field">
+          <label>Contact Details</label>
+          <input type="text" id="dirorg-contact-details" maxlength="150">
+        </div>
+        <div class="field">
+          <label>Location</label>
+          <input type="text" id="dirorg-location" maxlength="300">
+        </div>
+        <div class="field field-full">
+          <label>Officers <span style="color:#94a3b8;font-size:.68rem">(one per line)</span></label>
+          <textarea id="dirorg-officers" rows="3"></textarea>
+        </div>
+        <div class="field field-full">
+          <label>Activities / Programs</label>
+          <textarea id="dirorg-programs" rows="3" maxlength="1000"></textarea>
+        </div>
+        <div class="form-section-label">Media</div>
+        <div class="field field-full">
+          <label>Organization Logo / Emblem</label>
+          <div class="img-area" id="dirorg-drop-area">
+            <img class="img-preview" id="dirorg-img-preview" src="" alt="" style="display:none">
+            <div class="img-upload-row">
+              <label class="btn-upload-file" for="dirorg-img-file">Upload Image</label>
+              <input type="file" id="dirorg-img-file" accept=".jpg,.jpeg,.png,.webp" style="display:none">
+              <button type="button" class="btn-act" id="dirorg-img-remove" style="font-size:.7rem" onclick="clearDirOrgImage()">Remove</button>
+            </div>
+            <div class="img-url-note" id="dirorg-img-url-note"></div>
+            <div class="img-hint">JPG, PNG, WebP - max 5 MB.</div>
+          </div>
+        </div>
+        <div class="form-section-label">Additional Details <span style="color:#94a3b8;font-size:.68rem;font-weight:600;text-transform:none;letter-spacing:normal">(optional)</span></div>
+        <div class="field">
+          <label>Website</label>
+          <input type="text" id="dirorg-website" maxlength="300">
+        </div>
+        <div class="field">
+          <label>Email</label>
+          <input type="email" id="dirorg-email" maxlength="200">
+        </div>
+        <div class="field">
+          <label>Facebook Page</label>
+          <input type="text" id="dirorg-facebook" maxlength="300">
+        </div>
+        <div class="field">
+          <label>Keywords <span style="color:#94a3b8;font-size:.68rem">(comma-separated)</span></label>
+          <input type="text" id="dirorg-keywords" maxlength="300">
+        </div>
+        <div class="field">
+          <label><input type="checkbox" id="dirorg-featured" style="width:auto;margin-right:6px">Featured Listing</label>
+        </div>
+        <div class="field">
+          <label><input type="checkbox" id="dirorg-verified" style="width:auto;margin-right:6px">Verified</label>
+        </div>
+        <div class="field field-full">
+          <label>Photo Gallery <span style="color:#94a3b8;font-size:.68rem;font-weight:600;text-transform:none;letter-spacing:normal">(optional, up to 5 MB each)</span></label>
+          <div class="gallery-area" id="dirorg-gallery-area">
+            <div class="gallery-grid" id="dirorg-gallery-grid"></div>
+            <label class="btn-upload-file" for="dirorg-gallery-file">Add Photo</label>
+            <input type="file" id="dirorg-gallery-file" accept=".jpg,.jpeg,.png,.webp" style="display:none">
+          </div>
+        </div>
+        <div class="form-section-label">Map Coordinates</div>
+        <div class="field">
+          <label>Latitude</label>
+          <input type="number" step="any" id="dirorg-lat">
+        </div>
+        <div class="field">
+          <label>Longitude</label>
+          <input type="number" step="any" id="dirorg-lng">
+        </div>
+        <div class="form-section-label">Settings</div>
+        <div class="field">
+          <label>Status</label>
+          <div class="radio-row">
+            <div class="rc"><input type="radio" name="dirorg-status" id="dirorg-s-draft" value="draft" checked><label for="dirorg-s-draft">Draft</label></div>
+            <div class="rc"><input type="radio" name="dirorg-status" id="dirorg-s-pub" value="published"><label for="dirorg-s-pub">Published</label></div>
+            <div class="rc"><input type="radio" name="dirorg-status" id="dirorg-s-hidden" value="hidden"><label for="dirorg-s-hidden">Hidden</label></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-cancel" id="btn-cancel-dirorg">Cancel</button>
+      <button class="btn-draft" id="btn-dirorg-draft">Save Draft</button>
+      <button class="btn-publish" id="btn-dirorg-pub">Publish</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================== DIRECTORY: EMERGENCY CONTACT MODAL ================== -->
+<div class="overlay" id="direm-form-overlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="direm-modal-title">New Emergency Contact</h3>
+      <button class="btn-close" id="btn-close-direm-form">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-section-label">Content</div>
+        <div class="field field-full">
+          <label>Organization Name <span style="color:#ef4444">*</span></label>
+          <input type="text" id="direm-name" maxlength="150">
+        </div>
+        <div class="field">
+          <label>Category <span style="color:#ef4444">*</span></label>
+          <div class="cat-select">
+            <input type="text" id="direm-cat-input" class="cat-select-input" autocomplete="off">
+            <input type="hidden" id="direm-cat-value">
+            <div class="cat-select-dropdown" id="direm-cat-dropdown"></div>
+          </div>
+        </div>
+        <div class="field">
+          <label>Emergency Contact Number <span style="color:#ef4444">*</span></label>
+          <input type="text" id="direm-number" maxlength="100">
+        </div>
+        <div class="field">
+          <label>Alternate Contact Number <span style="color:#94a3b8;font-size:.68rem">(optional)</span></label>
+          <input type="text" id="direm-alt-number" maxlength="100">
+        </div>
+        <div class="field field-full">
+          <label>Address</label>
+          <input type="text" id="direm-address" maxlength="300">
+        </div>
+        <div class="field field-full">
+          <label>Available Services</label>
+          <textarea id="direm-services" rows="2" maxlength="1000"></textarea>
+        </div>
+        <div class="form-section-label">Media</div>
+        <div class="field field-full">
+          <label>Agency Logo</label>
+          <div class="img-area" id="direm-drop-area">
+            <img class="img-preview" id="direm-img-preview" src="" alt="" style="display:none">
+            <div class="img-upload-row">
+              <label class="btn-upload-file" for="direm-img-file">Upload Image</label>
+              <input type="file" id="direm-img-file" accept=".jpg,.jpeg,.png,.webp" style="display:none">
+              <button type="button" class="btn-act" id="direm-img-remove" style="font-size:.7rem" onclick="clearDirEmImage()">Remove</button>
+            </div>
+            <div class="img-url-note" id="direm-img-url-note"></div>
+            <div class="img-hint">JPG, PNG, WebP - max 5 MB.</div>
+          </div>
+        </div>
+        <div class="form-section-label">Additional Details <span style="color:#94a3b8;font-size:.68rem;font-weight:600;text-transform:none;letter-spacing:normal">(optional)</span></div>
+        <div class="field">
+          <label>Website</label>
+          <input type="text" id="direm-website" maxlength="300">
+        </div>
+        <div class="field">
+          <label>Email</label>
+          <input type="email" id="direm-email" maxlength="200">
+        </div>
+        <div class="field">
+          <label>Facebook Page</label>
+          <input type="text" id="direm-facebook" maxlength="300">
+        </div>
+        <div class="field">
+          <label>Keywords <span style="color:#94a3b8;font-size:.68rem">(comma-separated)</span></label>
+          <input type="text" id="direm-keywords" maxlength="300">
+        </div>
+        <div class="field">
+          <label><input type="checkbox" id="direm-featured" style="width:auto;margin-right:6px">Featured Listing</label>
+        </div>
+        <div class="field">
+          <label><input type="checkbox" id="direm-verified" style="width:auto;margin-right:6px">Verified</label>
+        </div>
+        <div class="field field-full">
+          <label>Photo Gallery <span style="color:#94a3b8;font-size:.68rem;font-weight:600;text-transform:none;letter-spacing:normal">(optional, up to 5 MB each)</span></label>
+          <div class="gallery-area" id="direm-gallery-area">
+            <div class="gallery-grid" id="direm-gallery-grid"></div>
+            <label class="btn-upload-file" for="direm-gallery-file">Add Photo</label>
+            <input type="file" id="direm-gallery-file" accept=".jpg,.jpeg,.png,.webp" style="display:none">
+          </div>
+        </div>
+        <div class="form-section-label">Map Coordinates</div>
+        <div class="field">
+          <label>Latitude</label>
+          <input type="number" step="any" id="direm-lat">
+        </div>
+        <div class="field">
+          <label>Longitude</label>
+          <input type="number" step="any" id="direm-lng">
+        </div>
+        <div class="form-section-label">Settings</div>
+        <div class="field">
+          <label>Status</label>
+          <div class="radio-row">
+            <div class="rc"><input type="radio" name="direm-status" id="direm-s-draft" value="draft" checked><label for="direm-s-draft">Draft</label></div>
+            <div class="rc"><input type="radio" name="direm-status" id="direm-s-pub" value="published"><label for="direm-s-pub">Published</label></div>
+            <div class="rc"><input type="radio" name="direm-status" id="direm-s-hidden" value="hidden"><label for="direm-s-hidden">Hidden</label></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-cancel" id="btn-cancel-direm">Cancel</button>
+      <button class="btn-draft" id="btn-direm-draft">Save Draft</button>
+      <button class="btn-publish" id="btn-direm-pub">Publish</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================== CATEGORY GROUP MODAL ================== -->
+<div class="overlay" id="catgroup-form-overlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="catgroup-modal-title">New Category</h3>
+      <button class="btn-close" id="btn-close-catgroup-form">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="field field-full">
+          <label>Category Name <span style="color:#ef4444">*</span></label>
+          <input type="text" id="catgroup-name" maxlength="60">
+        </div>
+        <div class="field">
+          <label>Icon <span style="color:#94a3b8;font-size:.68rem">(emoji)</span></label>
+          <input type="text" id="catgroup-icon" maxlength="8" placeholder="🍽">
+        </div>
+        <div class="field">
+          <label>Color</label>
+          <select id="catgroup-color">
+            <option value="blue">Blue</option>
+            <option value="teal">Teal</option>
+            <option value="gold">Gold</option>
+            <option value="red">Red</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Display Order</label>
+          <input type="number" id="catgroup-order" value="0">
+        </div>
+        <div class="field">
+          <label><input type="checkbox" id="catgroup-active" style="width:auto;margin-right:6px" checked>Active</label>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-cancel" id="btn-cancel-catgroup">Cancel</button>
+      <button class="btn-publish" id="btn-catgroup-save">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================== SUBCATEGORY MODAL ================== -->
+<div class="overlay" id="catsub-form-overlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="catsub-modal-title">New Subcategory</h3>
+      <button class="btn-close" id="btn-close-catsub-form">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="field field-full">
+          <label>Subcategory Name <span style="color:#ef4444">*</span></label>
+          <input type="text" id="catsub-name" maxlength="80">
+        </div>
+        <div class="field field-full">
+          <label>Parent Category</label>
+          <select id="catsub-group"></select>
+        </div>
+        <div class="field field-full">
+          <label>Description <span style="color:#94a3b8;font-size:.68rem">(optional)</span></label>
+          <textarea id="catsub-desc" rows="2" maxlength="300"></textarea>
+        </div>
+        <div class="field">
+          <label>Display Order</label>
+          <input type="number" id="catsub-order" value="0">
+        </div>
+        <div class="field">
+          <label><input type="checkbox" id="catsub-active" style="width:auto;margin-right:6px" checked>Active</label>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-cancel" id="btn-cancel-catsub">Cancel</button>
+      <button class="btn-publish" id="btn-catsub-save">Save</button>
+    </div>
+  </div>
+</div>
+
 <!-- ══════════════════ CONFIRM DELETE ══════════════════ -->
 <div class="confirm-overlay" id="confirm-overlay">
   <div class="confirm-box">
@@ -2262,7 +3031,7 @@ async function adminFetch(url, opts) {
 
 // ── Nav ────────────────────────────────────────────────────────────────────
 function showSection(name) {
-  ['dashboard','announcements','initiatives','forms','officials','pubservices','calendar','alerts','settings'].forEach(s => {
+  ['dashboard','announcements','initiatives','forms','officials','pubservices','calendar','dirmap','dirbiz','dirorg','direm','dircats','alerts','settings'].forEach(s => {
     $('sec-'+s).style.display = s===name ? 'block' : 'none';
   });
   document.querySelectorAll('.nav-item[data-sec]').forEach(b => {
@@ -2274,6 +3043,11 @@ function showSection(name) {
   if (name==='officials') renderOfficialList();
   if (name==='pubservices') renderPsvcList();
   if (name==='calendar') renderCalList();
+  if (name==='dirmap') renderDirMapList();
+  if (name==='dirbiz') renderDirBizList();
+  if (name==='dirorg') renderDirOrgList();
+  if (name==='direm') renderDirEmList();
+  if (name==='dircats') renderCategoriesList();
   if (name==='alerts') { eaSwitchPanel('active', document.querySelector('.ea-subtab[data-panel="active"]')); loadAlerts(); }
   if (name==='settings') { resetSettingsForm(); loadSiteSettings(); loadHotlines(); }
 }
@@ -2318,6 +3092,11 @@ async function loadAll() {
   try { await loadOfficials(); } catch {}
   try { await loadPsvc(); } catch {}
   try { await loadCalendarActivities(); } catch {}
+  try { await loadDirMap(); } catch {}
+  try { await loadDirBiz(); } catch {}
+  try { await loadDirOrg(); } catch {}
+  try { await loadDirEm(); } catch {}
+  try { await loadCategories(); } catch {}
   try { await loadAlerts(); } catch {}
   updateDashCards();
 }
@@ -2351,6 +3130,11 @@ function updateDashCards() {
     if (!a.date) return false;
     const d = new Date(a.date); return d >= now && d <= limit;
   }).length;
+
+  // Directory Management — combined across Map/Business/Organization/Emergency
+  const dirAll = [...(SDM.items||[]), ...(SDB.items||[]), ...(SDO.items||[]), ...(SDE.items||[])];
+  $('dash-dir-total').textContent = dirAll.length;
+  $('dash-dir-pub').textContent   = dirAll.filter(x=>x.status==='published').length;
 }
 
 // ── Emergency Alerts ────────────────────────────────────────────────────────
@@ -3476,6 +4260,12 @@ document.addEventListener('keydown', e => {
     $('init-form-overlay').classList.remove('open');
     $('form-modal-overlay').classList.remove('open');
     $('psvc-form-overlay').classList.remove('open');
+    $('dirmap-form-overlay').classList.remove('open');
+    $('dirbiz-form-overlay').classList.remove('open');
+    $('dirorg-form-overlay').classList.remove('open');
+    $('direm-form-overlay').classList.remove('open');
+    $('catgroup-form-overlay').classList.remove('open');
+    $('catsub-form-overlay').classList.remove('open');
   }
 });
 
@@ -4791,6 +5581,1059 @@ function confirmPsvcDel(id,title){
     } catch(e){ if(e.message!=='unauthorized') toast('Delete error','err'); }
     pendingPsvcDelId=null;
   };
+}
+
+// ================== DIRECTORY MANAGEMENT ==================
+
+// -- Community Map ------------------------------------------------------------
+const SDM = { items:[], filter:'all', search:'', editingId:null, imageUrl:'', gallery:[] };
+
+async function loadDirMap() {
+  try {
+    const r = await adminFetch('/admin/api/directory/map');
+    if (!r.ok) return;
+    const d = await r.json();
+    SDM.items = d.locations || [];
+    renderDirMapList();
+  } catch {}
+}
+
+function renderDirMapList() {
+  let items = [...SDM.items];
+  if (SDM.filter !== 'all') items = items.filter(x => x.status === SDM.filter);
+  if (SDM.search) {
+    const q = SDM.search.toLowerCase();
+    items = items.filter(x => (x.name||'').toLowerCase().includes(q) || (x.category||'').toLowerCase().includes(q) || (x.address||'').toLowerCase().includes(q));
+  }
+  items.sort((a,b) => (a.name||'').localeCompare(b.name||''));
+  const el = $('dirmap-list');
+  if (!items.length) {
+    el.innerHTML = `<div class="empty-state"><div class="es-icon"></div><h3>No locations found</h3><p>${SDM.filter==='all'?'Click "+ New Location" to add one.':'No '+SDM.filter+' locations.'}</p></div>`;
+    return;
+  }
+  el.innerHTML = items.map(p => {
+    const thumb = p.imageUrl
+      ? `<img class="ann-thumb" draggable="false" src="${p.imageUrl.indexOf('http')===0?p.imageUrl:'/'+p.imageUrl}" alt="" onerror="this.style.display='none'">`
+      : `<div class="ann-thumb-ph"></div>`;
+    return `<div class="ann-card" data-id="${p.id}">
+    ${thumb}
+    <div class="ann-body">
+      <div class="ann-meta">
+        <span class="badge badge-${p.status}">${p.status}</span>
+        <span class="cat-tag">${esc(p.category)}</span>
+      </div>
+      <div class="ann-title">${esc(p.name||'(no name)')}</div>
+      <div class="ann-desc">${esc(p.address||p.description||'')}</div>
+    </div>
+    <div class="ann-actions">
+      <button class="btn-act" onclick="openDirMapEdit('${p.id}')">Edit</button>
+      <button class="btn-act" onclick="toggleDirMapStatus('${p.id}','${p.status}')">${p.status==='hidden'?'Show':'Hide'}</button>
+      <button class="btn-act danger" onclick="confirmDirMapDel('${p.id}','${esc(p.name||'')}')">Delete</button>
+    </div>
+  </div>`;
+  }).join('');
+}
+
+$('dirmap-search').addEventListener('input', e => { SDM.search=e.target.value; renderDirMapList(); });
+document.querySelectorAll('#dirmap-tabs .tab').forEach(t => {
+  t.onclick = () => { document.querySelectorAll('#dirmap-tabs .tab').forEach(x=>x.classList.remove('active')); t.classList.add('active'); SDM.filter=t.dataset.dmf; renderDirMapList(); };
+});
+$('btn-new-dirmap').onclick = openDirMapNew;
+
+function resetDirMapForm() {
+  SDM.editingId=null; SDM.imageUrl=''; SDM.gallery=[];
+  $('dirmap-name').value=''; setCatSelectValue('dirmap', '');
+  $('dirmap-contact').value=''; $('dirmap-desc').value=''; $('dirmap-address').value='';
+  $('dirmap-hours').value=''; $('dirmap-lat').value=''; $('dirmap-lng').value='';
+  $('dirmap-website').value=''; $('dirmap-email').value=''; $('dirmap-facebook').value=''; $('dirmap-keywords').value='';
+  $('dirmap-hours-open').value=''; $('dirmap-hours-close').value=''; $('dirmap-hours-24h').checked=false;
+  $('dirmap-featured').checked=false; $('dirmap-verified').checked=false;
+  $('dirmap-s-draft').checked=true;
+  $('dirmap-img-preview').style.display='none'; $('dirmap-img-preview').src='';
+  renderGalleryGrid('dirmap', SDM.gallery);
+}
+
+function openDirMapNew() {
+  resetDirMapForm();
+  $('dirmap-modal-title').textContent='New Location';
+  $('dirmap-form-overlay').classList.add('open');
+  $('dirmap-name').focus();
+}
+
+function openDirMapEdit(id) {
+  const p = SDM.items.find(x=>x.id===id); if(!p) return;
+  resetDirMapForm(); SDM.editingId=id; SDM.imageUrl=p.imageUrl||''; SDM.gallery=(p.gallery||[]).slice();
+  $('dirmap-modal-title').textContent='Edit Location';
+  $('dirmap-name').value=p.name||''; setCatSelectValue('dirmap', p.category||'');
+  $('dirmap-contact').value=p.contact||''; $('dirmap-desc').value=p.description||'';
+  $('dirmap-address').value=p.address||''; $('dirmap-hours').value=p.hours||'';
+  $('dirmap-lat').value=p.lat??''; $('dirmap-lng').value=p.lng??'';
+  $('dirmap-website').value=p.website||''; $('dirmap-email').value=p.email||'';
+  $('dirmap-facebook').value=p.facebook||''; $('dirmap-keywords').value=p.keywords||'';
+  $('dirmap-hours-open').value=p.hoursOpen||''; $('dirmap-hours-close').value=p.hoursClose||'';
+  $('dirmap-hours-24h').checked=!!p.hoursIs24h;
+  $('dirmap-featured').checked=!!p.featured; $('dirmap-verified').checked=!!p.verified;
+  const sEl=document.getElementById('dirmap-s-'+p.status); if(sEl) sEl.checked=true; else $('dirmap-s-draft').checked=true;
+  if(p.imageUrl){ $('dirmap-img-preview').src=p.imageUrl.indexOf('http')===0?p.imageUrl:'/'+p.imageUrl; $('dirmap-img-preview').style.display='block'; }
+  renderGalleryGrid('dirmap', SDM.gallery);
+  $('dirmap-form-overlay').classList.add('open');
+  $('dirmap-name').focus();
+}
+
+function closeDirMapForm(){ $('dirmap-form-overlay').classList.remove('open'); }
+$('btn-close-dirmap-form').onclick=closeDirMapForm;
+$('btn-cancel-dirmap').onclick=closeDirMapForm;
+$('dirmap-form-overlay').onclick=e=>{ if(e.target===$('dirmap-form-overlay')) closeDirMapForm(); };
+
+function clearDirMapImage() {
+  SDM.imageUrl=''; $('dirmap-img-preview').style.display='none'; $('dirmap-img-preview').src='';
+}
+
+async function uploadDirMapImage(file) {
+  const form=new FormData(); form.append('image',file);
+  try {
+    const r=await adminFetch('/admin/api/upload/map-location-image',{method:'POST',body:form});
+    const d=await r.json();
+    if(!r.ok){toast(d.error||'Upload failed','err');return;}
+    SDM.imageUrl=d.url;
+    $('dirmap-img-preview').src=d.url.indexOf('http')===0?d.url:'/'+d.url;
+    $('dirmap-img-preview').style.display='block';
+    toast('Image uploaded','ok');
+  } catch(e){ if(e.message!=='unauthorized') toast('Upload error','err'); }
+}
+$('dirmap-img-file').onchange=async e=>{ const f=e.target.files[0]; if(!f) return; await uploadDirMapImage(f); e.target.value=''; };
+const dirmapDropArea=$('dirmap-drop-area');
+dirmapDropArea.addEventListener('dragover',e=>{e.preventDefault();dirmapDropArea.classList.add('drag-over');});
+dirmapDropArea.addEventListener('dragleave',()=>dirmapDropArea.classList.remove('drag-over'));
+dirmapDropArea.addEventListener('drop',async e=>{ e.preventDefault();dirmapDropArea.classList.remove('drag-over'); const f=e.dataTransfer.files[0]; if(!f) return; await uploadDirMapImage(f); });
+$('dirmap-gallery-file').onchange=async e=>{ const f=e.target.files[0]; if(!f) return; await uploadGalleryImage('dirmap','/admin/api/upload/map-location-gallery',f); e.target.value=''; };
+
+async function saveDirMapForm(forceStatus) {
+  const name=$('dirmap-name').value.trim();
+  if(!name){toast('Location name is required','err');$('dirmap-name').focus();return;}
+  const category=getCatSelectValue('dirmap');
+  if(!category){toast('Please choose a category','err');$('dirmap-cat-input').focus();return;}
+  const status=forceStatus||document.querySelector('input[name="dirmap-status"]:checked')?.value||'draft';
+  const body={
+    name, category, description:$('dirmap-desc').value.trim(),
+    address:$('dirmap-address').value.trim(), contact:$('dirmap-contact').value.trim(),
+    hours:$('dirmap-hours').value.trim(), imageUrl:SDM.imageUrl,
+    lat: $('dirmap-lat').value===''?null:parseFloat($('dirmap-lat').value),
+    lng: $('dirmap-lng').value===''?null:parseFloat($('dirmap-lng').value),
+    website:$('dirmap-website').value.trim(), email:$('dirmap-email').value.trim(),
+    facebook:$('dirmap-facebook').value.trim(), keywords:$('dirmap-keywords').value.trim(),
+    hoursOpen:$('dirmap-hours-open').value, hoursClose:$('dirmap-hours-close').value,
+    hoursIs24h:$('dirmap-hours-24h').checked,
+    featured:$('dirmap-featured').checked, verified:$('dirmap-verified').checked,
+    gallery:SDM.gallery,
+    status
+  };
+  const url=SDM.editingId?`/admin/api/directory/map/${SDM.editingId}`:'/admin/api/directory/map';
+  const method=SDM.editingId?'PUT':'POST';
+  try {
+    const r=await adminFetch(url,{method,headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const d=await r.json();
+    if(!r.ok){toast(d.error||'Save failed','err');return;}
+    closeDirMapForm(); await loadDirMap();
+    toast(SDM.editingId?'Location updated':`Location ${status==='published'?'published':'saved as draft'}`,'ok');
+  } catch(e){ if(e.message!=='unauthorized'&&e.message!=='password_change_required') toast('Save error','err'); }
+}
+$('btn-dirmap-draft').onclick=()=>saveDirMapForm('draft');
+$('btn-dirmap-pub').onclick=()=>saveDirMapForm('published');
+
+async function toggleDirMapStatus(id,cur) {
+  const nxt=cur==='hidden'?'published':'hidden';
+  try {
+    const r=await adminFetch(`/admin/api/directory/map/${id}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:nxt})});
+    if(!r.ok){toast('Update failed','err');return;}
+    await loadDirMap();
+    toast(nxt==='hidden'?'Location hidden from public':'Location is now visible','ok');
+  } catch(e){ if(e.message!=='unauthorized') toast('Update error','err'); }
+}
+
+let pendingDirMapDelId=null;
+function confirmDirMapDel(id,name){
+  pendingDirMapDelId=id;
+  $('confirm-title').textContent='Delete location?';
+  $('confirm-msg').textContent=`"${name}" will be permanently deleted. This cannot be undone.`;
+  $('confirm-overlay').classList.add('open');
+  $('confirm-yes').onclick=async()=>{
+    if(!pendingDirMapDelId) return;
+    $('confirm-overlay').classList.remove('open');
+    try {
+      const r=await adminFetch(`/admin/api/directory/map/${pendingDirMapDelId}`,{method:'DELETE'});
+      if(!r.ok){toast('Delete failed','err');return;}
+      await loadDirMap(); toast('Location deleted','ok');
+    } catch(e){ if(e.message!=='unauthorized') toast('Delete error','err'); }
+    pendingDirMapDelId=null;
+  };
+}
+
+// -- Business Directory --------------------------------------------------------
+const SDB = { items:[], filter:'all', search:'', editingId:null, imageUrl:'', gallery:[] };
+
+async function loadDirBiz() {
+  try {
+    const r = await adminFetch('/admin/api/directory/businesses');
+    if (!r.ok) return;
+    const d = await r.json();
+    SDB.items = d.businesses || [];
+    renderDirBizList();
+  } catch {}
+}
+
+function renderDirBizList() {
+  let items = [...SDB.items];
+  if (SDB.filter !== 'all') items = items.filter(x => x.status === SDB.filter);
+  if (SDB.search) {
+    const q = SDB.search.toLowerCase();
+    items = items.filter(x => (x.name||'').toLowerCase().includes(q) || (x.category||'').toLowerCase().includes(q) || (x.address||'').toLowerCase().includes(q));
+  }
+  items.sort((a,b) => (a.name||'').localeCompare(b.name||''));
+  const el = $('dirbiz-list');
+  if (!items.length) {
+    el.innerHTML = `<div class="empty-state"><div class="es-icon"></div><h3>No businesses found</h3><p>${SDB.filter==='all'?'Click "+ New Business" to add one.':'No '+SDB.filter+' businesses.'}</p></div>`;
+    return;
+  }
+  el.innerHTML = items.map(p => {
+    const thumb = p.imageUrl
+      ? `<img class="ann-thumb" draggable="false" src="${p.imageUrl.indexOf('http')===0?p.imageUrl:'/'+p.imageUrl}" alt="" onerror="this.style.display='none'">`
+      : `<div class="ann-thumb-ph"></div>`;
+    return `<div class="ann-card" data-id="${p.id}">
+    ${thumb}
+    <div class="ann-body">
+      <div class="ann-meta">
+        <span class="badge badge-${p.status}">${p.status}</span>
+        <span class="cat-tag">${esc(p.category)}</span>
+      </div>
+      <div class="ann-title">${esc(p.name||'(no name)')}</div>
+      <div class="ann-desc">${esc(p.address||p.description||'')}</div>
+    </div>
+    <div class="ann-actions">
+      <button class="btn-act" onclick="openDirBizEdit('${p.id}')">Edit</button>
+      <button class="btn-act" onclick="toggleDirBizStatus('${p.id}','${p.status}')">${p.status==='hidden'?'Show':'Hide'}</button>
+      <button class="btn-act danger" onclick="confirmDirBizDel('${p.id}','${esc(p.name||'')}')">Delete</button>
+    </div>
+  </div>`;
+  }).join('');
+}
+
+$('dirbiz-search').addEventListener('input', e => { SDB.search=e.target.value; renderDirBizList(); });
+document.querySelectorAll('#dirbiz-tabs .tab').forEach(t => {
+  t.onclick = () => { document.querySelectorAll('#dirbiz-tabs .tab').forEach(x=>x.classList.remove('active')); t.classList.add('active'); SDB.filter=t.dataset.dbf; renderDirBizList(); };
+});
+$('btn-new-dirbiz').onclick = openDirBizNew;
+
+function resetDirBizForm() {
+  SDB.editingId=null; SDB.imageUrl=''; SDB.gallery=[];
+  $('dirbiz-name').value=''; setCatSelectValue('dirbiz', '');
+  $('dirbiz-contact').value=''; $('dirbiz-desc').value=''; $('dirbiz-address').value='';
+  $('dirbiz-hours').value=''; $('dirbiz-social').value='';
+  $('dirbiz-lat').value=''; $('dirbiz-lng').value='';
+  $('dirbiz-website').value=''; $('dirbiz-email').value=''; $('dirbiz-keywords').value='';
+  $('dirbiz-hours-open').value=''; $('dirbiz-hours-close').value=''; $('dirbiz-hours-24h').checked=false;
+  $('dirbiz-featured').checked=false; $('dirbiz-verified').checked=false;
+  $('dirbiz-s-draft').checked=true;
+  $('dirbiz-img-preview').style.display='none'; $('dirbiz-img-preview').src='';
+  renderGalleryGrid('dirbiz', SDB.gallery);
+}
+
+function openDirBizNew() {
+  resetDirBizForm();
+  $('dirbiz-modal-title').textContent='New Business';
+  $('dirbiz-form-overlay').classList.add('open');
+  $('dirbiz-name').focus();
+}
+
+function openDirBizEdit(id) {
+  const p = SDB.items.find(x=>x.id===id); if(!p) return;
+  resetDirBizForm(); SDB.editingId=id; SDB.imageUrl=p.imageUrl||''; SDB.gallery=(p.gallery||[]).slice();
+  $('dirbiz-modal-title').textContent='Edit Business';
+  $('dirbiz-name').value=p.name||''; setCatSelectValue('dirbiz', p.category||'');
+  $('dirbiz-contact').value=p.contact||''; $('dirbiz-desc').value=p.description||'';
+  $('dirbiz-address').value=p.address||''; $('dirbiz-hours').value=p.hours||'';
+  $('dirbiz-social').value=p.social||'';
+  $('dirbiz-lat').value=p.lat??''; $('dirbiz-lng').value=p.lng??'';
+  $('dirbiz-website').value=p.website||''; $('dirbiz-email').value=p.email||''; $('dirbiz-keywords').value=p.keywords||'';
+  $('dirbiz-hours-open').value=p.hoursOpen||''; $('dirbiz-hours-close').value=p.hoursClose||'';
+  $('dirbiz-hours-24h').checked=!!p.hoursIs24h;
+  $('dirbiz-featured').checked=!!p.featured; $('dirbiz-verified').checked=!!p.verified;
+  const sEl=document.getElementById('dirbiz-s-'+p.status); if(sEl) sEl.checked=true; else $('dirbiz-s-draft').checked=true;
+  if(p.imageUrl){ $('dirbiz-img-preview').src=p.imageUrl.indexOf('http')===0?p.imageUrl:'/'+p.imageUrl; $('dirbiz-img-preview').style.display='block'; }
+  renderGalleryGrid('dirbiz', SDB.gallery);
+  $('dirbiz-form-overlay').classList.add('open');
+  $('dirbiz-name').focus();
+}
+
+function closeDirBizForm(){ $('dirbiz-form-overlay').classList.remove('open'); }
+$('btn-close-dirbiz-form').onclick=closeDirBizForm;
+$('btn-cancel-dirbiz').onclick=closeDirBizForm;
+$('dirbiz-form-overlay').onclick=e=>{ if(e.target===$('dirbiz-form-overlay')) closeDirBizForm(); };
+
+function clearDirBizImage() {
+  SDB.imageUrl=''; $('dirbiz-img-preview').style.display='none'; $('dirbiz-img-preview').src='';
+}
+
+async function uploadDirBizLogo(file) {
+  const form=new FormData(); form.append('image',file);
+  try {
+    const r=await adminFetch('/admin/api/upload/business-logo',{method:'POST',body:form});
+    const d=await r.json();
+    if(!r.ok){toast(d.error||'Upload failed','err');return;}
+    SDB.imageUrl=d.url;
+    $('dirbiz-img-preview').src=d.url.indexOf('http')===0?d.url:'/'+d.url;
+    $('dirbiz-img-preview').style.display='block';
+    toast('Image uploaded','ok');
+  } catch(e){ if(e.message!=='unauthorized') toast('Upload error','err'); }
+}
+$('dirbiz-img-file').onchange=async e=>{ const f=e.target.files[0]; if(!f) return; await uploadDirBizLogo(f); e.target.value=''; };
+const dirbizDropArea=$('dirbiz-drop-area');
+dirbizDropArea.addEventListener('dragover',e=>{e.preventDefault();dirbizDropArea.classList.add('drag-over');});
+dirbizDropArea.addEventListener('dragleave',()=>dirbizDropArea.classList.remove('drag-over'));
+dirbizDropArea.addEventListener('drop',async e=>{ e.preventDefault();dirbizDropArea.classList.remove('drag-over'); const f=e.dataTransfer.files[0]; if(!f) return; await uploadDirBizLogo(f); });
+$('dirbiz-gallery-file').onchange=async e=>{ const f=e.target.files[0]; if(!f) return; await uploadGalleryImage('dirbiz','/admin/api/upload/business-gallery',f); e.target.value=''; };
+
+async function saveDirBizForm(forceStatus) {
+  const name=$('dirbiz-name').value.trim();
+  if(!name){toast('Business name is required','err');$('dirbiz-name').focus();return;}
+  const category=getCatSelectValue('dirbiz');
+  if(!category){toast('Please choose a category','err');$('dirbiz-cat-input').focus();return;}
+  const status=forceStatus||document.querySelector('input[name="dirbiz-status"]:checked')?.value||'draft';
+  const body={
+    name, category, description:$('dirbiz-desc').value.trim(),
+    address:$('dirbiz-address').value.trim(), contact:$('dirbiz-contact').value.trim(),
+    hours:$('dirbiz-hours').value.trim(), imageUrl:SDB.imageUrl, social:$('dirbiz-social').value.trim(),
+    lat: $('dirbiz-lat').value===''?null:parseFloat($('dirbiz-lat').value),
+    lng: $('dirbiz-lng').value===''?null:parseFloat($('dirbiz-lng').value),
+    website:$('dirbiz-website').value.trim(), email:$('dirbiz-email').value.trim(),
+    keywords:$('dirbiz-keywords').value.trim(),
+    hoursOpen:$('dirbiz-hours-open').value, hoursClose:$('dirbiz-hours-close').value,
+    hoursIs24h:$('dirbiz-hours-24h').checked,
+    featured:$('dirbiz-featured').checked, verified:$('dirbiz-verified').checked,
+    gallery:SDB.gallery,
+    status
+  };
+  const url=SDB.editingId?`/admin/api/directory/businesses/${SDB.editingId}`:'/admin/api/directory/businesses';
+  const method=SDB.editingId?'PUT':'POST';
+  try {
+    const r=await adminFetch(url,{method,headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const d=await r.json();
+    if(!r.ok){toast(d.error||'Save failed','err');return;}
+    closeDirBizForm(); await loadDirBiz();
+    toast(SDB.editingId?'Business updated':`Business ${status==='published'?'published':'saved as draft'}`,'ok');
+  } catch(e){ if(e.message!=='unauthorized'&&e.message!=='password_change_required') toast('Save error','err'); }
+}
+$('btn-dirbiz-draft').onclick=()=>saveDirBizForm('draft');
+$('btn-dirbiz-pub').onclick=()=>saveDirBizForm('published');
+
+async function toggleDirBizStatus(id,cur) {
+  const nxt=cur==='hidden'?'published':'hidden';
+  try {
+    const r=await adminFetch(`/admin/api/directory/businesses/${id}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:nxt})});
+    if(!r.ok){toast('Update failed','err');return;}
+    await loadDirBiz();
+    toast(nxt==='hidden'?'Business hidden from public':'Business is now visible','ok');
+  } catch(e){ if(e.message!=='unauthorized') toast('Update error','err'); }
+}
+
+let pendingDirBizDelId=null;
+function confirmDirBizDel(id,name){
+  pendingDirBizDelId=id;
+  $('confirm-title').textContent='Delete business?';
+  $('confirm-msg').textContent=`"${name}" will be permanently deleted. This cannot be undone.`;
+  $('confirm-overlay').classList.add('open');
+  $('confirm-yes').onclick=async()=>{
+    if(!pendingDirBizDelId) return;
+    $('confirm-overlay').classList.remove('open');
+    try {
+      const r=await adminFetch(`/admin/api/directory/businesses/${pendingDirBizDelId}`,{method:'DELETE'});
+      if(!r.ok){toast('Delete failed','err');return;}
+      await loadDirBiz(); toast('Business deleted','ok');
+    } catch(e){ if(e.message!=='unauthorized') toast('Delete error','err'); }
+    pendingDirBizDelId=null;
+  };
+}
+
+// -- Organization Directory -----------------------------------------------------
+const SDO = { items:[], filter:'all', search:'', editingId:null, imageUrl:'', gallery:[] };
+
+async function loadDirOrg() {
+  try {
+    const r = await adminFetch('/admin/api/directory/organizations');
+    if (!r.ok) return;
+    const d = await r.json();
+    SDO.items = d.organizations || [];
+    renderDirOrgList();
+  } catch {}
+}
+
+function renderDirOrgList() {
+  let items = [...SDO.items];
+  if (SDO.filter !== 'all') items = items.filter(x => x.status === SDO.filter);
+  if (SDO.search) {
+    const q = SDO.search.toLowerCase();
+    items = items.filter(x => (x.name||'').toLowerCase().includes(q) || (x.category||'').toLowerCase().includes(q) || (x.contactPerson||'').toLowerCase().includes(q));
+  }
+  items.sort((a,b) => (a.name||'').localeCompare(b.name||''));
+  const el = $('dirorg-list');
+  if (!items.length) {
+    el.innerHTML = `<div class="empty-state"><div class="es-icon"></div><h3>No organizations found</h3><p>${SDO.filter==='all'?'Click "+ New Organization" to add one.':'No '+SDO.filter+' organizations.'}</p></div>`;
+    return;
+  }
+  el.innerHTML = items.map(p => {
+    const thumb = p.imageUrl
+      ? `<img class="ann-thumb" draggable="false" src="${p.imageUrl.indexOf('http')===0?p.imageUrl:'/'+p.imageUrl}" alt="" onerror="this.style.display='none'">`
+      : `<div class="ann-thumb-ph"></div>`;
+    return `<div class="ann-card" data-id="${p.id}">
+    ${thumb}
+    <div class="ann-body">
+      <div class="ann-meta">
+        <span class="badge badge-${p.status}">${p.status}</span>
+        <span class="cat-tag">${esc(p.category)}</span>
+      </div>
+      <div class="ann-title">${esc(p.name||'(no name)')}</div>
+      <div class="ann-desc">${esc(p.contactPerson||p.description||'')}</div>
+    </div>
+    <div class="ann-actions">
+      <button class="btn-act" onclick="openDirOrgEdit('${p.id}')">Edit</button>
+      <button class="btn-act" onclick="toggleDirOrgStatus('${p.id}','${p.status}')">${p.status==='hidden'?'Show':'Hide'}</button>
+      <button class="btn-act danger" onclick="confirmDirOrgDel('${p.id}','${esc(p.name||'')}')">Delete</button>
+    </div>
+  </div>`;
+  }).join('');
+}
+
+$('dirorg-search').addEventListener('input', e => { SDO.search=e.target.value; renderDirOrgList(); });
+document.querySelectorAll('#dirorg-tabs .tab').forEach(t => {
+  t.onclick = () => { document.querySelectorAll('#dirorg-tabs .tab').forEach(x=>x.classList.remove('active')); t.classList.add('active'); SDO.filter=t.dataset.dof; renderDirOrgList(); };
+});
+$('btn-new-dirorg').onclick = openDirOrgNew;
+
+function resetDirOrgForm() {
+  SDO.editingId=null; SDO.imageUrl=''; SDO.gallery=[];
+  $('dirorg-name').value=''; setCatSelectValue('dirorg', '');
+  $('dirorg-contact-person').value=''; $('dirorg-desc').value=''; $('dirorg-contact-details').value='';
+  $('dirorg-location').value=''; $('dirorg-officers').value=''; $('dirorg-programs').value='';
+  $('dirorg-lat').value=''; $('dirorg-lng').value='';
+  $('dirorg-website').value=''; $('dirorg-email').value=''; $('dirorg-facebook').value=''; $('dirorg-keywords').value='';
+  $('dirorg-featured').checked=false; $('dirorg-verified').checked=false;
+  $('dirorg-s-draft').checked=true;
+  $('dirorg-img-preview').style.display='none'; $('dirorg-img-preview').src='';
+  renderGalleryGrid('dirorg', SDO.gallery);
+}
+
+function openDirOrgNew() {
+  resetDirOrgForm();
+  $('dirorg-modal-title').textContent='New Organization';
+  $('dirorg-form-overlay').classList.add('open');
+  $('dirorg-name').focus();
+}
+
+function openDirOrgEdit(id) {
+  const p = SDO.items.find(x=>x.id===id); if(!p) return;
+  resetDirOrgForm(); SDO.editingId=id; SDO.imageUrl=p.imageUrl||''; SDO.gallery=(p.gallery||[]).slice();
+  $('dirorg-modal-title').textContent='Edit Organization';
+  $('dirorg-name').value=p.name||''; setCatSelectValue('dirorg', p.category||'');
+  $('dirorg-contact-person').value=p.contactPerson||''; $('dirorg-desc').value=p.description||'';
+  $('dirorg-contact-details').value=p.contactDetails||''; $('dirorg-location').value=p.location||'';
+  $('dirorg-officers').value=(p.officers||[]).join('\n'); $('dirorg-programs').value=p.programs||'';
+  $('dirorg-lat').value=p.lat??''; $('dirorg-lng').value=p.lng??'';
+  $('dirorg-website').value=p.website||''; $('dirorg-email').value=p.email||'';
+  $('dirorg-facebook').value=p.facebook||''; $('dirorg-keywords').value=p.keywords||'';
+  $('dirorg-featured').checked=!!p.featured; $('dirorg-verified').checked=!!p.verified;
+  const sEl=document.getElementById('dirorg-s-'+p.status); if(sEl) sEl.checked=true; else $('dirorg-s-draft').checked=true;
+  if(p.imageUrl){ $('dirorg-img-preview').src=p.imageUrl.indexOf('http')===0?p.imageUrl:'/'+p.imageUrl; $('dirorg-img-preview').style.display='block'; }
+  renderGalleryGrid('dirorg', SDO.gallery);
+  $('dirorg-form-overlay').classList.add('open');
+  $('dirorg-name').focus();
+}
+
+function closeDirOrgForm(){ $('dirorg-form-overlay').classList.remove('open'); }
+$('btn-close-dirorg-form').onclick=closeDirOrgForm;
+$('btn-cancel-dirorg').onclick=closeDirOrgForm;
+$('dirorg-form-overlay').onclick=e=>{ if(e.target===$('dirorg-form-overlay')) closeDirOrgForm(); };
+
+function clearDirOrgImage() {
+  SDO.imageUrl=''; $('dirorg-img-preview').style.display='none'; $('dirorg-img-preview').src='';
+}
+
+async function uploadDirOrgLogo(file) {
+  const form=new FormData(); form.append('image',file);
+  try {
+    const r=await adminFetch('/admin/api/upload/organization-logo',{method:'POST',body:form});
+    const d=await r.json();
+    if(!r.ok){toast(d.error||'Upload failed','err');return;}
+    SDO.imageUrl=d.url;
+    $('dirorg-img-preview').src=d.url.indexOf('http')===0?d.url:'/'+d.url;
+    $('dirorg-img-preview').style.display='block';
+    toast('Image uploaded','ok');
+  } catch(e){ if(e.message!=='unauthorized') toast('Upload error','err'); }
+}
+$('dirorg-img-file').onchange=async e=>{ const f=e.target.files[0]; if(!f) return; await uploadDirOrgLogo(f); e.target.value=''; };
+const dirorgDropArea=$('dirorg-drop-area');
+dirorgDropArea.addEventListener('dragover',e=>{e.preventDefault();dirorgDropArea.classList.add('drag-over');});
+dirorgDropArea.addEventListener('dragleave',()=>dirorgDropArea.classList.remove('drag-over'));
+dirorgDropArea.addEventListener('drop',async e=>{ e.preventDefault();dirorgDropArea.classList.remove('drag-over'); const f=e.dataTransfer.files[0]; if(!f) return; await uploadDirOrgLogo(f); });
+$('dirorg-gallery-file').onchange=async e=>{ const f=e.target.files[0]; if(!f) return; await uploadGalleryImage('dirorg','/admin/api/upload/organization-gallery',f); e.target.value=''; };
+
+async function saveDirOrgForm(forceStatus) {
+  const name=$('dirorg-name').value.trim();
+  if(!name){toast('Organization name is required','err');$('dirorg-name').focus();return;}
+  const category=getCatSelectValue('dirorg');
+  if(!category){toast('Please choose a category','err');$('dirorg-cat-input').focus();return;}
+  const status=forceStatus||document.querySelector('input[name="dirorg-status"]:checked')?.value||'draft';
+  const officers=$('dirorg-officers').value.split('\n').map(s=>s.trim()).filter(Boolean);
+  const body={
+    name, category, description:$('dirorg-desc').value.trim(),
+    contactPerson:$('dirorg-contact-person').value.trim(), officers,
+    contactDetails:$('dirorg-contact-details').value.trim(), programs:$('dirorg-programs').value.trim(),
+    location:$('dirorg-location').value.trim(), imageUrl:SDO.imageUrl,
+    lat: $('dirorg-lat').value===''?null:parseFloat($('dirorg-lat').value),
+    lng: $('dirorg-lng').value===''?null:parseFloat($('dirorg-lng').value),
+    website:$('dirorg-website').value.trim(), email:$('dirorg-email').value.trim(),
+    facebook:$('dirorg-facebook').value.trim(), keywords:$('dirorg-keywords').value.trim(),
+    featured:$('dirorg-featured').checked, verified:$('dirorg-verified').checked,
+    gallery:SDO.gallery,
+    status
+  };
+  const url=SDO.editingId?`/admin/api/directory/organizations/${SDO.editingId}`:'/admin/api/directory/organizations';
+  const method=SDO.editingId?'PUT':'POST';
+  try {
+    const r=await adminFetch(url,{method,headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const d=await r.json();
+    if(!r.ok){toast(d.error||'Save failed','err');return;}
+    closeDirOrgForm(); await loadDirOrg();
+    toast(SDO.editingId?'Organization updated':`Organization ${status==='published'?'published':'saved as draft'}`,'ok');
+  } catch(e){ if(e.message!=='unauthorized'&&e.message!=='password_change_required') toast('Save error','err'); }
+}
+$('btn-dirorg-draft').onclick=()=>saveDirOrgForm('draft');
+$('btn-dirorg-pub').onclick=()=>saveDirOrgForm('published');
+
+async function toggleDirOrgStatus(id,cur) {
+  const nxt=cur==='hidden'?'published':'hidden';
+  try {
+    const r=await adminFetch(`/admin/api/directory/organizations/${id}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:nxt})});
+    if(!r.ok){toast('Update failed','err');return;}
+    await loadDirOrg();
+    toast(nxt==='hidden'?'Organization hidden from public':'Organization is now visible','ok');
+  } catch(e){ if(e.message!=='unauthorized') toast('Update error','err'); }
+}
+
+let pendingDirOrgDelId=null;
+function confirmDirOrgDel(id,name){
+  pendingDirOrgDelId=id;
+  $('confirm-title').textContent='Delete organization?';
+  $('confirm-msg').textContent=`"${name}" will be permanently deleted. This cannot be undone.`;
+  $('confirm-overlay').classList.add('open');
+  $('confirm-yes').onclick=async()=>{
+    if(!pendingDirOrgDelId) return;
+    $('confirm-overlay').classList.remove('open');
+    try {
+      const r=await adminFetch(`/admin/api/directory/organizations/${pendingDirOrgDelId}`,{method:'DELETE'});
+      if(!r.ok){toast('Delete failed','err');return;}
+      await loadDirOrg(); toast('Organization deleted','ok');
+    } catch(e){ if(e.message!=='unauthorized') toast('Delete error','err'); }
+    pendingDirOrgDelId=null;
+  };
+}
+
+// -- Emergency Directory --------------------------------------------------------
+const SDE = { items:[], filter:'all', search:'', editingId:null, imageUrl:'', gallery:[] };
+
+async function loadDirEm() {
+  try {
+    const r = await adminFetch('/admin/api/directory/emergency');
+    if (!r.ok) return;
+    const d = await r.json();
+    SDE.items = d.contacts || [];
+    renderDirEmList();
+  } catch {}
+}
+
+function renderDirEmList() {
+  let items = [...SDE.items];
+  if (SDE.filter !== 'all') items = items.filter(x => x.status === SDE.filter);
+  if (SDE.search) {
+    const q = SDE.search.toLowerCase();
+    items = items.filter(x => (x.name||'').toLowerCase().includes(q) || (x.category||'').toLowerCase().includes(q) || (x.number||'').toLowerCase().includes(q));
+  }
+  items.sort((a,b) => (a.name||'').localeCompare(b.name||''));
+  const el = $('direm-list');
+  if (!items.length) {
+    el.innerHTML = `<div class="empty-state"><div class="es-icon"></div><h3>No emergency contacts found</h3><p>${SDE.filter==='all'?'Click "+ New Contact" to add one.':'No '+SDE.filter+' contacts.'}</p></div>`;
+    return;
+  }
+  el.innerHTML = items.map(p => {
+    const thumb = p.imageUrl
+      ? `<img class="ann-thumb" draggable="false" src="${p.imageUrl.indexOf('http')===0?p.imageUrl:'/'+p.imageUrl}" alt="" onerror="this.style.display='none'">`
+      : `<div class="ann-thumb-ph"></div>`;
+    return `<div class="ann-card" data-id="${p.id}">
+    ${thumb}
+    <div class="ann-body">
+      <div class="ann-meta">
+        <span class="badge badge-${p.status}">${p.status}</span>
+        <span class="cat-tag">${esc(p.category)}</span>
+      </div>
+      <div class="ann-title">${esc(p.name||'(no name)')}</div>
+      <div class="ann-desc">${esc(p.number||'')}${p.altNumber?' / '+esc(p.altNumber):''}</div>
+    </div>
+    <div class="ann-actions">
+      <button class="btn-act" onclick="openDirEmEdit('${p.id}')">Edit</button>
+      <button class="btn-act" onclick="toggleDirEmStatus('${p.id}','${p.status}')">${p.status==='hidden'?'Show':'Hide'}</button>
+      <button class="btn-act danger" onclick="confirmDirEmDel('${p.id}','${esc(p.name||'')}')">Delete</button>
+    </div>
+  </div>`;
+  }).join('');
+}
+
+$('direm-search').addEventListener('input', e => { SDE.search=e.target.value; renderDirEmList(); });
+document.querySelectorAll('#direm-tabs .tab').forEach(t => {
+  t.onclick = () => { document.querySelectorAll('#direm-tabs .tab').forEach(x=>x.classList.remove('active')); t.classList.add('active'); SDE.filter=t.dataset.def; renderDirEmList(); };
+});
+$('btn-new-direm').onclick = openDirEmNew;
+
+function resetDirEmForm() {
+  SDE.editingId=null; SDE.imageUrl=''; SDE.gallery=[];
+  $('direm-name').value=''; setCatSelectValue('direm', '');
+  $('direm-number').value=''; $('direm-alt-number').value=''; $('direm-address').value='';
+  $('direm-services').value=''; $('direm-lat').value=''; $('direm-lng').value='';
+  $('direm-website').value=''; $('direm-email').value=''; $('direm-facebook').value=''; $('direm-keywords').value='';
+  $('direm-featured').checked=false; $('direm-verified').checked=false;
+  $('direm-s-draft').checked=true;
+  $('direm-img-preview').style.display='none'; $('direm-img-preview').src='';
+  renderGalleryGrid('direm', SDE.gallery);
+}
+
+function openDirEmNew() {
+  resetDirEmForm();
+  $('direm-modal-title').textContent='New Emergency Contact';
+  $('direm-form-overlay').classList.add('open');
+  $('direm-name').focus();
+}
+
+function openDirEmEdit(id) {
+  const p = SDE.items.find(x=>x.id===id); if(!p) return;
+  resetDirEmForm(); SDE.editingId=id; SDE.imageUrl=p.imageUrl||''; SDE.gallery=(p.gallery||[]).slice();
+  $('direm-modal-title').textContent='Edit Emergency Contact';
+  $('direm-name').value=p.name||''; setCatSelectValue('direm', p.category||'');
+  $('direm-number').value=p.number||''; $('direm-alt-number').value=p.altNumber||'';
+  $('direm-address').value=p.address||''; $('direm-services').value=p.services||'';
+  $('direm-lat').value=p.lat??''; $('direm-lng').value=p.lng??'';
+  $('direm-website').value=p.website||''; $('direm-email').value=p.email||'';
+  $('direm-facebook').value=p.facebook||''; $('direm-keywords').value=p.keywords||'';
+  $('direm-featured').checked=!!p.featured; $('direm-verified').checked=!!p.verified;
+  const sEl=document.getElementById('direm-s-'+p.status); if(sEl) sEl.checked=true; else $('direm-s-draft').checked=true;
+  if(p.imageUrl){ $('direm-img-preview').src=p.imageUrl.indexOf('http')===0?p.imageUrl:'/'+p.imageUrl; $('direm-img-preview').style.display='block'; }
+  renderGalleryGrid('direm', SDE.gallery);
+  $('direm-form-overlay').classList.add('open');
+  $('direm-name').focus();
+}
+
+function closeDirEmForm(){ $('direm-form-overlay').classList.remove('open'); }
+$('btn-close-direm-form').onclick=closeDirEmForm;
+$('btn-cancel-direm').onclick=closeDirEmForm;
+$('direm-form-overlay').onclick=e=>{ if(e.target===$('direm-form-overlay')) closeDirEmForm(); };
+
+function clearDirEmImage() {
+  SDE.imageUrl=''; $('direm-img-preview').style.display='none'; $('direm-img-preview').src='';
+}
+
+async function uploadDirEmLogo(file) {
+  const form=new FormData(); form.append('image',file);
+  try {
+    const r=await adminFetch('/admin/api/upload/emergency-logo',{method:'POST',body:form});
+    const d=await r.json();
+    if(!r.ok){toast(d.error||'Upload failed','err');return;}
+    SDE.imageUrl=d.url;
+    $('direm-img-preview').src=d.url.indexOf('http')===0?d.url:'/'+d.url;
+    $('direm-img-preview').style.display='block';
+    toast('Image uploaded','ok');
+  } catch(e){ if(e.message!=='unauthorized') toast('Upload error','err'); }
+}
+$('direm-img-file').onchange=async e=>{ const f=e.target.files[0]; if(!f) return; await uploadDirEmLogo(f); e.target.value=''; };
+const diremDropArea=$('direm-drop-area');
+diremDropArea.addEventListener('dragover',e=>{e.preventDefault();diremDropArea.classList.add('drag-over');});
+diremDropArea.addEventListener('dragleave',()=>diremDropArea.classList.remove('drag-over'));
+diremDropArea.addEventListener('drop',async e=>{ e.preventDefault();diremDropArea.classList.remove('drag-over'); const f=e.dataTransfer.files[0]; if(!f) return; await uploadDirEmLogo(f); });
+$('direm-gallery-file').onchange=async e=>{ const f=e.target.files[0]; if(!f) return; await uploadGalleryImage('direm','/admin/api/upload/emergency-gallery',f); e.target.value=''; };
+
+// -- Directory: shared photo-gallery widget (reused by all 4 Directory modules) --
+const DIR_STATE_BY_PREFIX = { dirmap:SDM, dirbiz:SDB, dirorg:SDO, direm:SDE };
+
+function renderGalleryGrid(prefix, gallery) {
+  const el = $(prefix+'-gallery-grid');
+  if (!el) return;
+  el.innerHTML = (gallery||[]).map((url,i) => {
+    const src = url.indexOf('http')===0 ? url : '/'+url;
+    return `<div class="gallery-thumb"><img src="${src}" alt="" onerror="this.parentElement.remove()"><button type="button" onclick="removeGalleryImage('${prefix}',${i})">&times;</button></div>`;
+  }).join('');
+}
+
+function removeGalleryImage(prefix, idx) {
+  const st = DIR_STATE_BY_PREFIX[prefix];
+  if (!st) return;
+  st.gallery.splice(idx,1);
+  renderGalleryGrid(prefix, st.gallery);
+}
+
+async function uploadGalleryImage(prefix, endpoint, file) {
+  const st = DIR_STATE_BY_PREFIX[prefix];
+  if (!st) return;
+  const form=new FormData(); form.append('image',file);
+  try {
+    const r=await adminFetch(endpoint,{method:'POST',body:form});
+    const d=await r.json();
+    if(!r.ok){toast(d.error||'Upload failed','err');return;}
+    st.gallery = st.gallery || [];
+    st.gallery.push(d.url);
+    renderGalleryGrid(prefix, st.gallery);
+    toast('Photo added','ok');
+  } catch(e){ if(e.message!=='unauthorized') toast('Upload error','err'); }
+}
+
+async function saveDirEmForm(forceStatus) {
+  const name=$('direm-name').value.trim();
+  const number=$('direm-number').value.trim();
+  if(!name){toast('Organization name is required','err');$('direm-name').focus();return;}
+  if(!number){toast('Emergency contact number is required','err');$('direm-number').focus();return;}
+  const category=getCatSelectValue('direm');
+  if(!category){toast('Please choose a category','err');$('direm-cat-input').focus();return;}
+  const status=forceStatus||document.querySelector('input[name="direm-status"]:checked')?.value||'draft';
+  const body={
+    name, category, number, altNumber:$('direm-alt-number').value.trim(),
+    address:$('direm-address').value.trim(), services:$('direm-services').value.trim(), imageUrl:SDE.imageUrl,
+    lat: $('direm-lat').value===''?null:parseFloat($('direm-lat').value),
+    lng: $('direm-lng').value===''?null:parseFloat($('direm-lng').value),
+    website:$('direm-website').value.trim(), email:$('direm-email').value.trim(),
+    facebook:$('direm-facebook').value.trim(), keywords:$('direm-keywords').value.trim(),
+    featured:$('direm-featured').checked, verified:$('direm-verified').checked,
+    gallery:SDE.gallery,
+    status
+  };
+  const url=SDE.editingId?`/admin/api/directory/emergency/${SDE.editingId}`:'/admin/api/directory/emergency';
+  const method=SDE.editingId?'PUT':'POST';
+  try {
+    const r=await adminFetch(url,{method,headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const d=await r.json();
+    if(!r.ok){toast(d.error||'Save failed','err');return;}
+    closeDirEmForm(); await loadDirEm();
+    toast(SDE.editingId?'Contact updated':`Contact ${status==='published'?'published':'saved as draft'}`,'ok');
+  } catch(e){ if(e.message!=='unauthorized'&&e.message!=='password_change_required') toast('Save error','err'); }
+}
+$('btn-direm-draft').onclick=()=>saveDirEmForm('draft');
+$('btn-direm-pub').onclick=()=>saveDirEmForm('published');
+
+async function toggleDirEmStatus(id,cur) {
+  const nxt=cur==='hidden'?'published':'hidden';
+  try {
+    const r=await adminFetch(`/admin/api/directory/emergency/${id}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:nxt})});
+    if(!r.ok){toast('Update failed','err');return;}
+    await loadDirEm();
+    toast(nxt==='hidden'?'Contact hidden from public':'Contact is now visible','ok');
+  } catch(e){ if(e.message!=='unauthorized') toast('Update error','err'); }
+}
+
+let pendingDirEmDelId=null;
+function confirmDirEmDel(id,name){
+  pendingDirEmDelId=id;
+  $('confirm-title').textContent='Delete emergency contact?';
+  $('confirm-msg').textContent=`"${name}" will be permanently deleted. This cannot be undone.`;
+  $('confirm-overlay').classList.add('open');
+  $('confirm-yes').onclick=async()=>{
+    if(!pendingDirEmDelId) return;
+    $('confirm-overlay').classList.remove('open');
+    try {
+      const r=await adminFetch(`/admin/api/directory/emergency/${pendingDirEmDelId}`,{method:'DELETE'});
+      if(!r.ok){toast('Delete failed','err');return;}
+      await loadDirEm(); toast('Contact deleted','ok');
+    } catch(e){ if(e.message!=='unauthorized') toast('Delete error','err'); }
+    pendingDirEmDelId=null;
+  };
+}
+
+// -- Category Management (all 4 Directory modules) ----------------------------
+const SCAT = { activeModule: 'business', modules: { business: [], map: [], organization: [], emergency: [] } };
+function curCatGroups() { return SCAT.modules[SCAT.activeModule] || []; }
+
+async function loadCategories() {
+  try {
+    const r = await adminFetch('/admin/api/directory/categories');
+    if (!r.ok) return;
+    const d = await r.json();
+    SCAT.modules = d.modules || { business: [], map: [], organization: [], emergency: [] };
+    renderCategoriesList();
+    refreshOpenCatSelects();
+  } catch {}
+}
+
+document.querySelectorAll('#dircats-module-tabs .tab').forEach(t => {
+  t.onclick = () => {
+    document.querySelectorAll('#dircats-module-tabs .tab').forEach(x => x.classList.remove('active'));
+    t.classList.add('active');
+    SCAT.activeModule = t.dataset.module;
+    renderCategoriesList();
+  };
+});
+
+function renderCategoriesList() {
+  const el = $('dircats-list');
+  const groups = curCatGroups();
+  if (!groups.length) {
+    el.innerHTML = '<div class="empty-state"><div class="es-icon"></div><h3>No categories yet</h3><p>Click "+ New Category" to add one.</p></div>';
+    return;
+  }
+  el.innerHTML = groups.map(g => {
+    const subs = g.subcategories || [];
+    return `<div class="cat-group-card" data-id="${g.id}">
+      <div class="cat-group-head">
+        <div class="cat-swatch cat-swatch--${esc(g.color)}">${esc(g.icon || '')}</div>
+        <div>
+          <div class="cat-group-name">${esc(g.name)}${g.active ? '' : ' <span class="badge badge-hidden">inactive</span>'}</div>
+          <div class="cat-group-meta">${subs.length} Subcategor${subs.length === 1 ? 'y' : 'ies'}</div>
+        </div>
+        <div class="cat-group-actions">
+          <button class="btn-act" onclick="openCatGroupEdit('${g.id}')">Edit</button>
+          <button class="btn-act" onclick="toggleCatGroupActive('${g.id}','${g.active}')">${g.active ? 'Deactivate' : 'Activate'}</button>
+          <button class="btn-act danger" onclick="confirmCatGroupDel('${g.id}','${esc(g.name)}')">Delete</button>
+        </div>
+      </div>
+      <div class="cat-sublist">
+        ${subs.map(s => `<div class="cat-sub-row" data-id="${s.id}">
+          <span class="cat-sub-name${s.active ? '' : ' cat-sub-inactive'}">${esc(s.name)}</span>
+          <div class="cat-sub-actions">
+            <button class="btn-act" onclick="openCatSubEdit('${s.id}')">Edit</button>
+            <button class="btn-act" onclick="toggleCatSubActive('${s.id}','${s.active}')">${s.active ? 'Deactivate' : 'Activate'}</button>
+            <button class="btn-act danger" onclick="confirmCatSubDel('${s.id}','${esc(s.name)}')">Delete</button>
+          </div>
+        </div>`).join('') || '<p style="color:var(--gray);font-size:.82rem;margin:0">No subcategories yet.</p>'}
+        <button type="button" class="btn-act btn-add-sub" onclick="openCatSubNew('${g.id}')">+ Add Subcategory</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openCatGroupNew() {
+  $('catgroup-modal-title').textContent = 'New Category';
+  $('catgroup-name').value = ''; $('catgroup-icon').value = ''; $('catgroup-color').value = 'blue';
+  $('catgroup-order').value = String((curCatGroups().length + 1) * 10);
+  $('catgroup-active').checked = true;
+  $('catgroup-form-overlay').dataset.editId = '';
+  $('catgroup-form-overlay').classList.add('open');
+  $('catgroup-name').focus();
+}
+$('btn-new-catgroup').onclick = openCatGroupNew;
+
+function openCatGroupEdit(id) {
+  const g = curCatGroups().find(x => x.id === id); if (!g) return;
+  $('catgroup-modal-title').textContent = 'Edit Category';
+  $('catgroup-name').value = g.name || ''; $('catgroup-icon').value = g.icon || '';
+  $('catgroup-color').value = g.color || 'blue'; $('catgroup-order').value = g.displayOrder || 0;
+  $('catgroup-active').checked = !!g.active;
+  $('catgroup-form-overlay').dataset.editId = id;
+  $('catgroup-form-overlay').classList.add('open');
+  $('catgroup-name').focus();
+}
+
+function closeCatGroupForm() { $('catgroup-form-overlay').classList.remove('open'); }
+$('btn-close-catgroup-form').onclick = closeCatGroupForm;
+$('btn-cancel-catgroup').onclick = closeCatGroupForm;
+$('catgroup-form-overlay').onclick = e => { if (e.target === $('catgroup-form-overlay')) closeCatGroupForm(); };
+
+async function saveCatGroupForm() {
+  const name = $('catgroup-name').value.trim();
+  if (!name) { toast('Category name is required', 'err'); $('catgroup-name').focus(); return; }
+  const editId = $('catgroup-form-overlay').dataset.editId;
+  const body = {
+    name, module: SCAT.activeModule, icon: $('catgroup-icon').value.trim(), color: $('catgroup-color').value,
+    displayOrder: parseInt($('catgroup-order').value, 10) || 0, active: $('catgroup-active').checked
+  };
+  const url = editId ? `/admin/api/directory/categories/groups/${editId}` : '/admin/api/directory/categories/groups';
+  const method = editId ? 'PUT' : 'POST';
+  try {
+    const r = await adminFetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    const d = await r.json();
+    if (!r.ok) { toast(d.error || 'Save failed', 'err'); return; }
+    closeCatGroupForm(); await loadCategories();
+    toast(editId ? 'Category updated' : 'Category added', 'ok');
+  } catch (e) { if (e.message !== 'unauthorized') toast('Save error', 'err'); }
+}
+$('btn-catgroup-save').onclick = saveCatGroupForm;
+
+async function toggleCatGroupActive(id, curStr) {
+  const cur = curStr === 'true';
+  try {
+    const r = await adminFetch(`/admin/api/directory/categories/groups/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ active: !cur }) });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok) { toast(d.error || 'Update failed', 'err'); return; }
+    await loadCategories();
+    toast(cur ? 'Category deactivated' : 'Category activated', 'ok');
+  } catch (e) { if (e.message !== 'unauthorized') toast('Update error', 'err'); }
+}
+
+let pendingCatGroupDelId = null;
+function confirmCatGroupDel(id, name) {
+  pendingCatGroupDelId = id;
+  $('confirm-title').textContent = 'Delete category?';
+  $('confirm-msg').textContent = `"${name}" will be permanently deleted. This cannot be undone. (If it still has subcategories, deactivate it instead.)`;
+  $('confirm-overlay').classList.add('open');
+  $('confirm-yes').onclick = async () => {
+    if (!pendingCatGroupDelId) return;
+    $('confirm-overlay').classList.remove('open');
+    try {
+      const r = await adminFetch(`/admin/api/directory/categories/groups/${pendingCatGroupDelId}`, { method: 'DELETE' });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) { toast(d.error || 'Delete failed', 'err'); return; }
+      await loadCategories(); toast('Category deleted', 'ok');
+    } catch (e) { if (e.message !== 'unauthorized') toast('Delete error', 'err'); }
+    pendingCatGroupDelId = null;
+  };
+}
+
+function renderCatSubGroupOptions(selectedGroupId) {
+  const sel = $('catsub-group');
+  sel.innerHTML = curCatGroups().map(g => `<option value="${g.id}">${esc(g.icon || '')} ${esc(g.name)}</option>`).join('');
+  if (selectedGroupId) sel.value = selectedGroupId;
+}
+
+function openCatSubNew(groupId) {
+  $('catsub-modal-title').textContent = 'New Subcategory';
+  renderCatSubGroupOptions(groupId);
+  $('catsub-name').value = ''; $('catsub-desc').value = '';
+  const group = curCatGroups().find(g => g.id === groupId);
+  $('catsub-order').value = String(group ? ((group.subcategories || []).length + 1) * 10 : 0);
+  $('catsub-active').checked = true;
+  $('catsub-form-overlay').dataset.editId = '';
+  $('catsub-form-overlay').classList.add('open');
+  $('catsub-name').focus();
+}
+
+function openCatSubEdit(id) {
+  let sub = null;
+  for (const g of curCatGroups()) { const found = (g.subcategories || []).find(s => s.id === id); if (found) { sub = found; break; } }
+  if (!sub) return;
+  $('catsub-modal-title').textContent = 'Edit Subcategory';
+  renderCatSubGroupOptions(sub.groupId);
+  $('catsub-name').value = sub.name || ''; $('catsub-desc').value = sub.description || '';
+  $('catsub-order').value = sub.displayOrder || 0; $('catsub-active').checked = !!sub.active;
+  $('catsub-form-overlay').dataset.editId = id;
+  $('catsub-form-overlay').classList.add('open');
+  $('catsub-name').focus();
+}
+
+function closeCatSubForm() { $('catsub-form-overlay').classList.remove('open'); }
+$('btn-close-catsub-form').onclick = closeCatSubForm;
+$('btn-cancel-catsub').onclick = closeCatSubForm;
+$('catsub-form-overlay').onclick = e => { if (e.target === $('catsub-form-overlay')) closeCatSubForm(); };
+
+async function saveCatSubForm() {
+  const name = $('catsub-name').value.trim();
+  if (!name) { toast('Subcategory name is required', 'err'); $('catsub-name').focus(); return; }
+  const editId = $('catsub-form-overlay').dataset.editId;
+  const body = {
+    name, groupId: $('catsub-group').value, description: $('catsub-desc').value.trim(),
+    displayOrder: parseInt($('catsub-order').value, 10) || 0, active: $('catsub-active').checked
+  };
+  const url = editId ? `/admin/api/directory/categories/subcategories/${editId}` : '/admin/api/directory/categories/subcategories';
+  const method = editId ? 'PUT' : 'POST';
+  try {
+    const r = await adminFetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    const d = await r.json();
+    if (!r.ok) { toast(d.error || 'Save failed', 'err'); return; }
+    closeCatSubForm(); await loadCategories();
+    toast(editId ? 'Subcategory updated' : 'Subcategory added', 'ok');
+  } catch (e) { if (e.message !== 'unauthorized') toast('Save error', 'err'); }
+}
+$('btn-catsub-save').onclick = saveCatSubForm;
+
+async function toggleCatSubActive(id, curStr) {
+  const cur = curStr === 'true';
+  try {
+    const r = await adminFetch(`/admin/api/directory/categories/subcategories/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ active: !cur }) });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok) { toast(d.error || 'Update failed', 'err'); return; }
+    await loadCategories();
+    toast(cur ? 'Subcategory deactivated' : 'Subcategory activated', 'ok');
+  } catch (e) { if (e.message !== 'unauthorized') toast('Update error', 'err'); }
+}
+
+let pendingCatSubDelId = null;
+function confirmCatSubDel(id, name) {
+  pendingCatSubDelId = id;
+  $('confirm-title').textContent = 'Delete subcategory?';
+  $('confirm-msg').textContent = `"${name}" will be permanently deleted. This cannot be undone. (If businesses still use it, deactivate it instead.)`;
+  $('confirm-overlay').classList.add('open');
+  $('confirm-yes').onclick = async () => {
+    if (!pendingCatSubDelId) return;
+    $('confirm-overlay').classList.remove('open');
+    try {
+      const r = await adminFetch(`/admin/api/directory/categories/subcategories/${pendingCatSubDelId}`, { method: 'DELETE' });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) { toast(d.error || 'Delete failed', 'err'); return; }
+      await loadCategories(); toast('Subcategory deleted', 'ok');
+    } catch (e) { if (e.message !== 'unauthorized') toast('Delete error', 'err'); }
+    pendingCatSubDelId = null;
+  };
+}
+
+// -- Reusable searchable category select (used by all 4 Directory forms,
+//    reads live from SCAT.modules so it always reflects Category Management) --
+const CAT_SELECT_MODULE = {};
+
+function renderCatSelectDropdown(prefix, query) {
+  const module = CAT_SELECT_MODULE[prefix];
+  const dropdown = $(prefix + '-cat-dropdown');
+  const q = (query || '').toLowerCase();
+  const groups = (SCAT.modules[module] || []).filter(g => g.active);
+  let html = '';
+  groups.forEach(g => {
+    const subs = (g.subcategories || []).filter(s => s.active && (!q || s.name.toLowerCase().includes(q) || g.name.toLowerCase().includes(q)));
+    if (!subs.length) return;
+    html += `<div class="cat-select-group-label">${esc(g.icon || '')} ${esc(g.name)}</div>`;
+    html += subs.map(s => `<div class="cat-select-opt" data-name="${esc(s.name)}">${esc(s.name)}</div>`).join('');
+  });
+  dropdown.innerHTML = html || '<div class="cat-select-empty">No matching category</div>';
+  dropdown.classList.add('open');
+}
+
+function closeCatSelectDropdown(prefix) { $(prefix + '-cat-dropdown').classList.remove('open'); }
+
+function initCatSelect(prefix, module) {
+  CAT_SELECT_MODULE[prefix] = module;
+  const input = $(prefix + '-cat-input');
+  const hidden = $(prefix + '-cat-value');
+  const dropdown = $(prefix + '-cat-dropdown');
+  input.addEventListener('focus', () => renderCatSelectDropdown(prefix, input.value));
+  input.addEventListener('input', () => { hidden.value = ''; renderCatSelectDropdown(prefix, input.value); });
+  input.addEventListener('blur', () => setTimeout(() => closeCatSelectDropdown(prefix), 150));
+  dropdown.addEventListener('mousedown', e => {
+    const opt = e.target.closest('.cat-select-opt');
+    if (!opt) return;
+    input.value = opt.dataset.name;
+    hidden.value = opt.dataset.name;
+    closeCatSelectDropdown(prefix);
+  });
+}
+initCatSelect('dirbiz', 'business');
+initCatSelect('dirmap', 'map');
+initCatSelect('dirorg', 'organization');
+initCatSelect('direm', 'emergency');
+
+function setCatSelectValue(prefix, name) {
+  $(prefix + '-cat-input').value = name || '';
+  $(prefix + '-cat-value').value = name || '';
+}
+
+function getCatSelectValue(prefix) {
+  return $(prefix + '-cat-value').value || $(prefix + '-cat-input').value.trim();
+}
+
+function refreshOpenCatSelects() {
+  Object.keys(CAT_SELECT_MODULE).forEach(prefix => {
+    const dropdown = document.getElementById(prefix + '-cat-dropdown');
+    if (dropdown && dropdown.classList.contains('open')) {
+      renderCatSelectDropdown(prefix, document.getElementById(prefix + '-cat-input').value);
+    }
+  });
 }
 
 // -- Barangay Calendar ------------------------------------------------------
