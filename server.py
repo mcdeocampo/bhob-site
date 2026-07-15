@@ -364,7 +364,8 @@ def api_contact():
             method='POST'
         )
         try:
-            urllib.request.urlopen(req, timeout=10)
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                resp.read()
         except urllib.error.HTTPError as http_err:
             body = http_err.read().decode('utf-8', errors='replace')
             print(f'[contact] Brevo API error {http_err.code}: {body}', flush=True)
