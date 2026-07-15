@@ -351,6 +351,22 @@
       'onerror="this.outerHTML=' + esc(JSON.stringify('<span class="' + cssClass + '-icon">' + icon + '</span>')) + '">';
   }
 
+  // Modal cover: when a photo exists, use it as a blurred backdrop with the
+  // crisp logo centered in a white badge on top — avoids a flat dead-space
+  // box, since every business image is a small logo-shaped PNG, not a photo
+  // meant to fill the frame. Falls back to the plain icon+gradient cover
+  // (same as logoOrIconHtml) if there's no image or it fails to load.
+  function coverHtml(it, color) {
+    var icon = MASTER_ICON[it.masterCategory] || '📍';
+    var fallback = '<div class="dir2-modal-cover dir2-modal-cover--' + color + '"><span class="dir2-modal-cover-icon">' + icon + '</span></div>';
+    if (!it.imageUrl) return fallback;
+    var src = esc(normSrc(it.imageUrl));
+    return '<div class="dir2-modal-cover dir2-modal-cover--photo" style="background-image:url(' + src + ')">' +
+      '<img class="dir2-modal-cover-img" loading="lazy" src="' + src + '" alt="" ' +
+      'onerror="this.closest(\'.dir2-modal-cover\').outerHTML=' + esc(JSON.stringify(fallback)) + '">' +
+      '</div>';
+  }
+
   // Rendered in batches with an IntersectionObserver sentinel so a large
   // directory doesn't dump hundreds of DOM nodes into the list at once.
   function renderList(items) {
@@ -467,7 +483,7 @@
 
   function popupHtml(it) {
     var color = MASTER_COLOR[it.masterCategory] || 'blue';
-    var thumb = it.imageUrl ? '<div class="dir2-popup-thumb-wrap" data-act="details" data-id="' + esc(it.id) + '">' +
+    var thumb = it.imageUrl ? '<div class="dir2-popup-thumb-wrap" data-act="details" data-id="' + esc(it.id) + '" style="background-image:url(' + esc(normSrc(it.imageUrl)) + ')">' +
       '<img src="' + esc(normSrc(it.imageUrl)) + '" alt="" class="dir2-popup-thumb" loading="lazy" onerror="this.closest(\'.dir2-popup-thumb-wrap\').remove()">' +
       '</div>' : '';
     return '<div class="dir2-popup">' + thumb +
@@ -562,7 +578,7 @@
 
   function detailsHtml(it) {
     var color = MASTER_COLOR[it.masterCategory] || 'blue';
-    var cover = '<div class="dir2-modal-cover dir2-modal-cover--' + (it.imageUrl ? 'neutral' : color) + '">' + logoOrIconHtml(it, 'dir2-modal-cover') + '</div>';
+    var cover = coverHtml(it, color);
 
     var status = computeHoursStatus(it);
     var hoursText = it.hours ? esc(it.hours) : '';
