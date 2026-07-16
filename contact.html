@@ -100,16 +100,16 @@
       <div class="contact-social-block" aria-label="Barangay Hall social media">
         <span class="contact-social-label">Official Social Pages</span>
         <div class="contact-social-icons" role="list">
-          <a id="social-link-facebook" class="contact-social-icon" href="https://www.facebook.com/groups/201392346560961/" target="_blank" rel="noopener noreferrer" style="display:none" aria-label="Visit Barangay Hulo on Facebook">
+          <a id="social-link-facebook" class="contact-social-icon" target="_blank" rel="noopener noreferrer" aria-label="Visit Barangay Hulo on Facebook">
             <svg viewBox="0 0 24 24" role="presentation" focusable="false"><path d="M13.5 21v-7.26h2.44l.37-2.84H13.5V9.09c0-.82.23-1.38 1.41-1.38h1.51V5.17c-.26-.03-1.16-.11-2.2-.11-2.18 0-3.67 1.33-3.67 3.77v2.07H8.09v2.84h2.46V21h2.95Z" fill="#1877F2"/></svg>
           </a>
-          <a id="social-link-linkedin" class="contact-social-icon" href="#" style="display:none" aria-label="LinkedIn profile link placeholder">
+          <a id="social-link-linkedin" class="contact-social-icon" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn profile link placeholder">
             <svg viewBox="0 0 24 24" role="presentation" focusable="false"><path d="M6.45 8.56A1.81 1.81 0 1 1 6.4 4.94a1.81 1.81 0 0 1 .05 3.62ZM4.98 9.98H7.9V19H4.98V9.98Zm4.76 0h2.8v1.23h.04c.39-.74 1.34-1.52 2.75-1.52 2.94 0 3.49 1.94 3.49 4.46V19H15.9v-4.3c0-1.02-.02-2.34-1.43-2.34-1.43 0-1.65 1.12-1.65 2.27V19H9.74V9.98Z" fill="currentColor"/></svg>
           </a>
-          <a id="social-link-instagram" class="contact-social-icon" href="#" style="display:none" aria-label="Instagram profile link placeholder">
+          <a id="social-link-instagram" class="contact-social-icon" target="_blank" rel="noopener noreferrer" aria-label="Instagram profile link placeholder">
             <svg viewBox="0 0 24 24" role="presentation" focusable="false"><path d="M7.25 3h9.5A4.25 4.25 0 0 1 21 7.25v9.5A4.25 4.25 0 0 1 16.75 21h-9.5A4.25 4.25 0 0 1 3 16.75v-9.5A4.25 4.25 0 0 1 7.25 3Zm0 1.8A2.45 2.45 0 0 0 4.8 7.25v9.5a2.45 2.45 0 0 0 2.45 2.45h9.5a2.45 2.45 0 0 0 2.45-2.45v-9.5a2.45 2.45 0 0 0-2.45-2.45h-9.5Zm10 1.35a.95.95 0 1 1 0 1.9.95.95 0 0 1 0-1.9ZM12 7.6A4.4 4.4 0 1 1 7.6 12 4.4 4.4 0 0 1 12 7.6Zm0 1.8A2.6 2.6 0 1 0 14.6 12 2.6 2.6 0 0 0 12 9.4Z" fill="currentColor"/></svg>
           </a>
-          <a id="social-link-sk" class="contact-social-icon" href="#" style="display:none" aria-label="SK Barangay Hulo Facebook Page">
+          <a id="social-link-sk" class="contact-social-icon" target="_blank" rel="noopener noreferrer" aria-label="SK Barangay Hulo Facebook Page">
             <svg viewBox="0 0 24 24" role="presentation" focusable="false"><path d="M13.5 21v-7.26h2.44l.37-2.84H13.5V9.09c0-.82.23-1.38 1.41-1.38h1.51V5.17c-.26-.03-1.16-.11-2.2-.11-2.18 0-3.67 1.33-3.67 3.77v2.07H8.09v2.84h2.46V21h2.95Z" fill="#22C55E"/></svg>
           </a>
         </div>
@@ -244,14 +244,17 @@
     var cp=document.getElementById('contact-info-phone');if(cp){if(d.barangay_phone){cp.textContent=d.barangay_phone;cp.href='tel:'+d.barangay_phone.replace(/[\s\-().]/g,'');}else{cp.textContent='';cp.removeAttribute('href');}}
     var ce=document.getElementById('contact-info-email');if(ce){if(d.barangay_email){ce.textContent=d.barangay_email;ce.href='mailto:'+d.barangay_email;}else{ce.textContent='';ce.removeAttribute('href');}}
     var ca=document.getElementById('contact-info-address');if(ca)ca.textContent=d.barangay_address||'';
-    var sfb=document.getElementById('social-link-facebook');
-    if(sfb){if(d.social_facebook_url){sfb.href=d.social_facebook_url;sfb.style.display='';}else{sfb.style.display='none';}}
-    var sli=document.getElementById('social-link-linkedin');
-    if(sli){if(d.social_linkedin_url){sli.href=d.social_linkedin_url;sli.style.display='';}else{sli.style.display='none';}}
-    var sig=document.getElementById('social-link-instagram');
-    if(sig){if(d.social_instagram_url){sig.href=d.social_instagram_url;sig.style.display='';}else{sig.style.display='none';}}
-    var ssk=document.getElementById('social-link-sk');
-    if(ssk){if(d.sk_facebook_url){ssk.href=d.sk_facebook_url;ssk.target='_blank';ssk.style.display='';}else{ssk.style.display='none';}}
+    // Icons always render as placeholders; a link is attached only when its URL
+    // is configured. Without a URL the icon stays inert (no href) rather than
+    // falling back to a stale hardcoded link.
+    [['social-link-facebook','social_facebook_url'],
+     ['social-link-linkedin','social_linkedin_url'],
+     ['social-link-instagram','social_instagram_url'],
+     ['social-link-sk','sk_facebook_url']].forEach(function(pair){
+      var el=document.getElementById(pair[0]);
+      if(!el)return;
+      if(d[pair[1]]){el.href=d[pair[1]];}else{el.removeAttribute('href');}
+    });
   }).catch(function(err){ console.error('[contact] site-settings fetch failed:', err); });
   </script>
 </body>
