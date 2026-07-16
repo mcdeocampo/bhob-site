@@ -15806,7 +15806,7 @@ body[data-page="contact.html"] .contact-card-modern .contact-social-icons{
 
 body[data-page="contact.html"] .contact-card-modern .contact-social-icon{
   position:relative !important;
-  display:inline-flex !important;
+  display:inline-flex;
   align-items:center !important;
   justify-content:center !important;
   width:56px !important;
