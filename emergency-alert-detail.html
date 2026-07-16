@@ -174,6 +174,19 @@
       return new URLSearchParams(window.location.search).get('id') || '';
     }
 
+    // The pretty URL is /emergency-alerts/<slug>?id=<id>. The id is the real
+    // key, but it lives in the query string and is easily lost when a link is
+    // shared, bookmarked or retyped — so the slug has to be able to identify
+    // the alert on its own. Must match alertSlug() in emergency-alert.js.
+    function getAlertSlug() {
+      var m = window.location.pathname.match(/\/emergency-alerts\/([^\/?#]+)/);
+      return m ? decodeURIComponent(m[1]) : '';
+    }
+
+    function alertSlug(title) {
+      return (title || 'alert').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+    }
+
     function heroGradient(priority) {
       if (priority === 'Critical') return 'background:linear-gradient(135deg,#7f1d1d 0%,#991b1b 45%,#dc2626 100%)';
       if (priority === 'Warning')  return 'background:linear-gradient(135deg,#78350f 0%,#b45309 45%,#d97706 100%)';
@@ -322,16 +335,36 @@
       }, 60);
     }
 
-    function loadAlert() {
-      var id = getAlertId();
-      if (!id) { renderExpired(); return; }
-      fetch('/api/emergency-alerts/' + encodeURIComponent(id) + '/public')
+    function loadById(id) {
+      return fetch('/api/emergency-alerts/' + encodeURIComponent(id) + '/public')
         .then(function (r) { return r.json(); })
         .then(function (data) {
           if (!data.active || !data.alert) { renderExpired(); return; }
           render(data.alert);
-        })
-        .catch(function () { renderExpired(); });
+        });
+    }
+
+    // Without an id, resolve the slug against the currently active alerts
+    // instead of assuming the alert is over — claiming "Situation Resolved"
+    // during a live emergency is the worst thing this page can do.
+    function loadBySlug(slug) {
+      return fetch('/api/emergency-alerts')
+        .then(function (r) { return r.json(); })
+        .then(function (d) {
+          var list = (d && d.alerts) || [];
+          var match = null;
+          for (var i = 0; i < list.length; i++) {
+            if (alertSlug(list[i].title) === slug) { match = list[i]; break; }
+          }
+          if (!match) { renderExpired(); return; }
+          return loadById(match.id);
+        });
+    }
+
+    function loadAlert() {
+      var id = getAlertId();
+      var p = id ? loadById(id) : (getAlertSlug() ? loadBySlug(getAlertSlug()) : Promise.reject());
+      p.catch(function () { renderExpired(); });
     }
 
     if (document.readyState === 'loading') {
