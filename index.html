@@ -575,14 +575,26 @@
         'hp-emergency-number': true,
         'hp-police-number': true
       };
+      // A blank setting clears the field — without this the hardcoded markup
+      // would stay on screen and look like the old value never got removed.
       hpMap.forEach(function(pair) {
+        var el = document.getElementById(pair[0]);
+        if (!el) return;
         if (pair[1]) {
-          var el = document.getElementById(pair[0]);
-          if (el) {
-            el.textContent = pair[1];
-            if (hpPhoneIds[pair[0]]) el.href = 'tel:' + pair[1].replace(/[\s\-().\/]/g,'');
-          }
+          el.textContent = pair[1];
+          if (hpPhoneIds[pair[0]]) el.href = 'tel:' + pair[1].replace(/[\s\-().\/]/g,'');
+        } else {
+          el.textContent = '';
+          if (hpPhoneIds[pair[0]]) el.removeAttribute('href');
         }
+      });
+      // An emergency tile exists only to dial its number, so drop the whole
+      // tile when no number is configured rather than leaving a bare label.
+      [['hp-emergency-number', d.emergency_card_number],
+       ['hp-police-number',    d.police_card_number]].forEach(function(pair) {
+        var el = document.getElementById(pair[0]);
+        var tile = el && el.closest('.hero-emergency-item');
+        if (tile) tile.style.display = pair[1] ? '' : 'none';
       });
     })
     .catch(function(err) { console.error('[settings] /api/site-settings fetch failed:', err); });
