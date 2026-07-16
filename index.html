@@ -527,20 +527,27 @@
   fetch('/api/emergency-hotlines')
     .then(function(r) { return r.json(); })
     .then(function(d) {
-      if (d && Array.isArray(d.hotlines) && d.hotlines.length > 0) {
-        var apiHotlines = d.hotlines
-          .map(function(h) { return { label: h.label || '', number: h.number || '' }; })
-          .filter(function(h) { return h.label && h.number; });
-        if (apiHotlines.length > 0) {
-          HOTLINES = apiHotlines;
-          // Clear cached render only if the modal is not currently open
-          var overlay = document.getElementById('hotlines-modal-overlay');
-          var list    = document.getElementById('hotlines-list');
-          if (list && overlay && window.getComputedStyle(overlay).display === 'none') list.innerHTML = '';
-        }
-      }
+      // Once the API answers it is authoritative: an empty list means every
+      // hotline was removed in admin, so honour that rather than falling back
+      // to the static list (which only covers an unreachable server).
+      if (!d || !Array.isArray(d.hotlines)) return;
+      HOTLINES = d.hotlines
+        .map(function(h) { return { label: h.label || '', number: h.number || '' }; })
+        .filter(function(h) { return h.label && h.number; });
+      // Clear cached render only if the modal is not currently open
+      var overlay = document.getElementById('hotlines-modal-overlay');
+      var list    = document.getElementById('hotlines-list');
+      if (list && overlay && window.getComputedStyle(overlay).display === 'none') list.innerHTML = '';
+      applyHotlinesTileVisibility();
     })
     .catch(function() { /* keep static HOTLINES */ });
+
+  // The Other Hotlines tile only opens a list of numbers, so drop it entirely
+  // when there are none to show.
+  function applyHotlinesTileVisibility() {
+    var tile = document.querySelector('.hero-emergency-item--hotlines');
+    if (tile) tile.style.display = HOTLINES.length ? '' : 'none';
+  }
 
   // Fetch site settings and update footer text if elements are present
   fetch('/api/site-settings')
@@ -550,9 +557,10 @@
       var year    = d.copyright_year   || '';
       var owner   = d.copyright_owner  || '';
       var suffix  = d.copyright_suffix || '';
-      if (year && owner) {
-        var bottom = document.querySelector('.footer-bottom');
-        if (bottom) bottom.textContent = '© ' + year + ' ' + owner + (suffix ? '. ' + suffix : '');
+      var bottom = document.querySelector('.footer-bottom');
+      if (bottom) {
+        var core = [year, owner].filter(Boolean).join(' ');
+        bottom.textContent = core ? ('© ' + core + (suffix ? '. ' + suffix : '')) : (suffix || '');
       }
       var emailEl = document.querySelector('.footer-email');
       if (emailEl) { if (d.footer_email) { emailEl.textContent = d.footer_email; emailEl.href = 'mailto:' + d.footer_email; } else { emailEl.textContent = ''; emailEl.removeAttribute('href'); } }

@@ -216,7 +216,7 @@
   fetch('/api/site-settings').then(function(r){return r.json();}).then(function(d){
     if(!d)return;
     var y=d.copyright_year||'',o=d.copyright_owner||'',s=d.copyright_suffix||'';
-    if(y&&o){var b=document.querySelector('.footer-bottom');if(b)b.textContent='© '+y+' '+o+(s?'. '+s:'');}
+    var b=document.querySelector('.footer-bottom');if(b){var c=[y,o].filter(Boolean).join(' ');b.textContent=c?('© '+c+(s?'. '+s:'')):(s||'');}
     var fe=document.querySelector('.footer-email');if(fe){if(d.footer_email){fe.textContent=d.footer_email;fe.href='mailto:'+d.footer_email;}else{fe.textContent='';fe.removeAttribute('href');}}
     var fp=document.querySelector('.footer-phone');if(fp){if(d.footer_phone){fp.textContent=d.footer_phone;fp.href='tel:'+d.footer_phone.replace(/[\s\-().]/g,'');}else{fp.textContent='';fp.removeAttribute('href');}}
     var fa=document.querySelector('.footer-address');if(fa)fa.textContent=d.barangay_address||'';
