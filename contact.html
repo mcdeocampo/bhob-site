@@ -235,7 +235,10 @@
   </script>
   <script>
   fetch('/api/site-settings').then(function(r){return r.json();}).then(function(d){
-    if(!d)return;
+    // /api/site-settings answers {} when the database read fails, which is
+    // indistinguishable from "every setting is blank". Treat that as "no
+    // settings available" and leave the page's own content alone.
+    if(!d||!Object.keys(d).length)return;
     var y=d.copyright_year||'',o=d.copyright_owner||'',s=d.copyright_suffix||'';
     var b=document.querySelector('.footer-bottom');if(b){var c=[y,o].filter(Boolean).join(' ');b.textContent=c?('© '+c+(s?'. '+s:'')):(s||'');}
     var fe=document.querySelector('.footer-email');if(fe){if(d.footer_email){fe.textContent=d.footer_email;fe.href='mailto:'+d.footer_email;}else{fe.textContent='';fe.removeAttribute('href');}}
