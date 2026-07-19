@@ -619,6 +619,8 @@ a{text-decoration:none;color:inherit}
 .badge-alert-draft{background:#f1f5f9;color:#475569}
 .badge-alert-active{background:#dcfce7;color:#15803d}
 .badge-alert-expired{background:#fee2e2;color:#b91c1c}
+.badge-alert-scheduled{background:#fef3c7;color:#a16207}
+.badge-alert-ended{background:#f1f5f9;color:#475569}
 .badge-alert-resolved{background:#e0f2fe;color:#0369a1}
 .badge-alert-archived{background:#f1f5f9;color:#64748b}
 .badge-priority-advisory{background:#fef3c7;color:#b45309}
@@ -3236,6 +3238,51 @@ function eaFmtDatetime(dt) {
   } catch { return dt; }
 }
 
+// Manila wall clock. start/expiration are stored as Manila wall-clock strings
+// and the server compares them against _manila_now(), so every client-side
+// time decision has to use the same clock rather than the browser's.
+function eaManilaDate() {
+  const d = new Date();
+  return new Date(d.getTime() + (d.getTimezoneOffset() * 60000) + (8 * 3600000));
+}
+
+function eaManilaNow() {
+  const m = eaManilaDate();
+  const p = n => String(n).padStart(2, '0');
+  return m.getFullYear() + '-' + p(m.getMonth()+1) + '-' + p(m.getDate()) +
+         'T' + p(m.getHours()) + ':' + p(m.getMinutes());
+}
+
+// status==='active' only means "not draft/resolved". Whether the public site
+// actually shows it also depends on the start/expiry window. Mirrors the test
+// in api_emergency_alerts_active exactly, including that an empty expiration
+// fails ('' >= now is false) and so is never displayed.
+function eaPublicState(a) {
+  if (a.status !== 'active') return { key: a.status, label: a.status };
+  const now = eaManilaNow();
+  const start = (a.startDatetime || '').slice(0, 16);
+  const exp   = (a.expirationDatetime || '').slice(0, 16);
+  if (start > now)   return { key: 'scheduled', label: 'Scheduled', when: start };
+  if (!(exp >= now)) return exp
+    ? { key: 'ended',    label: 'Ended', when: exp }
+    : { key: 'nowindow', label: 'No expiry set' };
+  return { key: 'live', label: 'Live now' };
+}
+
+function eaStateBadge(a) {
+  const s = eaPublicState(a);
+  if (s.key === 'scheduled') {
+    return `<span class="badge badge-alert-scheduled" title="Not shown on the site yet — starts ${esc(eaFmtDatetime(s.when))}">⏳ Scheduled</span>`;
+  }
+  if (s.key === 'ended') {
+    return `<span class="badge badge-alert-ended" title="Expiration has passed — no longer shown on the site">⏹ Ended</span>`;
+  }
+  if (s.key === 'nowindow') {
+    return `<span class="badge badge-alert-expired" title="No expiration date set, so the site will not display this alert. Edit it and set an expiration.">⚠ Not shown — no expiry</span>`;
+  }
+  return '<span class="badge badge-alert-active">Live now</span>';
+}
+
 function eaUpdateNavBadge() {
   const active = EA.alerts.filter(a => a.status === 'active');
   const badge = $('ea-nav-active-count');
@@ -3319,7 +3366,7 @@ function renderEaActiveList() {
         <div style="flex:1;min-width:0">
           <div class="ea-card-title">${esc(a.title)}</div>
           <div class="ea-card-meta">
-            <span class="badge badge-alert-active">Active</span>
+            ${eaStateBadge(a)}
             <span class="badge badge-priority-${(a.priority||'advisory').toLowerCase()}">${esc(a.priority)}</span>
             <span class="cat-tag">${esc(a.alertType)}</span>
             ${a.version > 1 ? `<span style="font-size:.68rem;color:#94a3b8">v${a.version}</span>` : ''}
@@ -3437,8 +3484,15 @@ function eaResetForm() {
   if ($('ea-f-priority')) $('ea-f-priority').value = 'Advisory';
   if ($('ea-f-audience')) $('ea-f-audience').value = 'All Residents';
   eaToggleTargetArea(); eaUpdatePriorityNote();
-  const now = new Date();
-  now.setMinutes(Math.ceil(now.getMinutes()/5)*5, 0, 0);
+  // Start defaults to *now* in Manila. Two things used to push it into the
+  // future, so a freshly created alert stayed invisible on the public site:
+  //   - Math.ceil rounded up to the next 5-minute mark (0-5 min in the future)
+  //   - the value was the browser's wall clock, but the server compares
+  //     against Manila, so any admin outside PH added their offset on top
+  // The server test is `start <= now_manila`, so start must be Manila time and
+  // must not be rounded up.
+  const now = eaManilaDate();
+  now.setSeconds(0, 0);
   const pad = n => String(n).padStart(2,'0');
   const fmtLocal = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
   if ($('ea-f-start')) $('ea-f-start').value = fmtLocal(now);
@@ -3489,7 +3543,15 @@ async function eaSaveCreate(status) {
     });
     const d = await r.json();
     if (r.ok) {
-      toast(status==='active' ? 'Alert activated successfully.' : 'Alert saved as draft.', 'ok');
+      // Be explicit when the alert will not be visible yet — "activated" alone
+      // reads as "it is on the site now", which is false for a future start.
+      let msg = 'Alert saved as draft.';
+      if (status === 'active') {
+        msg = (start && start.slice(0,16) > eaManilaNow())
+          ? 'Alert scheduled. It will appear on the site at ' + eaFmtDatetime(start) + '.'
+          : 'Alert activated and is now live on the site.';
+      }
+      toast(msg, 'ok');
       await loadAlerts();
       eaSwitchPanel('active', document.querySelector('.ea-subtab[data-panel="active"]'));
     } else { eaShowFormErr(d.error || 'Save failed.'); }
@@ -3627,7 +3689,14 @@ function eaActivateDraft(id, title) {
       const r = await adminFetch(`/admin/api/emergency-alerts/${id}/activate`, {method:'POST'});
       const d = await r.json();
       if (r.ok) {
-        toast('Alert activated successfully.','ok');
+        // Activating a draft does not touch its dates, so a draft scheduled for
+        // later stays hidden. Report what actually happened.
+        const act = (d && d.alert) ? eaPublicState(d.alert) : null;
+        toast(act && act.key === 'scheduled'
+          ? 'Alert activated, but it is scheduled for ' + eaFmtDatetime(act.when) + ' and is not on the site yet.'
+          : act && act.key === 'nowindow'
+          ? 'Alert activated, but it has no expiration date so the site will not display it.'
+          : 'Alert activated and is now live on the site.', 'ok');
         await loadAlerts();
         eaSwitchPanel('active', document.querySelector('.ea-subtab[data-panel="active"]'));
       } else toast(d.error||'Activate failed.','err');
