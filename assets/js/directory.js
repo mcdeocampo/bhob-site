@@ -68,9 +68,28 @@
   function wazeLink(lat, lng) {
     return 'https://waze.com/ul?ll=' + lat + ',' + lng + '&navigate=yes';
   }
+  // Standard phone-keypad conversion, so vanity numbers dial correctly:
+  // "0917 PCG DOTC" -> 09177243682. Case-insensitive; spaces, hyphens and
+  // punctuation are dropped. A leading "+" is kept for international form.
+  function dialDigits(value) {
+    var KEYPAD = {
+      A:'2', B:'2', C:'2', D:'3', E:'3', F:'3', G:'4', H:'4', I:'4',
+      J:'5', K:'5', L:'5', M:'6', N:'6', O:'6', P:'7', Q:'7', R:'7',
+      S:'7', T:'8', U:'8', V:'8', W:'9', X:'9', Y:'9', Z:'9'
+    };
+    var str = String(value == null ? '' : value), out = '';
+    for (var i = 0; i < str.length; i++) {
+      var ch = str.charAt(i);
+      if (ch >= '0' && ch <= '9') { out += ch; continue; }
+      if (ch === '+' && out === '') { out += ch; continue; }
+      var mapped = KEYPAD[ch.toUpperCase()];
+      if (mapped) out += mapped;
+    }
+    return out;
+  }
   function telHref(v) {
     // Single-action buttons (Call) use the first number listed.
-    return 'tel:' + String(v || '').split('/')[0].replace(/[^0-9+]/g, '');
+    return 'tel:' + dialDigits(String(v || '').split('/')[0]);
   }
   // A record may hold several numbers separated by "/", e.g. "911 / 117".
   // Render each as its own tel: link, separator as plain text, so the second
@@ -81,8 +100,8 @@
     for (var i = 0; i < parts.length; i++) {
       var label = parts[i].trim();
       if (!label) continue;
-      // Keep letters so vanity numbers survive; link only if a digit exists.
-      var dial = label.replace(/[^0-9+A-Za-z]/g, '');
+      // Display keeps its original text; only the tel: target is converted.
+      var dial = dialDigits(label);
       out.push(/[0-9]/.test(label) ? '<a href="tel:' + dial + '">' + esc(label) + '</a>' : esc(label));
     }
     return out.join('<span class="dir2-tel-sep" aria-hidden="true"> / </span>');

@@ -554,6 +554,25 @@
     { label: 'Police',                    number: '8292-2043' },
     { label: 'Fire',                      number: '8292-2043' }
   ];
+  // Standard phone-keypad conversion, so vanity numbers dial correctly:
+  // "0917 PCG DOTC" -> 09177243682. Case-insensitive; spaces, hyphens and
+  // punctuation are dropped. A leading "+" is kept for international form.
+  function dialDigits(value) {
+    var KEYPAD = {
+      A:'2', B:'2', C:'2', D:'3', E:'3', F:'3', G:'4', H:'4', I:'4',
+      J:'5', K:'5', L:'5', M:'6', N:'6', O:'6', P:'7', Q:'7', R:'7',
+      S:'7', T:'8', U:'8', V:'8', W:'9', X:'9', Y:'9', Z:'9'
+    };
+    var str = String(value == null ? '' : value), out = '';
+    for (var i = 0; i < str.length; i++) {
+      var ch = str.charAt(i);
+      if (ch >= '0' && ch <= '9') { out += ch; continue; }
+      if (ch === '+' && out === '') { out += ch; continue; }
+      var mapped = KEYPAD[ch.toUpperCase()];
+      if (mapped) out += mapped;
+    }
+    return out;
+  }
   // Escape admin-entered hotline text before it goes into innerHTML.
   function escHot(s) {
     return String(s == null ? '' : s)
@@ -570,10 +589,10 @@
     for (var i = 0; i < parts.length; i++) {
       var label = parts[i].trim();
       if (!label) continue;
-      // Letters are kept so vanity numbers such as "0917 PCG DOTC" stay
-      // intact; stripping them left a misleading 4-digit tel:. A link is
-      // only produced when the text actually contains a digit.
-      var dial = label.replace(/[^0-9+A-Za-z]/g, '');
+      // The label keeps its original formatting; only the tel: target is
+      // converted. A link is produced only when the text contains a digit,
+      // so free text such as "See website" is not turned into a bogus call.
+      var dial = dialDigits(label);
       var attr = cls ? ' class="' + cls + '"' : '';
       out.push(/[0-9]/.test(label)
         ? '<a' + attr + ' href="tel:' + dial + '">' + escHot(label) + '</a>'
