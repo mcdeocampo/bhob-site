@@ -3108,6 +3108,74 @@ def emergency_alert_detail_page(slug):
     return send_from_directory(BASE_DIR, 'emergency-alert-detail.html')
 
 
+# ── Social share card ─────────────────────────────────────────────────────────
+# Facebook renders link previews at 1.91:1. Handing it the barangay seal
+# directly means a centre-crop that cuts the ring text off top and bottom, so a
+# proper landscape card is composed from the logo instead. Cached against the
+# logo file's modification time, so replacing the file refreshes it.
+_share_card_cache = {'key': None, 'png': None}
+SHARE_CARD_W, SHARE_CARD_H = 1200, 630
+SHARE_LOGO_PATH = os.path.join(BASE_DIR, 'assets', 'images', 'logo.png')
+
+
+def _build_share_card(logo_path):
+    import io
+    from PIL import Image, ImageDraw
+
+    seal = Image.open(logo_path).convert('RGBA')
+
+    W, H = SHARE_CARD_W, SHARE_CARD_H
+    top, bottom = (15, 53, 111), (8, 28, 64)          # site navy gradient
+    card = Image.new('RGB', (W, H))
+    draw = ImageDraw.Draw(card)
+    for y in range(H):
+        f = y / (H - 1)
+        draw.line([(0, y), (W, y)], fill=(
+            int(top[0] + (bottom[0] - top[0]) * f),
+            int(top[1] + (bottom[1] - top[1]) * f),
+            int(top[2] + (bottom[2] - top[2]) * f)))
+
+    # Soft pool of light so a dark seal still separates from the ground.
+    glow = Image.new('RGBA', (W, H), (0, 0, 0, 0))
+    ImageDraw.Draw(glow).ellipse(
+        [W // 2 - 330, H // 2 - 330, W // 2 + 330, H // 2 + 330],
+        fill=(255, 255, 255, 26))
+    card = Image.alpha_composite(card.convert('RGBA'), glow)
+
+    # Fit inside a 430px box preserving proportions; this logo is 427x440, so
+    # forcing a square would stretch it.
+    box = 430
+    scale = min(box / seal.width, box / seal.height)
+    seal = seal.resize((max(1, round(seal.width * scale)),
+                        max(1, round(seal.height * scale))), Image.LANCZOS)
+    card.paste(seal, ((W - seal.width) // 2, (H - seal.height) // 2), seal)
+
+    buf = io.BytesIO()
+    card.convert('RGB').save(buf, 'PNG', optimize=True)
+    return buf.getvalue()
+
+
+@app.route('/share-card.png')
+def share_card():
+    if not os.path.exists(SHARE_LOGO_PATH):
+        abort(404)
+    key = os.path.getmtime(SHARE_LOGO_PATH)
+    if _share_card_cache['key'] != key or not _share_card_cache['png']:
+        try:
+            _share_card_cache['png'] = _build_share_card(SHARE_LOGO_PATH)
+            _share_card_cache['key'] = key
+        except Exception as exc:
+            # Serve the plain logo rather than nothing; a cropped card still
+            # beats a card with no image.
+            app.logger.error('share card build failed: %s', exc)
+            return send_from_directory(os.path.join(BASE_DIR, 'assets', 'images'), 'logo.png')
+
+    resp = app.make_response(_share_card_cache['png'])
+    resp.headers['Content-Type'] = 'image/png'
+    resp.headers['Cache-Control'] = 'public, max-age=86400'
+    return resp
+
+
 # ── Static file serving ───────────────────────────────────────────────────────
 @app.route('/')
 def index():
