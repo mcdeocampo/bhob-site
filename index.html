@@ -469,14 +469,14 @@
 
   <!-- Hotlines Modal -->
   <div id="hotlines-modal-overlay" onclick="if(event.target===this)closeHotlinesModal()" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(10,28,64,.55);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:20px;">
-    <div style="background:#fff;border-radius:20px;width:100%;max-width:400px;box-shadow:0 24px 60px rgba(10,28,64,.22),0 4px 16px rgba(10,28,64,.10);overflow:hidden;animation:hotlinesFadeIn .22s ease;">
-      <div style="background:linear-gradient(110deg,#0f2f57 0%,#1a4a8a 60%,#1565c0 100%);padding:20px 24px 18px;display:flex;align-items:center;justify-content:space-between;">
+    <div id="hotlines-dialog" style="background:#fff;border-radius:20px;width:100%;max-width:400px;box-shadow:0 24px 60px rgba(10,28,64,.22),0 4px 16px rgba(10,28,64,.10);overflow:hidden;animation:hotlinesFadeIn .22s ease;">
+      <div class="hotlines-head" style="background:linear-gradient(110deg,#0f2f57 0%,#1a4a8a 60%,#1565c0 100%);padding:20px 24px 18px;display:flex;align-items:center;justify-content:space-between;">
         <div>
           <div style="font-size:1.05rem;font-weight:800;color:#fff;line-height:1.2;">Other Hotlines</div>
         </div>
         <button onclick="closeHotlinesModal()" aria-label="Close" style="background:rgba(255,255,255,.12);border:none;border-radius:50%;width:34px;height:34px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1.1rem;color:#fff;line-height:1;flex-shrink:0;transition:background .18s;">✕</button>
       </div>
-      <div style="padding:18px 24px 24px;">
+      <div id="hotlines-body" style="padding:18px 24px 24px;">
         <div id="hotlines-list" style="display:flex;flex-direction:column;gap:10px;"></div>
       </div>
     </div>
@@ -489,6 +489,54 @@
     .hotline-row-label { font-size:.82rem; font-weight:400; color:#1e293b; }
     .hotline-row-number { font-size:.88rem; font-weight:600; color:#12356f; white-space:nowrap; }
     #hotlines-modal-overlay.open { display:flex !important; }
+
+    /* ── Other Hotlines modal — long lists ────────────────────────────
+       The dialog had no max-height, so a long hotline list grew past the
+       screen with nothing scrollable: the lower entries were unreachable
+       and the close button could sit off-screen. The dialog is now capped
+       and the list scrolls inside it, with the header pinned outside the
+       scrolling area so Close is always reachable. dvh is used ahead of vh
+       so iOS Safari's collapsing address bar does not overshoot. */
+    #hotlines-modal-overlay { overflow-y:auto; -webkit-overflow-scrolling:touch; }
+    #hotlines-dialog {
+      display:flex;
+      flex-direction:column;
+      position:relative;
+      max-height:88vh;
+      max-height:88dvh;
+    }
+    #hotlines-dialog .hotlines-head { flex:0 0 auto; }
+    #hotlines-body {
+      flex:1 1 auto;
+      min-height:0;
+      overflow-y:auto;
+      -webkit-overflow-scrolling:touch;
+      overscroll-behavior:contain;
+    }
+    /* Fade at the base signals more content; hidden once fully scrolled. */
+    #hotlines-dialog::after {
+      content:"";
+      position:absolute;
+      left:0; right:0; bottom:0;
+      height:44px;
+      border-radius:0 0 20px 20px;
+      background:linear-gradient(to top, #fff 10%, rgba(255,255,255,0));
+      pointer-events:none;
+      opacity:0;
+      transition:opacity .18s ease;
+    }
+    #hotlines-dialog.has-more::after { opacity:1; }
+    @media (max-width:480px) {
+      #hotlines-modal-overlay { padding:12px; }
+      #hotlines-dialog { max-height:92vh; max-height:92dvh; }
+    }
+    @media (max-height:520px) {          /* phones in landscape */
+      #hotlines-dialog { max-height:94vh; max-height:94dvh; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      #hotlines-dialog::after { transition:none; }
+    }
+
     @media (max-width:480px) {
       #hotlines-modal-overlay > div { border-radius:16px; }
       .hotline-row { padding:10px 12px; }
@@ -514,11 +562,25 @@
     var overlay = document.getElementById('hotlines-modal-overlay');
     overlay.classList.add('open');
     document.body.style.overflow = 'hidden';
+    requestAnimationFrame(hotlinesUpdateHint);
   }
   function closeHotlinesModal() {
     document.getElementById('hotlines-modal-overlay').classList.remove('open');
     document.body.style.overflow = '';
   }
+
+  // Show the fade only while there is more of the list below the fold.
+  function hotlinesUpdateHint() {
+    var d = document.getElementById('hotlines-dialog');
+    var b = document.getElementById('hotlines-body');
+    if (!d || !b) return;
+    d.classList.toggle('has-more', b.scrollHeight - b.clientHeight - b.scrollTop > 4);
+  }
+  (function () {
+    var b = document.getElementById('hotlines-body');
+    if (b) b.addEventListener('scroll', hotlinesUpdateHint, { passive: true });
+    window.addEventListener('resize', hotlinesUpdateHint);
+  })();
   document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') closeHotlinesModal();
   });
