@@ -2285,14 +2285,24 @@ def _row_to_hotline(row):
     }
 
 
-def _load_hotlines(published_only=False):
+def _load_hotlines(published_only=False, raise_on_error=False):
+    """Hotline rows, or [] if the read fails.
+
+    A failed read used to be indistinguishable from "the admin removed every
+    hotline", and the public page hides the Other Hotlines tile when the list
+    is empty — so a transient database error made the tile vanish. Callers
+    that need to tell the two apart pass raise_on_error=True.
+    """
     try:
         q = supabase.table('emergency_hotlines').select('*')
         if published_only:
             q = q.eq('status', 'published')
         res = q.order('display_order').execute()
         return [_row_to_hotline(r) for r in (res.data or [])]
-    except Exception:
+    except Exception as exc:
+        app.logger.error('_load_hotlines error: %s', exc)
+        if raise_on_error:
+            raise
         return []
 
 
@@ -2314,7 +2324,14 @@ def api_site_settings():
 
 @app.route('/api/emergency-hotlines')
 def api_emergency_hotlines():
-    hotlines = _load_hotlines(published_only=True)
+    # On a read failure answer 503 without a 'hotlines' key, so the page can
+    # keep showing the tile instead of concluding there are none.
+    try:
+        hotlines = _load_hotlines(published_only=True, raise_on_error=True)
+    except Exception:
+        resp = jsonify({'error': 'hotlines unavailable'})
+        resp.status_code = 503
+        return resp
     return jsonify({'hotlines': hotlines})
 
 
