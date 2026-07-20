@@ -488,6 +488,8 @@
     .hotline-row { display:flex; align-items:center; justify-content:space-between; background:#f4f7fd; border-radius:12px; padding:11px 14px; gap:8px; }
     .hotline-row-label { font-size:.82rem; font-weight:400; color:#1e293b; }
     .hotline-row-number { font-size:.88rem; font-weight:600; color:#12356f; white-space:nowrap; }
+    .hotline-row-numbers { display:flex; align-items:center; gap:4px; flex-shrink:0; }
+    .hotline-sep { font-size:.88rem; font-weight:600; opacity:.5; }
     #hotlines-modal-overlay.open { display:flex !important; }
 
     /* ── Other Hotlines modal — long lists ────────────────────────────
@@ -552,11 +554,38 @@
     { label: 'Police',                    number: '8292-2043' },
     { label: 'Fire',                      number: '8292-2043' }
   ];
+  // Escape admin-entered hotline text before it goes into innerHTML.
+  function escHot(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+  // A hotline may hold several numbers separated by "/", e.g. "911 / 117".
+  // Each becomes its own tel: link and the separator stays plain text.
+  // Previously the "/" was stripped and the digits concatenated, so that
+  // entry dialled 911117 - a number that does not exist.
+  function hotlineTelLinks(value, cls) {
+    var parts = String(value == null ? '' : value).split('/');
+    var out = [];
+    for (var i = 0; i < parts.length; i++) {
+      var label = parts[i].trim();
+      if (!label) continue;
+      // Letters are kept so vanity numbers such as "0917 PCG DOTC" stay
+      // intact; stripping them left a misleading 4-digit tel:. A link is
+      // only produced when the text actually contains a digit.
+      var dial = label.replace(/[^0-9+A-Za-z]/g, '');
+      var attr = cls ? ' class="' + cls + '"' : '';
+      out.push(/[0-9]/.test(label)
+        ? '<a' + attr + ' href="tel:' + dial + '">' + escHot(label) + '</a>'
+        : '<span' + attr + '>' + escHot(label) + '</span>');
+    }
+    return out.join('<span class="hotline-sep" aria-hidden="true"> / </span>');
+  }
   function openHotlinesModal() {
     var list = document.getElementById('hotlines-list');
     if (!list.hasChildNodes()) {
       list.innerHTML = HOTLINES.map(function(h) {
-        return '<div class="hotline-row"><span class="hotline-row-label">' + h.label + '</span><a class="hotline-row-number" href="tel:' + h.number.replace(/[\s\-().\/]/g,'') + '">' + h.number + '</a></div>';
+        return '<div class="hotline-row"><span class="hotline-row-label">' + escHot(h.label) + '</span><span class="hotline-row-numbers">' + hotlineTelLinks(h.number, 'hotline-row-number') + '</span></div>';
       }).join('');
     }
     var overlay = document.getElementById('hotlines-modal-overlay');

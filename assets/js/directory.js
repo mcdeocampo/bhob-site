@@ -69,7 +69,23 @@
     return 'https://waze.com/ul?ll=' + lat + ',' + lng + '&navigate=yes';
   }
   function telHref(v) {
+    // Single-action buttons (Call) use the first number listed.
     return 'tel:' + String(v || '').split('/')[0].replace(/[^0-9+]/g, '');
+  }
+  // A record may hold several numbers separated by "/", e.g. "911 / 117".
+  // Render each as its own tel: link, separator as plain text, so the second
+  // number is reachable instead of being silently dropped.
+  function telLinks(v) {
+    var parts = String(v == null ? '' : v).split('/');
+    var out = [];
+    for (var i = 0; i < parts.length; i++) {
+      var label = parts[i].trim();
+      if (!label) continue;
+      // Keep letters so vanity numbers survive; link only if a digit exists.
+      var dial = label.replace(/[^0-9+A-Za-z]/g, '');
+      out.push(/[0-9]/.test(label) ? '<a href="tel:' + dial + '">' + esc(label) + '</a>' : esc(label));
+    }
+    return out.join('<span class="dir2-tel-sep" aria-hidden="true"> / </span>');
   }
   function debounce(fn, wait) {
     var t;
@@ -586,8 +602,8 @@
 
     var rows = [];
     if (it.address) rows.push(metaRow('📍', esc(it.address)));
-    if (it.phone) rows.push(metaRow('📞', '<a href="' + telHref(it.phone) + '">' + esc(it.phone) + '</a>'));
-    if (it.altPhone) rows.push(metaRow('📞', '<a href="' + telHref(it.altPhone) + '">' + esc(it.altPhone) + '</a> (alternate)'));
+    if (it.phone) rows.push(metaRow('📞', telLinks(it.phone)));
+    if (it.altPhone) rows.push(metaRow('📞', telLinks(it.altPhone) + ' (alternate)'));
     if (hoursText) rows.push(metaRow('🕒', hoursText));
     if (it.raw.contactPerson) rows.push(metaRow('👤', esc(it.raw.contactPerson)));
     if (it.raw.services) rows.push(metaRow('🛟', esc(it.raw.services)));
