@@ -3109,12 +3109,12 @@ def emergency_alert_detail_page(slug):
 
 
 # ── Social share card ─────────────────────────────────────────────────────────
-# Facebook renders link previews at 1.91:1. Handing it the barangay seal
-# directly means a centre-crop that cuts the ring text off top and bottom, so a
-# proper landscape card is composed from the logo instead. Cached against the
-# logo file's modification time, so replacing the file refreshes it.
+# Facebook picks the card layout from the image size: a small image renders as
+# the compact card with the logo beside the text, a large one fills the width
+# and centre-crops. The compact form shows the seal whole and is what we want,
+# so the card is deliberately kept small and square rather than 1200x630.
 _share_card_cache = {'key': None, 'png': None}
-SHARE_CARD_W, SHARE_CARD_H = 1200, 630
+SHARE_CARD_W, SHARE_CARD_H = 440, 440
 SHARE_LOGO_PATH = os.path.join(BASE_DIR, 'assets', 'images', 'logo.png')
 
 
@@ -3124,31 +3124,16 @@ def _build_share_card(logo_path):
 
     seal = Image.open(logo_path).convert('RGBA')
 
-    W, H = SHARE_CARD_W, SHARE_CARD_H
-    top, bottom = (15, 53, 111), (8, 28, 64)          # site navy gradient
-    card = Image.new('RGB', (W, H))
-    draw = ImageDraw.Draw(card)
-    for y in range(H):
-        f = y / (H - 1)
-        draw.line([(0, y), (W, y)], fill=(
-            int(top[0] + (bottom[0] - top[0]) * f),
-            int(top[1] + (bottom[1] - top[1]) * f),
-            int(top[2] + (bottom[2] - top[2]) * f)))
-
-    # Soft pool of light so a dark seal still separates from the ground.
-    glow = Image.new('RGBA', (W, H), (0, 0, 0, 0))
-    ImageDraw.Draw(glow).ellipse(
-        [W // 2 - 330, H // 2 - 330, W // 2 + 330, H // 2 + 330],
-        fill=(255, 255, 255, 26))
-    card = Image.alpha_composite(card.convert('RGBA'), glow)
-
-    # Fit inside a 430px box preserving proportions; this logo is 427x440, so
-    # forcing a square would stretch it.
-    box = 430
-    scale = min(box / seal.width, box / seal.height)
+    # Fitted inside a 440px square on white. Square keeps the seal uncropped in
+    # the compact card, and the white ground stops clients that ignore PNG
+    # transparency from rendering it on black.
+    box, pad = SHARE_CARD_W, 24
+    inner = box - pad * 2
+    scale = min(inner / seal.width, inner / seal.height)
     seal = seal.resize((max(1, round(seal.width * scale)),
                         max(1, round(seal.height * scale))), Image.LANCZOS)
-    card.paste(seal, ((W - seal.width) // 2, (H - seal.height) // 2), seal)
+    card = Image.new('RGBA', (box, box), (255, 255, 255, 255))
+    card.paste(seal, ((box - seal.width) // 2, (box - seal.height) // 2), seal)
 
     buf = io.BytesIO()
     card.convert('RGB').save(buf, 'PNG', optimize=True)
