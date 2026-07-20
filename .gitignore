@@ -1,4 +1,6 @@
 .env
+# Any .env variant (.env.txt, .env.local, …) — these hold live credentials
+.env*
 # Live data files — never commit, never overwrite on deploy
 data/users.json
 data/audit_logs.json
