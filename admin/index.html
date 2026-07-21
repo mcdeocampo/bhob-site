@@ -1636,6 +1636,16 @@ a{text-decoration:none;color:inherit}
             <div class="field field-full"><label>Hero Description</label><textarea id="cm-hero-description" rows="4" maxlength="500"></textarea></div>
           </div>
 
+          <div class="settings-subgroup"><div class="settings-subtitle">Barangay at a Glance</div></div>
+          <p class="settings-desc">The summary strip below the hero. Each item keeps its icon; only the text is editable. This is separate from the live weather / Local AQI / tide bar, which is not editable.</p>
+          <div class="form-grid">
+            <div class="field field-full"><label>Strip Title</label><input type="text" id="cm-glance-title" maxlength="120"></div>
+            <div class="field"><label>Item 1</label><input type="text" id="cm-glance-item1" maxlength="120"></div>
+            <div class="field"><label>Item 2</label><input type="text" id="cm-glance-item2" maxlength="120"></div>
+            <div class="field"><label>Item 3</label><input type="text" id="cm-glance-item3" maxlength="120"></div>
+            <div class="field"><label>Item 4</label><input type="text" id="cm-glance-item4" maxlength="120"></div>
+          </div>
+
           <div class="settings-subgroup"><div class="settings-subtitle">Homepage Section Intros</div></div>
           <p class="settings-desc">The one-line description under each section heading on the homepage.</p>
           <div class="form-grid">
@@ -5233,6 +5243,11 @@ const CM_FIELDS = {
   'cm-home-announcements-description':'home_announcements_description',
   'cm-home-calendar-description':     'home_calendar_description',
   'cm-home-initiatives-description':  'home_initiatives_description',
+  'cm-glance-title':                  'home_glance_title',
+  'cm-glance-item1':                  'home_glance_item1',
+  'cm-glance-item2':                  'home_glance_item2',
+  'cm-glance-item3':                  'home_glance_item3',
+  'cm-glance-item4':                  'home_glance_item4',
   'cm-about-hero-title':           'about_hero_title',
   'cm-about-hero-description':     'about_hero_description',
   'cm-history-title':              'about_history_title',
@@ -5333,7 +5348,9 @@ function saveContentHero() {
                            'cm-home-services-description',
                            'cm-home-announcements-description',
                            'cm-home-calendar-description',
-                           'cm-home-initiatives-description']), 'Hero');
+                           'cm-home-initiatives-description',
+                           'cm-glance-title', 'cm-glance-item1', 'cm-glance-item2',
+                           'cm-glance-item3', 'cm-glance-item4']), 'Hero');
 }
 
 function saveContentAbout() {
