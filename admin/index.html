@@ -1634,7 +1634,16 @@ a{text-decoration:none;color:inherit}
           <div class="form-grid">
             <div class="field field-full"><label>Hero Title</label><input type="text" id="cm-hero-title" maxlength="120"></div>
             <div class="field field-full"><label>Hero Description</label><textarea id="cm-hero-description" rows="4" maxlength="500"></textarea></div>
-            <div class="field field-full"><label>Homepage Officials Blurb</label><textarea id="cm-home-officials-description" rows="2" maxlength="500"></textarea></div>
+          </div>
+
+          <div class="settings-subgroup"><div class="settings-subtitle">Homepage Section Intros</div></div>
+          <p class="settings-desc">The one-line description under each section heading on the homepage.</p>
+          <div class="form-grid">
+            <div class="field field-full"><label>Public Services</label><textarea id="cm-home-services-description" rows="2" maxlength="500"></textarea></div>
+            <div class="field field-full"><label>Announcements</label><textarea id="cm-home-announcements-description" rows="2" maxlength="500"></textarea></div>
+            <div class="field field-full"><label>Barangay Calendar</label><textarea id="cm-home-calendar-description" rows="2" maxlength="500"></textarea></div>
+            <div class="field field-full"><label>Community Initiatives</label><textarea id="cm-home-initiatives-description" rows="2" maxlength="500"></textarea></div>
+            <div class="field field-full"><label>Barangay Officials</label><textarea id="cm-home-officials-description" rows="2" maxlength="500"></textarea></div>
           </div>
           <div class="settings-acts">
             <button class="btn-publish" onclick="saveContentHero()">Save Hero</button>
@@ -5219,7 +5228,11 @@ const CM_FIELDS = {
   'cm-footer-tagline':             'footer_tagline',
   'cm-hero-title':                 'hero_title',
   'cm-hero-description':           'hero_description',
-  'cm-home-officials-description': 'home_officials_description',
+  'cm-home-officials-description':    'home_officials_description',
+  'cm-home-services-description':     'home_services_description',
+  'cm-home-announcements-description':'home_announcements_description',
+  'cm-home-calendar-description':     'home_calendar_description',
+  'cm-home-initiatives-description':  'home_initiatives_description',
   'cm-about-hero-title':           'about_hero_title',
   'cm-about-hero-description':     'about_hero_description',
   'cm-history-title':              'about_history_title',
@@ -5316,7 +5329,11 @@ function saveContentIdentity() {
 
 function saveContentHero() {
   return cmSave(cmPayload(['cm-hero-title', 'cm-hero-description',
-                           'cm-home-officials-description']), 'Hero');
+                           'cm-home-officials-description',
+                           'cm-home-services-description',
+                           'cm-home-announcements-description',
+                           'cm-home-calendar-description',
+                           'cm-home-initiatives-description']), 'Hero');
 }
 
 function saveContentAbout() {
