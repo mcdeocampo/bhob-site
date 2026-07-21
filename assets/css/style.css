@@ -21551,3 +21551,17 @@ body.dir2-modal-lock{overflow:hidden}
   .dir2-modal-overlay{padding:20px 12px}
   .dir2-modal-cover{height:150px}
 }
+
+/* Officials page — shown when nothing is published, replacing the shipped
+   sample council so an unpublished roster reads as empty rather than current. */
+.ofc-empty {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding: 28px 20px;
+  text-align: center;
+  color: #64748b;
+  font-size: .95rem;
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  border-radius: 12px;
+}

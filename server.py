@@ -1363,14 +1363,19 @@ def _page_context():
         return c['settings'], c['officials']
 
     settings = _load_site_settings()
-    officials = []
+    # None means "could not load" and must leave the shipped markup alone; an
+    # empty list means "nothing is published" and is authoritative. Collapsing
+    # both to [] would make a transient database error blank the officials page.
+    officials = None
     try:
         officials = [o for o in _load_officials() if o.get('status') == 'published']
         officials.sort(key=lambda x: x.get('displayOrder', 9999))
     except Exception as exc:
         app.logger.error('_page_context officials error: %s', exc)
 
-    if settings:
+    # Only cache a fully successful read. Caching a failure would pin the
+    # fallback markup for the whole TTL instead of retrying on the next request.
+    if settings and officials is not None:
         c.update(settings=settings, officials=officials, ts=now)
     return settings, officials
 
@@ -1440,10 +1445,25 @@ def _inject_officials_page(doc, settings, officials):
     for el in doc.xpath('//*[@id="sb-section-desc"]'):
         _set_inner_html(el, _cms_esc_br(settings.get('officials_sb_description', '')))
 
-    if not officials:
-        return
-
+    # An empty published list is a real state, not a failure: unpublishing every
+    # official must clear the page rather than leave the shipped markup showing
+    # a council that is no longer current. _render_page falls back to the raw
+    # file when the load itself fails, so reaching here means the data is good.
     pa = doc.xpath('//*[@id="punong-article"]')
+    if pa and not punong:
+        _set_inner_html(pa[0],
+            '<p class="ofc-empty">No Punong Barangay is currently published.</p>')
+
+    # BHOB's markup selects the grid by class (officials.html uses
+    # querySelector('.officials-council-grid')); BBCB uses id="council-grid".
+    # Accept either so this stays correct if the markup converges later.
+    cg = (doc.xpath('//*[@id="council-grid"]')
+          or doc.xpath('//*[contains(concat(" ", normalize-space(@class), " "),'
+                       ' " officials-council-grid ")]'))
+    if cg and not others:
+        _set_inner_html(cg[0],
+            '<p class="ofc-empty">No council members are currently published.</p>')
+
     if pa and punong:
         _set_inner_html(pa[0],
             '<div class="ofc-photo">' + _official_photo_html(punong) + '</div>'
@@ -1456,7 +1476,6 @@ def _inject_officials_page(doc, settings, officials):
             + _cms_esc_br(settings.get('officials_punong_description', '')) + '</p>'
             '</div>')
 
-    cg = doc.xpath('//*[@id="council-grid"]')
     if cg and others:
         delays = ['', 'delay-1', 'delay-2', 'delay-3']
         cards = []
@@ -1544,6 +1563,8 @@ def _inject_page(html, settings, officials):
     import lxml.html as LH
 
     doc = LH.fromstring(html)
+    # officials is None when the load failed — settings still get applied, but
+    # anything officials-driven is left as the markup shipped it.
     punong = next((o for o in (officials or []) if o.get('isPunong')), None)
 
     # Capture the identity the markup shipped with, before the loop below
@@ -1606,7 +1627,8 @@ def _inject_page(html, settings, officials):
             for el in doc.xpath('//*[@id="opc-quote-text"]'):
                 _set_inner_html(el, _cms_esc_br(quote))
 
-    _inject_officials_page(doc, settings, officials or [])
+    if officials is not None:
+        _inject_officials_page(doc, settings, officials)
 
     return LH.tostring(doc, doctype='<!DOCTYPE html>', encoding='unicode')
 
@@ -1618,11 +1640,11 @@ def _render_page(directory, filename):
         abort(404)
     try:
         settings, officials = _page_context()
-        if not settings and not officials:
+        if not settings and officials is None:
             return send_from_directory(directory, filename)
         with open(path, encoding='utf-8') as fh:
             html = fh.read()
-        rendered = _inject_page(html, settings or {}, officials or [])
+        rendered = _inject_page(html, settings or {}, officials)
     except Exception as exc:
         # Never let injection take the site down — fall back to the raw file.
         app.logger.error('_render_page(%s) error: %s', filename, exc)

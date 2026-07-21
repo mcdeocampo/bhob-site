@@ -182,10 +182,17 @@
     var sbDesc=s.officials_sb_description||'';
     var sbEl=document.getElementById('sb-section-desc');
     if(sbEl)sbEl.innerHTML=esc(sbDesc).replace(/\n/g,'<br>');
-    var all=(d.officials||[]).filter(function(o){return o.status==='published';});
-    if(!all.length)return;
+    // A successful response is authoritative, including when it is empty:
+    // unpublishing every official must clear the page, not silently leave the
+    // shipped markup on display. Only a *failed* fetch keeps the static
+    // fallback, and that is handled by the .catch() below.
+    if(!d||!d.officials)return;
+    var all=d.officials.filter(function(o){return o.status==='published';});
     var punong=null,others=[];
     all.forEach(function(o){if(o.isPunong&&!punong)punong=o;else others.push(o);});
+    if(PA&&!punong){
+      PA.innerHTML='<p class="ofc-empty">No Punong Barangay is currently published.</p>';
+    }
     if(PA&&punong){
       var ph=punong.photoUrl?'<img src="'+esc(src(punong.photoUrl))+'" alt="'+esc(punong.fullName)+'" onerror="this.style.display=\'none\'">':PH;
       PA.innerHTML='<div class="ofc-photo">'+ph+'</div>'+
@@ -196,6 +203,9 @@
         '<p class="ofc-role">'+esc(punongDesc).replace(/\n/g,'<br>')+'</p>'+
         '</div>';
       if(window.revealObserver)PA.querySelectorAll('.reveal').forEach(function(el){window.revealObserver.observe(el);});
+    }
+    if(CG&&!others.length){
+      CG.innerHTML='<p class="ofc-empty">No council members are currently published.</p>';
     }
     if(CG&&others.length){
       var DL=['','delay-1','delay-2','delay-3'];
