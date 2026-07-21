@@ -576,4 +576,57 @@
       revealProcess();
     }
   }
+
+  // ── CMS content sync ───────────────────────────────────────────────────────
+  // Applies configured site settings to any element carrying data-setting,
+  // data-setting-src or data-setting-href. The server already injects these
+  // values into the markup (see _inject_page in server.py); this pass mirrors
+  // it exactly so the two can never disagree, and keeps working if the server
+  // render ever falls back to the raw file.
+  //
+  // Note this runs alongside the per-page inline settings scripts. Those own
+  // their own elements; nothing here should carry both mechanisms.
+  fetch('/api/site-settings')
+    .then(function (r) { return r.json(); })
+    .then(function (s) {
+      // A failed or empty read must leave the shipped markup alone rather than
+      // blanking the page.
+      if (!s || !Object.keys(s).length) return;
+
+      document.querySelectorAll('[data-setting]').forEach(function (el) {
+        var key = el.getAttribute('data-setting');
+        // A key missing from the payload has never been configured, so leave
+        // the markup's own copy in place. A key that IS present but empty was
+        // deliberately cleared in admin and must blank the element.
+        if (!(key in s)) return;
+        el.textContent = s[key] || '';
+      });
+
+      // href — the element always renders; a link is attached only when its URL
+      // is configured, so it stays inert rather than keeping a stale hardcoded
+      // destination.
+      document.querySelectorAll('[data-setting-href]').forEach(function (el) {
+        var key = el.getAttribute('data-setting-href');
+        if (s[key]) { el.href = s[key]; }
+        else { el.removeAttribute('href'); }
+      });
+
+      // src — unlike href, an unset value leaves the markup's own src intact.
+      // A missing logo setting must fall back to the shipped image rather than
+      // render an empty box.
+      document.querySelectorAll('[data-setting-src]').forEach(function (el) {
+        var key = el.getAttribute('data-setting-src');
+        var val = s[key];
+        if (val) el.src = val.indexOf('http') === 0 ? val : '/' + val.replace(/^\/+/, '');
+      });
+
+      // <title data-site-title> — "Name | Locality"
+      var parts = [s.barangay_name, s.barangay_locality].filter(Boolean);
+      if (parts.length) {
+        document.querySelectorAll('title[data-site-title]').forEach(function (el) {
+          el.textContent = parts.join(' | ');
+        });
+      }
+    })
+    .catch(function () { /* silent — shipped markup stays */ });
 })();

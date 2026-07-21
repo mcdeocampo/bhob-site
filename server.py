@@ -1334,6 +1334,353 @@ def api_public_services():
 
 
 # ── Public page clean URLs (no .html required) ───────────────────────────────
+# ── Server-side CMS rendering ────────────────────────────────────────────────
+# The pages ship with hardcoded barangay identity and fetch the configured
+# values afterwards, so the shipped markup was painted first and only corrected
+# a round trip later — a visible flash of the wrong identity on every load.
+# Rewriting here means the correct content is in the HTML as it leaves the
+# server, and the browser requests the right logo immediately.
+#
+# Every injector below mirrors the page's own inline script one-for-one. Where
+# BHOB's script differs from BBCB's (empty photo placeholder, position-driven
+# badge text, the onerror handler) this follows BHOB, so the server-rendered
+# markup and the client pass can never disagree.
+
+_page_ctx_cache = {'settings': None, 'officials': None, 'ts': 0}
+PAGE_CTX_TTL = 60
+
+
+def _page_context():
+    """(settings, officials) for injection, TTL-cached.
+
+    Without the cache this would add a Supabase round trip to *every* page
+    request. A failed load is never cached, so a transient error falls back to
+    the shipped markup rather than being pinned for the TTL.
+    """
+    now = time.time()
+    c = _page_ctx_cache
+    if c['settings'] and (now - c['ts']) < PAGE_CTX_TTL:
+        return c['settings'], c['officials']
+
+    settings = _load_site_settings()
+    officials = []
+    try:
+        officials = [o for o in _load_officials() if o.get('status') == 'published']
+        officials.sort(key=lambda x: x.get('displayOrder', 9999))
+    except Exception as exc:
+        app.logger.error('_page_context officials error: %s', exc)
+
+    if settings:
+        c.update(settings=settings, officials=officials, ts=now)
+    return settings, officials
+
+
+@app.after_request
+def _bust_page_ctx_cache(response):
+    """Drop the injection cache after any successful admin write.
+
+    Hooked at the request level rather than inside each save handler so a new
+    admin module can't silently miss it and leave the public pages serving
+    stale content for up to a minute.
+    """
+    if (request.method in ('POST', 'PUT', 'PATCH', 'DELETE')
+            and request.path.startswith('/admin/')
+            and response.status_code < 400):
+        _page_ctx_cache['ts'] = 0
+    return response
+
+
+def _asset_url(val):
+    """Storage values are either absolute URLs or repo-relative paths."""
+    val = (val or '').strip()
+    if not val:
+        return ''
+    return val if val.startswith('http') else '/' + val.lstrip('/')
+
+
+def _cms_esc(s):
+    """Match the esc() in the pages' inline scripts exactly."""
+    return (str(s or '').replace('&', '&amp;').replace('<', '&lt;')
+            .replace('>', '&gt;').replace('"', '&quot;'))
+
+
+def _cms_esc_br(s):
+    return _cms_esc(s).replace('\n', '<br>')
+
+
+def _set_inner_html(el, html_str):
+    import lxml.html as LH
+    frag = LH.fragment_fromstring(html_str, create_parent='div')
+    for child in list(el):
+        el.remove(child)
+    el.text = frag.text
+    for child in list(frag):
+        el.append(child)
+
+
+def _official_photo_html(o):
+    """Mirrors officials.html: an <img> when a photo exists, otherwise nothing.
+
+    BHOB's script uses an empty placeholder (var PH = ''), unlike BBCB which
+    draws an SVG avatar. Emitting an avatar here would put a figure on the page
+    that the client pass then removes.
+    """
+    photo = _asset_url(o.get('photoUrl'))
+    if not photo:
+        return ''
+    return ('<img src="%s" alt="%s" onerror="this.style.display=\'none\'">'
+            % (_cms_esc(photo), _cms_esc(o.get('fullName'))))
+
+
+def _inject_officials_page(doc, settings, officials):
+    """Server-render the Officials page, mirroring its inline script."""
+    punong = next((o for o in officials if o.get('isPunong')), None)
+    others = [o for o in officials if not o.get('isPunong')]
+
+    for el in doc.xpath('//*[@id="sb-section-desc"]'):
+        _set_inner_html(el, _cms_esc_br(settings.get('officials_sb_description', '')))
+
+    if not officials:
+        return
+
+    pa = doc.xpath('//*[@id="punong-article"]')
+    if pa and punong:
+        _set_inner_html(pa[0],
+            '<div class="ofc-photo">' + _official_photo_html(punong) + '</div>'
+            '<div class="ofc-details">'
+            '<span class="ofc-badge">'
+            + _cms_esc(punong.get('position') or 'Punong Barangay') + '</span>'
+            '<h2 class="ofc-name">' + _cms_esc(punong.get('fullName')) + '</h2>'
+            '<div class="ofc-divider"></div>'
+            '<p class="ofc-role">'
+            + _cms_esc_br(settings.get('officials_punong_description', '')) + '</p>'
+            '</div>')
+
+    cg = doc.xpath('//*[@id="council-grid"]')
+    if cg and others:
+        delays = ['', 'delay-1', 'delay-2', 'delay-3']
+        cards = []
+        for i, o in enumerate(others):
+            d = delays[i % 4]
+            cards.append(
+                '<article class="official-card reveal' + ((' ' + d) if d else '') + '">'
+                + _official_photo_html(o)
+                + '<h3>' + _cms_esc(o.get('fullName')) + '</h3>'
+                + '<span>' + _cms_esc(o.get('position')) + '</span>'
+                + '<p>' + _cms_esc(o.get('roleDescription', '')) + '</p></article>')
+        _set_inner_html(cg[0], ''.join(cards))
+
+
+def _inject_social_meta(doc, settings, shipped, logo, title_parts):
+    """Bring og:/twitter: tags in line with the configured barangay.
+
+    Crawlers fetch the raw HTML and never run our JavaScript, so a shared link
+    would keep advertising whatever the markup shipped with. og:image also has
+    to be an absolute URL — crawlers cannot resolve a relative path.
+    """
+    try:
+        base = request.url_root.rstrip('/')
+        page_url = request.base_url
+    except Exception:
+        base = ''
+        page_url = ''
+
+    def absolute(u):
+        u = (u or '').strip()
+        if not u:
+            return ''
+        if u.startswith(('http://', 'https://')):
+            return u
+        return base + '/' + u.lstrip('/')
+
+    # Swap the shipped name/locality for the configured ones inside the meta
+    # text, keyed off what the markup actually shipped with so this keeps
+    # working whatever the site is renamed to next.
+    renames = []
+    for key in ('barangay_name', 'barangay_locality'):
+        old, new = shipped.get(key), (settings.get(key) or '').strip()
+        if old and new and old != new:
+            renames.append((old, new))
+
+    if renames:
+        for el in doc.xpath('//meta[@property="og:title" or @property="og:description"'
+                            ' or @name="twitter:title" or @name="twitter:description"'
+                            ' or @name="description"]'):
+            content = el.get('content') or ''
+            for old, new in renames:
+                content = content.replace(old, new)
+            el.set('content', content)
+
+    social_img = absolute('/share-card.png') if logo else ''
+    for el in doc.xpath('//meta[@property="og:image" or @name="twitter:image"]'):
+        el.set('content', social_img or absolute(el.get('content')))
+
+    def _ensure_meta(attr, name, value):
+        existing = doc.xpath('//meta[@%s="%s"]' % (attr, name))
+        if existing:
+            existing[0].set('content', value)
+            return
+        head = doc.xpath('//head')
+        if not head:
+            return
+        import lxml.html as LH
+        tag = LH.Element('meta')
+        tag.set(attr, name)
+        tag.set('content', value)
+        head[0].append(tag)
+
+    if social_img:
+        _ensure_meta('property', 'og:image:width', str(SHARE_CARD_W))
+        _ensure_meta('property', 'og:image:height', str(SHARE_CARD_H))
+    if page_url:
+        _ensure_meta('property', 'og:url', page_url)
+    if title_parts:
+        _ensure_meta('property', 'og:site_name', title_parts[0])
+
+
+def _inject_page(html, settings, officials):
+    """Apply CMS values to the markup. Mirrors the client-side pass in main.js
+    so the two can never disagree."""
+    import lxml.html as LH
+
+    doc = LH.fromstring(html)
+    punong = next((o for o in (officials or []) if o.get('isPunong')), None)
+
+    # Capture the identity the markup shipped with, before the loop below
+    # overwrites it — the social meta rewrite keys off these.
+    _shipped = {}
+    for _key in ('barangay_name', 'barangay_locality'):
+        _el = doc.xpath('//*[@data-setting="%s"]' % _key)
+        if _el and (_el[0].text or '').strip():
+            _shipped[_key] = _el[0].text.strip()
+
+    # Text nodes. A key absent from settings has never been configured, so the
+    # markup's own copy stays — the same rule main.js follows.
+    for el in doc.xpath('//*[@data-setting]'):
+        key = el.get('data-setting')
+        if key in settings:
+            for child in list(el):
+                el.remove(child)
+            el.text = settings.get(key) or ''
+
+    for el in doc.xpath('//*[@data-setting-src]'):
+        url = _asset_url(settings.get(el.get('data-setting-src')))
+        if url:
+            el.set('src', url)
+
+    for el in doc.xpath('//*[@data-setting-href]'):
+        url = (settings.get(el.get('data-setting-href')) or '').strip()
+        if url:
+            el.set('href', url)
+
+    # <title data-site-title> — "Name | Locality"
+    parts = [p for p in (settings.get('barangay_name'),
+                         settings.get('barangay_locality')) if p]
+    if parts:
+        for el in doc.xpath('//title[@data-site-title]'):
+            el.text = ' | '.join(parts)
+
+    logo = _asset_url(settings.get('barangay_logo_url'))
+    if logo:
+        for el in doc.xpath('//link[@rel="icon" or @rel="apple-touch-icon"]'):
+            el.set('href', logo)
+
+    _inject_social_meta(doc, settings, _shipped, logo, parts)
+
+    # Punong Barangay card on the homepage, mirroring index.html's script.
+    if punong:
+        photo = _asset_url(punong.get('photoUrl'))
+        name = punong.get('fullName') or ''
+        for el in doc.xpath('//*[@id="opc-photo-img"]'):
+            if photo:
+                el.set('src', photo)
+                if name:
+                    el.set('alt', (punong.get('position') or '') + ' ' + name)
+        for el in doc.xpath('//*[@id="opc-name-text"]'):
+            if name:
+                el.text = name
+        for el in doc.xpath('//*[@id="opc-pos-text"]'):
+            el.text = punong.get('position') or 'Punong Barangay'
+        quote = punong.get('quote') or ''
+        if quote:
+            for el in doc.xpath('//*[@id="opc-quote-text"]'):
+                _set_inner_html(el, _cms_esc_br(quote))
+
+    _inject_officials_page(doc, settings, officials or [])
+
+    return LH.tostring(doc, doctype='<!DOCTYPE html>', encoding='unicode')
+
+
+def _render_page(directory, filename):
+    """Serve an HTML page with CMS content already applied."""
+    path = os.path.join(directory, filename)
+    if not os.path.exists(path):
+        abort(404)
+    try:
+        settings, officials = _page_context()
+        if not settings and not officials:
+            return send_from_directory(directory, filename)
+        with open(path, encoding='utf-8') as fh:
+            html = fh.read()
+        rendered = _inject_page(html, settings or {}, officials or [])
+    except Exception as exc:
+        # Never let injection take the site down — fall back to the raw file.
+        app.logger.error('_render_page(%s) error: %s', filename, exc)
+        return send_from_directory(directory, filename)
+
+    resp = app.make_response(rendered)
+    resp.headers['Content-Type'] = 'text/html; charset=utf-8'
+    # Content now varies with the CMS, so it must not be cached as a static file.
+    resp.headers['Cache-Control'] = 'no-cache'
+    return resp
+
+
+def _render_admin_shell(path):
+    """Serve the admin panel with the favicon and title already correct.
+
+    The browser resolves and commits the favicon while parsing <head>, so
+    replacing the link node client-side afterwards leaves the tab showing
+    whatever was hardcoded. Deliberately a targeted substitution rather than the
+    lxml pass used for public pages — the admin document is large and parsing it
+    on every request would cost far more than it's worth.
+    """
+    settings, _ = _page_context()
+    if not settings:
+        return send_from_directory(os.path.dirname(path), os.path.basename(path))
+
+    with open(path, encoding='utf-8') as fh:
+        html = fh.read()
+
+    logo = _asset_url(settings.get('barangay_logo_url'))
+    if logo:
+        # Tab icon. The browser commits this while parsing <head>, which is why
+        # it cannot be left to a client-side swap.
+        html = re.sub(
+            r'(<link\b[^>]*\brel="[^"]*icon[^"]*"[^>]*\bhref=")[^"]*(")',
+            lambda m: m.group(1) + logo + m.group(2), html)
+        # Login screen and sidebar seal.
+        html = re.sub(r'(<img\b[^>]*\bdata-admin-logo\b[^>]*\bsrc=")[^"]*(")',
+                      lambda m: m.group(1) + logo + m.group(2), html)
+
+    name = (settings.get('barangay_name') or '').strip()
+    if name:
+        html = re.sub(r'(<title\b[^>]*\bdata-admin-title\b[^>]*>)[^<]*(</title>)',
+                      lambda m: m.group(1) + 'Admin | ' + name + m.group(2),
+                      html, count=1)
+        html = re.sub(r'(<[a-z]+\b[^>]*\bdata-admin-name\b[^>]*>)[^<]*(<)',
+                      lambda m: m.group(1) + name + m.group(2), html)
+
+    locality = (settings.get('barangay_locality') or '').strip()
+    if locality:
+        html = re.sub(r'(<[a-z]+\b[^>]*\bdata-admin-locality\b[^>]*>)[^<]*(<)',
+                      lambda m: m.group(1) + locality + m.group(2), html)
+
+    resp = app.make_response(html)
+    resp.headers['Content-Type'] = 'text/html; charset=utf-8'
+    resp.headers['Cache-Control'] = 'no-cache'
+    return resp
+
+
 _PUBLIC_PAGES = [
     'about', 'officials', 'announcements',
     'transparency', 'downloads', 'contact', 'directory',
@@ -1364,14 +1711,20 @@ def public_page(page_name):
     if page_file in _PUBLIC_PAGES or page_name in _PAGE_ALIASES:
         f = os.path.join(BASE_DIR, page_file + '.html')
         if os.path.exists(f):
-            return send_from_directory(BASE_DIR, page_file + '.html')
+            return _render_page(BASE_DIR, page_file + '.html')
     abort(404)
 
 
 # ── Admin page serving ────────────────────────────────────────────────────────
 @app.route('/admin')
 def admin_index():
-    return send_from_directory(os.path.join(BASE_DIR, 'admin'), 'index.html')
+    admin_dir = os.path.join(BASE_DIR, 'admin')
+    try:
+        return _render_admin_shell(os.path.join(admin_dir, 'index.html'))
+    except Exception as exc:
+        # Never let branding injection lock the admin out.
+        app.logger.error('_render_admin_shell error: %s', exc)
+        return send_from_directory(admin_dir, 'index.html')
 
 
 @app.route('/admin/<path:filename>')
@@ -2405,9 +2758,49 @@ def admin_site_settings_put():
         'social_facebook_url', 'social_linkedin_url', 'social_instagram_url',
         'sk_facebook_title', 'sk_facebook_subtitle', 'sk_facebook_url',
         'officials_punong_description', 'officials_sb_description',
+        # ── Content Management ────────────────────────────────────────────
+        # Barangay identity shown in every page's header and footer.
+        'barangay_name', 'barangay_locality', 'footer_tagline', 'barangay_logo_url',
+        # Homepage hero.
+        'hero_title', 'hero_description',
+        # About Us page. about_history_images holds a JSON array of image URLs.
+        'about_hero_title', 'about_hero_description',
+        'about_history_title', 'about_history_content', 'about_history_images',
+        'about_mission_title', 'about_mission_text',
+        'about_vision_title', 'about_vision_text',
+        'about_profile_city', 'about_profile_province',
+        'about_profile_region', 'about_profile_community_type',
+        'about_location_title', 'about_location_description',
+        'about_map_url', 'about_map_badge',
+        # Section headings / page intros that name the barangay. Hardcoded
+        # until now, so they went stale whenever the barangay was renamed.
+        'about_profile_eyebrow', 'about_profile_title',
+        'home_glance_title', 'home_glance_item1', 'home_glance_item2',
+        'home_glance_item3', 'home_glance_item4',
+        'about_profile_intro', 'charter_pledge_text',
+        'contact_hero_description', 'contact_card_description',
+        'directory_hero_description',
+        'officials_hero_description', 'home_officials_description',
     }
-    _LONG_KEYS = {'officials_punong_description', 'officials_sb_description'}
-    patch = {k: _clean(v, 500 if k in _LONG_KEYS else 300) for k, v in d.items() if k in ALLOWED_KEYS}
+    _LONG_KEYS = {
+        'officials_punong_description', 'officials_sb_description',
+        'footer_tagline', 'hero_description', 'about_hero_description',
+        'about_mission_text', 'about_vision_text', 'about_location_description',
+        'about_profile_intro', 'charter_pledge_text',
+        'contact_hero_description', 'contact_card_description',
+        'directory_hero_description',
+        'officials_hero_description', 'home_officials_description',
+    }
+    # Multi-paragraph prose and the serialised image list need far more room
+    # than the 500-char _LONG_KEYS tier, which would silently truncate them.
+    _XL_KEYS = {'about_history_content', 'about_history_images'}
+
+    def _limit(key):
+        if key in _XL_KEYS:
+            return 5000
+        return 500 if key in _LONG_KEYS else 300
+
+    patch = {k: _clean(v, _limit(k)) for k, v in d.items() if k in ALLOWED_KEYS}
     if not patch:
         return jsonify({'error': 'No valid fields provided'}), 400
     try:
@@ -3166,11 +3559,37 @@ SHARE_CARD_W, SHARE_CARD_H = 440, 440
 SHARE_LOGO_PATH = os.path.join(BASE_DIR, 'assets', 'images', 'logo.png')
 
 
-def _build_share_card(logo_path):
-    import io
-    from PIL import Image, ImageDraw
+def _share_logo_source():
+    """(cache_key, opener) for the logo the card should be built from.
 
-    seal = Image.open(logo_path).convert('RGBA')
+    Prefers the CMS logo so a logo changed in admin flows through to social
+    previews; falls back to the shipped file when no logo is configured, which
+    is the behaviour before Content Management existed.
+    """
+    settings, _ = _page_context()
+    url = _asset_url((settings or {}).get('barangay_logo_url'))
+    if url:
+        if not url.startswith(('http://', 'https://')):
+            try:
+                url = request.url_root.rstrip('/') + url
+            except Exception:
+                url = ''
+        if url:
+            return url, url
+    if os.path.exists(SHARE_LOGO_PATH):
+        return os.path.getmtime(SHARE_LOGO_PATH), SHARE_LOGO_PATH
+    return None, None
+
+
+def _build_share_card(logo_src):
+    import io
+    from PIL import Image
+
+    if isinstance(logo_src, str) and logo_src.startswith(('http://', 'https://')):
+        import urllib.request as _u
+        seal = Image.open(io.BytesIO(_u.urlopen(logo_src, timeout=20).read())).convert('RGBA')
+    else:
+        seal = Image.open(logo_src).convert('RGBA')
 
     # Fitted inside a 440px square on white. Square keeps the seal uncropped in
     # the compact card, and the white ground stops clients that ignore PNG
@@ -3190,12 +3609,12 @@ def _build_share_card(logo_path):
 
 @app.route('/share-card.png')
 def share_card():
-    if not os.path.exists(SHARE_LOGO_PATH):
+    key, source = _share_logo_source()
+    if source is None:
         abort(404)
-    key = os.path.getmtime(SHARE_LOGO_PATH)
     if _share_card_cache['key'] != key or not _share_card_cache['png']:
         try:
-            _share_card_cache['png'] = _build_share_card(SHARE_LOGO_PATH)
+            _share_card_cache['png'] = _build_share_card(source)
             _share_card_cache['key'] = key
         except Exception as exc:
             # Serve the plain logo rather than nothing; a cropped card still
@@ -3212,7 +3631,7 @@ def share_card():
 # ── Static file serving ───────────────────────────────────────────────────────
 @app.route('/')
 def index():
-    return send_from_directory(BASE_DIR, 'index.html')
+    return _render_page(BASE_DIR, 'index.html')
 
 
 @app.route('/<path:filename>')
@@ -4241,6 +4660,19 @@ def admin_upload_organization_gallery():
 @admin_required
 def admin_upload_emergency_gallery():
     return _upload_gallery_image('emergency-directory-gallery')
+
+
+# ── Content Management uploads ───────────────────────────────────────────────
+@app.route('/admin/api/upload/barangay-logo', methods=['POST'])
+@admin_required
+def admin_upload_barangay_logo():
+    return _upload_gallery_image('branding')
+
+
+@app.route('/admin/api/upload/about-history-image', methods=['POST'])
+@admin_required
+def admin_upload_about_history_image():
+    return _upload_gallery_image('about-history')
 
 
 _ensure_initial_user()

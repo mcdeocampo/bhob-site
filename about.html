@@ -16,7 +16,7 @@
   <meta name="twitter:description" content="Learn about Barangay Hulo, Obando, Bulacan, including its history, mission, vision, profile, location, and community information.">
   <meta name="twitter:image" content="https://huloobando.com/share-card.png">
   <link rel="canonical" href="https://huloobando.com/about">
-  <title>Barangay Hulo | Obando, Bulacan</title>
+  <title data-site-title>Barangay Hulo | Obando, Bulacan</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -29,8 +29,8 @@
   <header class="site-header" id="top">
     <nav class="navbar container" aria-label="Main Navigation">
       <a href="/" class="brand" aria-label="Barangay Hulo Home">
-        <img src="assets/images/logo.png" alt="Barangay Hulo Logo">
-        <span><strong>Barangay Hulo</strong><small>Obando, Bulacan</small></span>
+        <img src="assets/images/logo.png" alt="Barangay Hulo Logo" data-setting-src="barangay_logo_url">
+        <span><strong data-setting="barangay_name">Barangay Hulo</strong><small data-setting="barangay_locality">Obando, Bulacan</small></span>
       </a>
       <button class="menu-toggle" aria-label="Open navigation menu" aria-expanded="false">
         <span></span><span></span><span></span>
@@ -53,15 +53,15 @@
   <main><section class="page-hero section-pad-sm">
       <div class="container reveal">
         <span class="eyebrow">About Us</span>
-        <h1>About Barangay Hulo</h1>
-        <p>Learn about the history, profile, mission, vision, and community of Barangay Hulo.</p>
+        <h1 data-setting="about_hero_title">About Barangay Hulo</h1>
+        <p data-setting="about_hero_description">Learn about the history, profile, mission, vision, and community of Barangay Hulo.</p>
       </div>
     </section>
-<section class="section-pad"><div class="container split-layout"><div class="reveal"><span class="eyebrow">Our Story</span><h2>Barangay History</h2><p style="text-align: justify;">Barangay Hulo is a small, closely-knit community in the coastal municipality of Obando, Bulacan, with a population of about 2,503. Originally a secluded 200-meter site situated along the river and ending at local fishponds, it was historically called <strong>Hulong Quibadia</strong> before eventually separating from San Pascual to become a full-fledged barangay.</p><p style="text-align: justify;">The barangay has a strong tradition of bayanihan, local service, and family-centered community life. The barangay website is designed to help residents access information faster and support transparency in local governance.</p></div><div class="history-photo-grid reveal delay-1" aria-label="Barangay Hulo community photos"><img src="assets/images/history/history-community-gathering.jpg" alt="Barangay Hulo community gathering"><img src="assets/images/history/history-community-outreach.jpg" alt="Barangay Hulo community outreach"><img src="assets/images/history/history-community-cleanup.jpg" alt="Barangay Hulo community cleanup activity"></div></div></section>
-<section class="section-pad soft-bg"><div class="container card-grid two"><div class="info-card reveal"><span class="icon">🎯</span><h3>Mission</h3><p>To provide responsive, transparent, and inclusive public service that supports the welfare, safety, and development of every resident.</p></div><div class="info-card reveal delay-1"><span class="icon">🌅</span><h3>Vision</h3><p>A peaceful, progressive, healthy, and united Barangay Hulo where residents actively participate in community development.</p></div></div></section>
+<section class="section-pad"><div class="container split-layout"><div class="reveal"><span class="eyebrow">Our Story</span><h2 data-setting="about_history_title">Barangay History</h2><div id="about-history-body"><p style="text-align: justify;">Barangay Hulo is a small, closely-knit community in the coastal municipality of Obando, Bulacan, with a population of about 2,503. Originally a secluded 200-meter site situated along the river and ending at local fishponds, it was historically called <strong>Hulong Quibadia</strong> before eventually separating from San Pascual to become a full-fledged barangay.</p><p style="text-align: justify;">The barangay has a strong tradition of bayanihan, local service, and family-centered community life. The barangay website is designed to help residents access information faster and support transparency in local governance.</p></div></div><div id="about-history-grid" class="history-photo-grid reveal delay-1" aria-label="Barangay Hulo community photos"><img src="assets/images/history/history-community-gathering.jpg" alt="Barangay Hulo community gathering"><img src="assets/images/history/history-community-outreach.jpg" alt="Barangay Hulo community outreach"><img src="assets/images/history/history-community-cleanup.jpg" alt="Barangay Hulo community cleanup activity"></div></div></section>
+<section class="section-pad soft-bg"><div class="container card-grid two"><div class="info-card reveal"><span class="icon">🎯</span><h3 data-setting="about_mission_title">Mission</h3><p data-setting="about_mission_text">To provide responsive, transparent, and inclusive public service that supports the welfare, safety, and development of every resident.</p></div><div class="info-card reveal delay-1"><span class="icon">🌅</span><h3 data-setting="about_vision_title">Vision</h3><p data-setting="about_vision_text">A peaceful, progressive, healthy, and united Barangay Hulo where residents actively participate in community development.</p></div></div></section>
 <section class="section-pad about-profile-section">
   <div class="container">
-    <div class="section-heading reveal"><span class="eyebrow">Profile</span><h2>Barangay Profile</h2><p>Key facts and details about Barangay Hulo, Obando, Bulacan.</p></div>
+    <div class="section-heading reveal"><span class="eyebrow" data-setting="about_profile_eyebrow">Profile</span><h2 data-setting="about_profile_title">Barangay Profile</h2><p data-setting="about_profile_intro">Key facts and details about Barangay Hulo, Obando, Bulacan.</p></div>
     <div class="about-profile-grid">
       <div class="about-profile-card reveal">
         <div class="about-profile-icon" style="background:linear-gradient(135deg,#1565c0,#1e88e5)">
@@ -69,7 +69,7 @@
         </div>
         <div class="about-profile-content">
           <span class="about-profile-label">Municipality</span>
-          <strong class="about-profile-value">Obando</strong>
+          <strong class="about-profile-value" data-setting="about_profile_city">Obando</strong>
         </div>
       </div>
       <div class="about-profile-card reveal delay-1">
@@ -78,7 +78,7 @@
         </div>
         <div class="about-profile-content">
           <span class="about-profile-label">Province</span>
-          <strong class="about-profile-value">Bulacan</strong>
+          <strong class="about-profile-value" data-setting="about_profile_province">Bulacan</strong>
         </div>
       </div>
       <div class="about-profile-card reveal delay-2">
@@ -87,7 +87,7 @@
         </div>
         <div class="about-profile-content">
           <span class="about-profile-label">Region</span>
-          <strong class="about-profile-value">Central Luzon (Region III)</strong>
+          <strong class="about-profile-value" data-setting="about_profile_region">Central Luzon (Region III)</strong>
         </div>
       </div>
       <div class="about-profile-card reveal delay-3">
@@ -96,7 +96,7 @@
         </div>
         <div class="about-profile-content">
           <span class="about-profile-label">Community Type</span>
-          <strong class="about-profile-value">Local Livelihood</strong>
+          <strong class="about-profile-value" data-setting="about_profile_community_type">Local Livelihood</strong>
         </div>
       </div>
     </div>
@@ -105,9 +105,9 @@
 
 <section class="section-pad about-location-section">
   <div class="container">
-    <div class="section-heading reveal"><span class="eyebrow">Location</span><h2>Location Overview</h2><p>Barangay Hulo is part of Obando, Bulacan and serves residents through local governance, public assistance, peace and order programs, and community services.</p></div>
+    <div class="section-heading reveal"><span class="eyebrow">Location</span><h2 data-setting="about_location_title">Location Overview</h2><p data-setting="about_location_description">Barangay Hulo is part of Obando, Bulacan and serves residents through local governance, public assistance, peace and order programs, and community services.</p></div>
     <div class="about-map-wrap reveal">
-      <iframe
+      <iframe id="about-map-frame"
         title="Barangay Hulo Location Map"
         src="https://www.google.com/maps?q=Barangay%20Hulo%2C%20Obando%2C%20Bulacan%2C%20Philippines&output=embed"
         loading="lazy"
@@ -116,7 +116,7 @@
       </iframe>
       <div class="about-map-badge">
         <svg viewBox="0 0 20 20" fill="none"><path d="M10 2a6 6 0 0 1 6 6c0 4-6 10-6 10S4 12 4 8a6 6 0 0 1 6-6Zm0 4a2 2 0 1 0 0 4 2 2 0 0 0 0-4Z" fill="currentColor"/></svg>
-        <span>Hulo, Obando, Bulacan</span>
+        <span data-setting="about_map_badge">Hulo, Obando, Bulacan</span>
       </div>
     </div>
   </div>
@@ -125,8 +125,8 @@
   <footer class="site-footer">
     <div class="container footer-grid">
       <div>
-        <div class="footer-brand"><img src="assets/images/logo.png" alt="Barangay Hulo Logo"><strong>Barangay Hulo</strong></div>
-        <p>Serving residents of Barangay Hulo, Obando, Bulacan through accessible, transparent, and community-centered public service.</p>
+        <div class="footer-brand"><img src="assets/images/logo.png" alt="Barangay Hulo Logo" data-setting-src="barangay_logo_url"><strong data-setting="barangay_name">Barangay Hulo</strong></div>
+        <p data-setting="footer_tagline">Serving residents of Barangay Hulo, Obando, Bulacan through accessible, transparent, and community-centered public service.</p>
       </div>
       <div>
         <h3>Contact Information</h3>
@@ -153,6 +153,57 @@
     var fp=document.querySelector('.footer-phone');if(fp){if(d.footer_phone){fp.textContent=d.footer_phone;fp.href='tel:'+d.footer_phone.replace(/[\s\-().]/g,'');}else{fp.textContent='';fp.removeAttribute('href');}}
     var fa=document.querySelector('.footer-address');if(fa)fa.textContent=d.barangay_address||'';
   }).catch(function(err){ console.error('[settings] /api/site-settings fetch failed:', err); });
+  </script>
+  <script>
+  // About Us content that needs more than a textContent swap: multi-paragraph
+  // history prose, a variable-length photo gallery, and the map iframe.
+  // Each falls back to the shipped markup when its setting is unset, so a blank
+  // field never leaves an empty section or a broken map.
+  fetch('/api/site-settings').then(function(r){ return r.json(); }).then(function(s){
+    if (!s || !Object.keys(s).length) return;
+
+    function esc(v){
+      return String(v == null ? '' : v)
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+        .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    // History prose — a textarea, so blank lines separate paragraphs. Rendered
+    // as escaped <p> elements to preserve the shipped two-paragraph look.
+    var body = document.getElementById('about-history-body');
+    if (body && typeof s.about_history_content === 'string'
+        && s.about_history_content.trim()) {
+      var paras = s.about_history_content.split(/\n\s*\n/)
+        .map(function(p){ return p.trim(); })
+        .filter(Boolean);
+      if (paras.length) {
+        body.innerHTML = paras.map(function(p){
+          return '<p style="text-align: justify;">' + esc(p).replace(/\n/g,'<br>') + '</p>';
+        }).join('');
+      }
+    }
+
+    // Photo gallery — a JSON array of URLs. Anything unparseable leaves the
+    // shipped photos alone rather than emptying the grid.
+    var grid = document.getElementById('about-history-grid');
+    if (grid && s.about_history_images) {
+      var imgs = null;
+      try { imgs = JSON.parse(s.about_history_images); } catch (e) { imgs = null; }
+      if (Array.isArray(imgs) && imgs.length) {
+        grid.innerHTML = imgs.map(function(u){
+          var src = String(u).indexOf('http') === 0 ? u : '/' + String(u).replace(/^\/+/,'');
+          return '<img src="' + esc(src) + '" alt="Barangay community photo">';
+        }).join('');
+      }
+    }
+
+    // Map — only the URL is configurable; the iframe keeps its own loading,
+    // referrerpolicy and allowfullscreen attributes.
+    var frame = document.getElementById('about-map-frame');
+    if (frame && s.about_map_url && String(s.about_map_url).trim()) {
+      frame.src = String(s.about_map_url).trim();
+    }
+  }).catch(function(){ /* silent — shipped markup stays */ });
   </script>
 </body>
 </html>

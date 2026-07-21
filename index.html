@@ -16,7 +16,7 @@
   <meta name="twitter:description" content="Official website of Barangay Hulo, Obando, Bulacan. Access public services, announcements, community initiatives, service standards, and contact information.">
   <meta name="twitter:image" content="https://huloobando.com/share-card.png">
   <link rel="canonical" href="https://huloobando.com/">
-  <title>Barangay Hulo | Obando, Bulacan</title>
+  <title data-site-title>Barangay Hulo | Obando, Bulacan</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -29,8 +29,8 @@
   <header class="site-header" id="top">
     <nav class="navbar container" aria-label="Main Navigation">
       <a href="/" class="brand" aria-label="Barangay Hulo Home">
-        <img src="assets/images/logo.png" alt="Barangay Hulo Logo">
-        <span><strong>Barangay Hulo</strong><small>Obando, Bulacan</small></span>
+        <img src="assets/images/logo.png" alt="Barangay Hulo Logo" data-setting-src="barangay_logo_url">
+        <span><strong data-setting="barangay_name">Barangay Hulo</strong><small data-setting="barangay_locality">Obando, Bulacan</small></span>
       </a>
       <button class="menu-toggle" aria-label="Open navigation menu" aria-expanded="false">
         <span></span><span></span><span></span>
@@ -55,8 +55,8 @@
       <div class="hero-overlay"></div>
       <div class="container hero-content reveal">
         <span class="eyebrow">Welcome to the Official Website</span>
-        <h1>Barangay Hulo</h1>
-        <p>A modern community portal for residents, visitors, and barangay officials. Access services, announcements, community initiatives, public documents, and contact information in one place.</p>
+        <h1 data-setting="hero_title">Barangay Hulo</h1>
+        <p data-setting="hero_description">A modern community portal for residents, visitors, and barangay officials. Access services, announcements, community initiatives, public documents, and contact information in one place.</p>
         <div class="hero-actions">
           <a class="btn btn-primary" href="public-services">View Public Services</a>
           <a class="btn btn-outline" href="contact">Contact Barangay Hall</a>
@@ -313,7 +313,7 @@
     </script>
     <section class="section-pad official-strip">
       <div class="container split-layout center">
-        <div class="reveal"><span class="eyebrow">Leadership</span><h2>Barangay Officials</h2><p>Meet the elected and appointed officials serving Barangay Hulo.</p><a class="btn btn-primary" href="officials">View Officials</a></div>
+        <div class="reveal"><span class="eyebrow">Leadership</span><h2>Barangay Officials</h2><p data-setting="home_officials_description">Meet the elected and appointed officials serving Barangay Hulo.</p><a class="btn btn-primary" href="officials">View Officials</a></div>
         <div class="opc-card reveal delay-1">
           <!-- Photo -->
           <div class="opc-photo">
@@ -368,8 +368,8 @@
   <footer class="site-footer">
     <div class="container footer-grid">
       <div>
-        <div class="footer-brand"><img src="assets/images/logo.png" alt="Barangay Hulo Logo"><strong>Barangay Hulo</strong></div>
-        <p>Serving residents of Barangay Hulo, Obando, Bulacan through accessible, transparent, and community-centered public service.</p>
+        <div class="footer-brand"><img src="assets/images/logo.png" alt="Barangay Hulo Logo" data-setting-src="barangay_logo_url"><strong data-setting="barangay_name">Barangay Hulo</strong></div>
+        <p data-setting="footer_tagline">Serving residents of Barangay Hulo, Obando, Bulacan through accessible, transparent, and community-centered public service.</p>
       </div>
       <div>
         <h3>Contact Information</h3>

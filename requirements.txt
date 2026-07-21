@@ -3,3 +3,4 @@ python-dotenv
 Pillow
 supabase>=2.3.0
 gunicorn
+lxml
