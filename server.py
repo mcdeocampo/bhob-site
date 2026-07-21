@@ -967,11 +967,59 @@ def _load_pubservice_children(service_id):
     }
 
 
+def _load_pubservice_children_bulk(service_ids):
+    """Children for many services at once, keyed by service_id.
+
+    The per-service _load_pubservice_children costs three queries; calling it in
+    a loop made listing N services cost 1 + 3N sequential round trips (34 for the
+    11 live services, ~4s). This fetches each child table once and groups in
+    Python, so the cost is a flat three queries regardless of service count.
+
+    Each table is fetched independently so one failing table degrades to empty
+    for that field only, matching the per-service helper's behaviour.
+    """
+    empty = {'requirements': [], 'steps': [], 'files': []}
+    if not service_ids:
+        return {}
+
+    def fetch(table):
+        try:
+            return (supabase.table(table)
+                    .select('*').in_('service_id', service_ids)
+                    .order('display_order').execute().data or [])
+        except Exception as exc:
+            app.logger.error('_load_pubservice_children_bulk %s error: %s', table, exc)
+            return []
+
+    reqs  = fetch('public_service_requirements')
+    steps = fetch('public_service_steps')
+    files = fetch('public_service_files')
+
+    out = {sid: {'requirements': [], 'steps': [], 'files': []} for sid in service_ids}
+    # Rows arrive ordered by display_order, so appending preserves per-service order.
+    for r in reqs:
+        out.get(r.get('service_id'), empty)['requirements'].append(r.get('requirement', ''))
+    for s in steps:
+        out.get(s.get('service_id'), empty)['steps'].append(s.get('step_description', ''))
+    for f in files:
+        out.get(f.get('service_id'), empty)['files'].append({
+            'filename': f.get('filename', ''),
+            'filepath': f.get('filepath', ''),
+            'filesize': f.get('filesize', 0),
+        })
+    return out
+
+
 def _load_pubservices_full():
-    """All services with their requirements/steps/files inlined — one round trip for callers."""
+    """All services with their requirements/steps/files inlined.
+
+    Four queries total (services + three child tables), not 1 + 3N.
+    """
     services = _load_pubservices()
+    children = _load_pubservice_children_bulk([svc['id'] for svc in services])
     for svc in services:
-        svc.update(_load_pubservice_children(svc['id']))
+        svc.update(children.get(svc['id'],
+                                {'requirements': [], 'steps': [], 'files': []}))
     return services
 
 
