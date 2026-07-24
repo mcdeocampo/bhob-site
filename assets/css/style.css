@@ -21598,6 +21598,11 @@ body.dir2-modal-lock{overflow:hidden}
   display: block !important;
   grid-template-columns: none !important;
   gap: 0 !important;
-  padding: 0 !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  padding-right: 0 !important;
+  /* padding-left is set by alignFooterCopy() in main.js to match the brand
+     column, which the footer grid insets by a width-dependent amount that CSS
+     cannot reliably reproduce. */
   text-align: left !important;
 }

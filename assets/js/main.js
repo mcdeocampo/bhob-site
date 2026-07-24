@@ -629,4 +629,34 @@
       }
     })
     .catch(function () { /* silent — shipped markup stays */ });
+
+  // ── Footer copyright alignment ──────────────────────────────────────────────
+  // The copyright must line up with the first footer column (the brand). The
+  // footer grid centres its tracks, so the columns are inset from the grid's
+  // own left edge by an amount that varies with viewport width — and the
+  // footer's CSS is a deep stack of conflicting !important width rules, so
+  // reproducing that inset in CSS proved unreliable. Measuring the brand's real
+  // position and matching it is bulletproof and self-correcting on resize.
+  function alignFooterCopy() {
+    var brand = document.querySelector('.footer-brand');
+    var inner = document.querySelector('.footer-bottom-inner');
+    if (!brand || !inner) return;
+    // setProperty with 'important' is required: the footer grid carries
+    // `padding: <n> 0 !important` rules that would otherwise zero this out —
+    // a plain inline style loses to an !important declaration.
+    inner.style.setProperty('padding-left', '0px', 'important');
+    var delta = brand.getBoundingClientRect().left - inner.getBoundingClientRect().left;
+    inner.style.setProperty(
+      'padding-left', (delta > 0 ? Math.round(delta) : 0) + 'px', 'important');
+  }
+  window.addEventListener('load', alignFooterCopy);
+  window.addEventListener('resize', function () {
+    clearTimeout(window.__footerCopyTimer);
+    window.__footerCopyTimer = setTimeout(alignFooterCopy, 120);
+  });
+  // Re-run after fonts and the copyright-settings script settle, since the
+  // brand's width (and therefore the grid's inset) shifts once the web font and
+  // logo load.
+  setTimeout(alignFooterCopy, 400);
+  setTimeout(alignFooterCopy, 1400);
 })();
