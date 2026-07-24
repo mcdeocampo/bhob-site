@@ -21565,3 +21565,16 @@ body.dir2-modal-lock{overflow:hidden}
   border: 1px dashed #cbd5e1;
   border-radius: 12px;
 }
+
+/* The global `.btn { width:100% }` at <=640/768 is intended for the stacked
+   hero action CTAs. It also caught the "View Officials" button in the officials
+   strip, stretching a short label across the whole card on phones and tablets.
+   Size this in-content button to its label instead. Scoped so the hero CTAs
+   keep their full-width stack. */
+@media (max-width: 768px) {
+  .official-strip .btn {
+    width: auto;
+    max-width: 100%;
+    display: inline-flex;
+  }
+}
