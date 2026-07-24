@@ -23,7 +23,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/favicon.png">
   <link rel="apple-touch-icon" href="assets/images/logo.png">
-  <link rel="stylesheet" href="assets/css/style.css?v=6">
+  <link rel="stylesheet" href="assets/css/style.css?v=8">
 </head>
 <body data-page="projects.html">
   <header class="site-header" id="top">
@@ -210,7 +210,7 @@
         <h3>Quick Links</h3>
         <ul class="footer-links"><li><a href="/">Home</a></li><li><a href="about">About Us</a></li><li><a href="officials">Officials</a></li><li><a href="services">Public Services</a></li><li><a href="citizens-charter">Service Standards</a></li><li><a href="announcements">Announcements</a></li></ul>
       </div></div>
-    <div class="footer-bottom">© 2026 Barangay Hulo, Obando, Bulacan. All Rights Reserved.</div>
+    <div class="footer-bottom"><div class="container footer-grid footer-bottom-inner">© 2026 Barangay Hulo, Obando, Bulacan. All Rights Reserved.</div></div>
   </footer>
   <button class="back-to-top" aria-label="Back to top">↑</button>
   <script src="assets/js/main.js"></script>
@@ -222,7 +222,7 @@
     // settings available" and leave the page's own content alone.
     if(!d||!Object.keys(d).length)return;
     var y=d.copyright_year||'',o=d.copyright_owner||'',s=d.copyright_suffix||'';
-    var b=document.querySelector('.footer-bottom');if(b){var c=[y,o].filter(Boolean).join(' ');b.textContent=c?('© '+c+(s?'. '+s:'')):(s||'');}
+    var b=(document.querySelector('.footer-bottom .container') || document.querySelector('.footer-bottom'));if(b){var c=[y,o].filter(Boolean).join(' ');b.textContent=c?('© '+c+(s?'. '+s:'')):(s||'');}
     var fe=document.querySelector('.footer-email');if(fe){if(d.footer_email){fe.textContent=d.footer_email;fe.href='mailto:'+d.footer_email;}else{fe.textContent='';fe.removeAttribute('href');}}
     var fp=document.querySelector('.footer-phone');if(fp){if(d.footer_phone){fp.textContent=d.footer_phone;fp.href='tel:'+d.footer_phone.replace(/[\s\-().]/g,'');}else{fp.textContent='';fp.removeAttribute('href');}}
     var fa=document.querySelector('.footer-address');if(fa)fa.textContent=d.barangay_address||'';

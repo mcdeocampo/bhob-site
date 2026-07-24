@@ -21578,3 +21578,26 @@ body.dir2-modal-lock{overflow:hidden}
     display: inline-flex;
   }
 }
+
+/* Copyright line: left-aligned and lined up with the footer columns above,
+   at every width. The bar (border-top + background) stays full-width; the text
+   sits in an inner .container so it uses the exact same centering as the
+   columns above, rather than a fragile calc that re-derives the offset.
+   Overrides the earlier `.footer-bottom{ text-align:center !important }`. */
+.site-footer .footer-bottom {
+  text-align: left !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+/* The copyright wrapper carries the footer-grid's class list so it inherits the
+   exact same responsive width/centering as the columns above (the footer has
+   many stacked !important width rules; matching them by hand would be
+   fragile). Here we only neutralise the grid display so it renders as one
+   left-aligned line. */
+.site-footer .footer-bottom .footer-bottom-inner {
+  display: block !important;
+  grid-template-columns: none !important;
+  gap: 0 !important;
+  padding: 0 !important;
+  text-align: left !important;
+}

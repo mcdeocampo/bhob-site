@@ -23,7 +23,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/favicon.png">
   <link rel="apple-touch-icon" href="assets/images/logo.png">
-  <link rel="stylesheet" href="assets/css/style.css?v=6">
+  <link rel="stylesheet" href="assets/css/style.css?v=8">
 </head>
 <body data-page="index.html">
   <header class="site-header" id="top">
@@ -379,7 +379,7 @@
         <h3>Quick Links</h3>
         <ul class="footer-links"><li><a href="/">Home</a></li><li><a href="about">About Us</a></li><li><a href="officials">Officials</a></li><li><a href="public-services">Public Services</a></li><li><a href="service-standards">Service Standards</a></li><li><a href="announcements">Announcements</a></li></ul>
       </div></div>
-    <div class="footer-bottom">© 2026 Barangay Hulo, Obando, Bulacan. All Rights Reserved.</div>
+    <div class="footer-bottom"><div class="container footer-grid footer-bottom-inner">© 2026 Barangay Hulo, Obando, Bulacan. All Rights Reserved.</div></div>
   </footer>
   <button class="back-to-top" aria-label="Back to top">↑</button>
   <script src="assets/js/main.js?v=3"></script>
@@ -674,7 +674,7 @@
       var year    = d.copyright_year   || '';
       var owner   = d.copyright_owner  || '';
       var suffix  = d.copyright_suffix || '';
-      var bottom = document.querySelector('.footer-bottom');
+      var bottom = (document.querySelector('.footer-bottom .container') || document.querySelector('.footer-bottom'));
       if (bottom) {
         var core = [year, owner].filter(Boolean).join(' ');
         bottom.textContent = core ? ('© ' + core + (suffix ? '. ' + suffix : '')) : (suffix || '');
