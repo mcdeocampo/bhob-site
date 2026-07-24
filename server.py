@@ -1602,8 +1602,14 @@ def _inject_page(html, settings, officials):
             el.text = ' | '.join(parts)
 
     logo = _asset_url(settings.get('barangay_logo_url'))
+    # The favicon is served resized from /favicon.png (which itself follows the
+    # CMS logo), so the icon links point there rather than at the full-size file.
+    # apple-touch-icon takes the full logo — iOS only fetches it on add-to-home,
+    # not every page load, so its size doesn't matter and higher res is better.
+    for el in doc.xpath('//link[@rel="icon"]'):
+        el.set('href', '/favicon.png')
     if logo:
-        for el in doc.xpath('//link[@rel="icon" or @rel="apple-touch-icon"]'):
+        for el in doc.xpath('//link[@rel="apple-touch-icon"]'):
             el.set('href', logo)
 
     _inject_social_meta(doc, settings, _shipped, logo, parts)
@@ -3693,6 +3699,57 @@ def share_card():
             return send_from_directory(os.path.join(BASE_DIR, 'assets', 'images'), 'logo.png')
 
     resp = app.make_response(_share_card_cache['png'])
+    resp.headers['Content-Type'] = 'image/png'
+    resp.headers['Cache-Control'] = 'public, max-age=86400'
+    return resp
+
+
+# ── Favicon ──────────────────────────────────────────────────────────────────
+# The logo is a ~230KB, 427x440 image. Pointing the favicon <link>s straight at
+# it meant every page load fetched a quarter-megabyte file to draw a 16px icon.
+# This serves a 32x32 PNG resized from the same source, following the CMS logo
+# via _share_logo_source (so it still updates when the logo is changed) and
+# falling back to the shipped file. Cached against the logo key, like the card.
+_favicon_cache = {'key': None, 'png': None}
+
+
+def _build_favicon(logo_src, size=32):
+    import io
+    from PIL import Image
+
+    if isinstance(logo_src, str) and logo_src.startswith(('http://', 'https://')):
+        import urllib.request as _u
+        seal = Image.open(io.BytesIO(_u.urlopen(logo_src, timeout=20).read())).convert('RGBA')
+    else:
+        seal = Image.open(logo_src).convert('RGBA')
+
+    # Fit the seal into a transparent square, preserving aspect ratio.
+    scale = min(size / seal.width, size / seal.height)
+    seal = seal.resize((max(1, round(seal.width * scale)),
+                        max(1, round(seal.height * scale))), Image.LANCZOS)
+    icon = Image.new('RGBA', (size, size), (0, 0, 0, 0))
+    icon.paste(seal, ((size - seal.width) // 2, (size - seal.height) // 2), seal)
+
+    buf = io.BytesIO()
+    icon.save(buf, 'PNG', optimize=True)
+    return buf.getvalue()
+
+
+@app.route('/favicon.png')
+@app.route('/favicon.ico')
+def favicon():
+    key, source = _share_logo_source()
+    if source is None:
+        abort(404)
+    if _favicon_cache['key'] != key or not _favicon_cache['png']:
+        try:
+            _favicon_cache['png'] = _build_favicon(source, 32)
+            _favicon_cache['key'] = key
+        except Exception as exc:
+            app.logger.error('favicon build failed: %s', exc)
+            return send_from_directory(os.path.join(BASE_DIR, 'assets', 'images'), 'logo.png')
+
+    resp = app.make_response(_favicon_cache['png'])
     resp.headers['Content-Type'] = 'image/png'
     resp.headers['Cache-Control'] = 'public, max-age=86400'
     return resp
