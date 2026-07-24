@@ -1714,6 +1714,48 @@ _PAGE_ALIASES = {
     'public-services': 'services',
 }
 
+# ── Crawlers ─────────────────────────────────────────────────────────────────
+# Generated from the page lists above rather than kept as static files, so the
+# sitemap cannot drift out of step with the routes that actually exist. Only
+# canonical clean URLs are listed — the .html paths 404, and the alias targets
+# (citizens-charter, projects, services) 301 to the clean form.
+
+def _canonical_urls():
+    base = request.url_root.rstrip('/')
+    paths = ['/'] + ['/' + p for p in _PUBLIC_PAGES] + ['/' + a for a in _PAGE_ALIASES]
+    return [base + p for p in paths]
+
+
+@app.route('/sitemap.xml')
+def sitemap_xml():
+    today = _manila_now().strftime('%Y-%m-%d')
+    urls = ''.join(
+        '<url><loc>%s</loc><lastmod>%s</lastmod>'
+        '<changefreq>weekly</changefreq><priority>%s</priority></url>'
+        % (u, today, '1.0' if u.endswith('/') else '0.8')
+        for u in _canonical_urls())
+    xml = ('<?xml version="1.0" encoding="UTF-8"?>'
+           '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
+           + urls + '</urlset>')
+    resp = app.make_response(xml)
+    resp.headers['Content-Type'] = 'application/xml; charset=utf-8'
+    return resp
+
+
+@app.route('/robots.txt')
+def robots_txt():
+    base = request.url_root.rstrip('/')
+    body = ('User-agent: *\n'
+            'Allow: /\n'
+            'Disallow: /admin\n'
+            'Disallow: /api/\n'
+            '\n'
+            'Sitemap: %s/sitemap.xml\n' % base)
+    resp = app.make_response(body)
+    resp.headers['Content-Type'] = 'text/plain; charset=utf-8'
+    return resp
+
+
 @app.route('/citizens-charter')
 def redirect_citizens_charter():
     return redirect('/service-standards', code=301)
