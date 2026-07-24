@@ -408,7 +408,17 @@
     if (!listEl) return;
     if (listObserver) { listObserver.disconnect(); listObserver = null; }
     if (!items.length) {
-      listEl.innerHTML = '<p class="dir2-empty">No listings match your search.</p>';
+      // A distance filter measures from the visitor's own GPS position, so a
+      // visitor outside the barangay gets an empty list for every radius. Say
+      // so explicitly — otherwise it reads as the filter being broken.
+      if (nearMeRadius != null && userLoc) {
+        var label = NEAR_ME_LABELS[nearMeRadius] || (nearMeRadius + 'm');
+        listEl.innerHTML = '<p class="dir2-empty">No listings within ' + label +
+          ' of your current location. Distances are measured from where you are now — ' +
+          'pick a larger distance or “All Distances” if you are not in the area.</p>';
+      } else {
+        listEl.innerHTML = '<p class="dir2-empty">No listings match your search.</p>';
+      }
       return;
     }
     listRenderState = { items: items, rendered: 0 };
