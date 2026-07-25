@@ -292,25 +292,38 @@
     return arr;
   }
 
+  // Desktops/laptops with no GPS chip resolve geolocation from Wi-Fi/IP
+  // positioning databases, which in the Philippines routinely place a device
+  // many kilometers from its real location (often at the ISP's registered
+  // NOC address) — reported as a "successful" fix, just a useless one for a
+  // 500m-5km radius filter. Treat any fix coarser than this as unusable.
+  var ACCURACY_THRESHOLD_METERS = 1500;
+
   function requestGeolocation(cb) {
-    // Denied, timed out, or unsupported all fall back to the barangay centre
-    // rather than leaving Near Me unusable — a visitor testing from outside
-    // Barangay Hulo (or one who declines the permission prompt) still gets a
-    // working distance filter, just anchored to the barangay instead of their
-    // real position. cb(ok, usedFallback) — ok is effectively always true now;
-    // usedFallback tells the caller whether to disclose the substitution.
+    // Denied, timed out, unsupported, or resolved-but-too-imprecise all fall
+    // back to the barangay centre rather than leaving Near Me unusable — a
+    // visitor testing from outside Barangay Hulo (or whose device can't get a
+    // precise fix) still gets a working distance filter, just anchored to the
+    // barangay instead of their real position. cb(ok, usedFallback) — ok is
+    // effectively always true now; usedFallback tells the caller whether to
+    // disclose the substitution.
     if (!navigator.geolocation) {
       userLoc = HULO_CENTER;
       cb(true, true);
       return;
     }
     navigator.geolocation.getCurrentPosition(function (pos) {
+      if (pos.coords.accuracy && pos.coords.accuracy > ACCURACY_THRESHOLD_METERS) {
+        userLoc = HULO_CENTER;
+        cb(true, true, pos.coords.accuracy);
+        return;
+      }
       userLoc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
       cb(true, false);
     }, function () {
       userLoc = HULO_CENTER;
       cb(true, true);
-    }, { timeout: 8000 });
+    }, { timeout: 8000, enableHighAccuracy: true });
   }
 
   // ── Filtering / rendering pipeline ──────────────────────────────────────
@@ -832,7 +845,7 @@
         requestGeolocation(function (ok, usedFallback) {
           if (!ok) { toast('Location unavailable — enable location access to use Near Me'); return; }
           if (usedFallback) {
-            toast('Using Barangay Hulo’s center — device location wasn’t available');
+            toast('Using Barangay Hulo’s center — your device location wasn’t precise enough');
           }
           // Filter state must be set before applyFilters() runs, or the first
           // render still shows the unfiltered list even though a distance chip
