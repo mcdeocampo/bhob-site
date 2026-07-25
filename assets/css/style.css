@@ -21579,6 +21579,32 @@ body.dir2-modal-lock{overflow:hidden}
   }
 }
 
+/* Match "View Officials" to the hero CTAs' size on mobile/tablet — same
+   min-height, padding, font-size and radius as .hero-actions .btn at each
+   breakpoint (measured: 44px/10px 16px/14.4px/17px under 768px switching to
+   36px/8px 13px/12.8px/17px at 768px, matching .hero-actions .btn exactly).
+   Width stays auto (set above) — only the hero CTAs stretch full-width. */
+@media (max-width: 767px) {
+  .official-strip .btn {
+    min-height: 44px !important;
+    height: 44px !important;
+    max-height: 44px !important;
+    padding: 10px 16px !important;
+    font-size: .9rem !important;
+    border-radius: 17px !important;
+  }
+}
+@media (min-width: 768px) and (max-width: 900px) {
+  .official-strip .btn {
+    min-height: 36px !important;
+    height: 36px !important;
+    max-height: 36px !important;
+    padding: 8px 13px !important;
+    font-size: .8rem !important;
+    border-radius: 17px !important;
+  }
+}
+
 /* Copyright line: left-aligned and lined up with the footer columns above,
    at every width. The bar (border-top + background) stays full-width; the text
    sits in an inner .container so it uses the exact same centering as the
