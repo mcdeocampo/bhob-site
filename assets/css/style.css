@@ -21566,44 +21566,55 @@ body.dir2-modal-lock{overflow:hidden}
   border-radius: 12px;
 }
 
-/* The global `.btn { width:100% }` at <=640/768 is intended for the stacked
-   hero action CTAs. It also caught the "View Officials" button in the officials
-   strip, stretching a short label across the whole card on phones and tablets.
-   Size this in-content button to its label instead. Scoped so the hero CTAs
-   keep their full-width stack. */
-@media (max-width: 768px) {
-  .official-strip .btn {
-    width: auto;
-    max-width: 100%;
-    display: inline-flex;
-  }
-}
-
-/* Match "View Officials" to the hero CTAs' size on mobile/tablet — same
-   min-height, padding, font-size and radius as .hero-actions .btn at each
-   breakpoint (measured: 44px/10px 16px/14.4px/17px under 768px switching to
-   36px/8px 13px/12.8px/17px at 768px, matching .hero-actions .btn exactly).
-   Width stays auto (set above) — only the hero CTAs stretch full-width. */
+/* "View Officials" is wrapped in the same .hero-actions container the hero
+   CTAs use (see index.html), so it inherits their exact per-breakpoint
+   max-width and stretches to 100% of it — guaranteed pixel-identical width
+   to "View Public Services" etc. at every screen size, without having to
+   re-list this stylesheet's many overlapping hero-actions breakpoints here.
+   The rules below only need to cover the handful of properties (height,
+   padding, font-size, radius) that some of the hero-specific overrides
+   elsewhere in this file apply only inside `.hero`/`body[data-page="index.html"]
+   .hero-actions .btn` — selectors that don't match this button since it lives
+   in the officials strip, not the hero. Selector uses 4 classes
+   (`.official-strip .official-hero-actions .btn.btn-primary`) rather than
+   plain `.official-strip .btn` (2 classes) — `body[data-page="index.html"]
+   .hero-actions .btn` elsewhere in this file ties on class/attribute count
+   (3) once this button sits inside a `.hero-actions` wrapper, and CSS then
+   breaks that tie on element count, where `body` gives it the edge. One
+   more class than any competing selector sidesteps the tie entirely. */
 @media (max-width: 767px) {
-  .official-strip .btn {
+  .official-strip .official-hero-actions .btn.btn-primary {
     min-height: 44px !important;
     height: 44px !important;
     max-height: 44px !important;
     padding: 10px 16px !important;
     font-size: .9rem !important;
     border-radius: 17px !important;
-    min-width: 190px !important;
   }
 }
-@media (min-width: 768px) and (max-width: 900px) {
-  .official-strip .btn {
+/* Hero's own compact-tablet look only holds at exactly 768px — from 769px up
+   it switches to a fully round pill (measured: height 38px, radius 999px,
+   padding 8px 14px, font 13.76px), which is a different, later hero-specific
+   breakpoint than the one this rule used to assume applied across the whole
+   768-900 range. */
+@media (min-width: 768px) and (max-width: 768px) {
+  .official-strip .official-hero-actions .btn.btn-primary {
     min-height: 36px !important;
     height: 36px !important;
     max-height: 36px !important;
     padding: 8px 13px !important;
     font-size: .8rem !important;
     border-radius: 17px !important;
-    min-width: 150px !important;
+  }
+}
+@media (min-width: 769px) and (max-width: 900px) {
+  .official-strip .official-hero-actions .btn.btn-primary {
+    min-height: 38px !important;
+    height: 38px !important;
+    max-height: 38px !important;
+    padding: 8px 14px !important;
+    font-size: .86rem !important;
+    border-radius: 999px !important;
   }
 }
 
