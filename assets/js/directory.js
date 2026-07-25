@@ -293,11 +293,24 @@
   }
 
   function requestGeolocation(cb) {
-    if (!navigator.geolocation) { cb(false); return; }
+    // Denied, timed out, or unsupported all fall back to the barangay centre
+    // rather than leaving Near Me unusable — a visitor testing from outside
+    // Barangay Hulo (or one who declines the permission prompt) still gets a
+    // working distance filter, just anchored to the barangay instead of their
+    // real position. cb(ok, usedFallback) — ok is effectively always true now;
+    // usedFallback tells the caller whether to disclose the substitution.
+    if (!navigator.geolocation) {
+      userLoc = HULO_CENTER;
+      cb(true, true);
+      return;
+    }
     navigator.geolocation.getCurrentPosition(function (pos) {
       userLoc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-      cb(true);
-    }, function () { cb(false); }, { timeout: 8000 });
+      cb(true, false);
+    }, function () {
+      userLoc = HULO_CENTER;
+      cb(true, true);
+    }, { timeout: 8000 });
   }
 
   // ── Filtering / rendering pipeline ──────────────────────────────────────
@@ -368,6 +381,12 @@
   // ── Near Me (radius filter) ──────────────────────────────────────────────
   var NEAR_ME_RADII = [500, 1000, 2000, 5000];
   var NEAR_ME_LABELS = { 500: '500m', 1000: '1km', 2000: '2km', 5000: '5km' };
+  // Opening Near Me used to leave every chip inactive (nearMeRadius stayed
+  // null) until the visitor picked one themselves, so the list never moved on
+  // the first tap — it looked like Near Me "did nothing" until they had
+  // clicked through several distances. Default to 1km so results appear the
+  // instant Near Me opens; the visitor can still switch chips afterwards.
+  var DEFAULT_NEAR_ME_RADIUS = 1000;
 
   function renderRadiusChips() {
     if (!radiusRowEl) return;
@@ -801,10 +820,26 @@
 
     if (nearMeBtn) {
       nearMeBtn.addEventListener('click', function () {
-        if (userLoc) { renderRadiusChips(); return; }
-        requestGeolocation(function (ok) {
-          if (!ok) { toast('Location unavailable — enable location access to use Near Me'); return; }
+        // Reopening with a location already known: just make sure a distance
+        // is active (default to 1km if the visitor had cleared it to "All
+        // Distances") and refresh immediately — no need to re-ask for GPS.
+        if (userLoc) {
+          if (nearMeRadius == null) nearMeRadius = DEFAULT_NEAR_ME_RADIUS;
           renderRadiusChips();
+          applyFilters();
+          return;
+        }
+        requestGeolocation(function (ok, usedFallback) {
+          if (!ok) { toast('Location unavailable — enable location access to use Near Me'); return; }
+          if (usedFallback) {
+            toast('Using Barangay Hulo’s center — device location wasn’t available');
+          }
+          // Filter state must be set before applyFilters() runs, or the first
+          // render still shows the unfiltered list even though a distance chip
+          // now shows as selected.
+          nearMeRadius = DEFAULT_NEAR_ME_RADIUS;
+          renderRadiusChips();
+          applyFilters();
         });
       });
     }
@@ -813,6 +848,9 @@
         var btn = e.target.closest('.dir2-chip');
         if (!btn) return;
         var r = btn.getAttribute('data-radius');
+        // Filter state updated before applyFilters() is called, so the very
+        // click that selects a distance is the one that refreshes the list —
+        // no second click needed.
         nearMeRadius = r ? Number(r) : null;
         renderRadiusChips();
         applyFilters();
