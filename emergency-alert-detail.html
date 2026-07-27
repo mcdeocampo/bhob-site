@@ -11,7 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/images/logo.png">
   <link rel="apple-touch-icon" href="/assets/images/logo.png">
-  <link rel="stylesheet" href="/assets/css/style.css?v=18">
+  <link rel="stylesheet" href="/assets/css/style.css?v=19">
 </head>
 <body data-page="emergency-alert-detail.html">
 
@@ -30,8 +30,13 @@
         <a href="/officials" class="nav-link" data-page="officials.html">Officials</a>
         <a href="/public-services" class="nav-link" data-page="services.html">Public Services</a>
         <a href="/service-standards" class="nav-link" data-page="service-standards.html">Service Standards</a>
-        <a href="/announcements" class="nav-link" data-page="announcements.html">Announcements</a>
-        <a href="/community-initiatives" class="nav-link" data-page="projects.html">Community Initiatives</a>
+        <div class="nav-dropdown">
+        <button type="button" class="nav-link nav-dropdown-toggle" aria-haspopup="true" aria-expanded="false">Community Updates<span class="nav-dropdown-caret" aria-hidden="true"></span></button>
+        <div class="nav-dropdown-menu">
+        <a href="/announcements" class="nav-link nav-dropdown-link" data-page="announcements.html">Announcements</a>
+        <a href="/community-initiatives" class="nav-link nav-dropdown-link" data-page="projects.html">Community Initiatives</a>
+        </div>
+        </div>
         <a href="/directory" class="nav-link" data-page="directory.html">Directory</a>
         <a href="/contact" class="nav-link nav-contact" data-page="contact.html">Contact Us</a>
       </div>
@@ -80,7 +85,7 @@
   </footer>
 
   <button class="back-to-top" aria-label="Back to top">↑</button>
-  <script src="/assets/js/main.js"></script>
+  <script src="/assets/js/main.js?v=6"></script>
   <script src="/assets/js/emergency-alert.js?v=1"></script>
   <script>
   (function () {

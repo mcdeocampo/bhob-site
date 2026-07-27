@@ -21645,3 +21645,101 @@ body.dir2-modal-lock{overflow:hidden}
      cannot reliably reproduce. */
   text-align: left !important;
 }
+
+/* ── "Community Updates" nav dropdown (Announcements + Community Initiatives) ─
+   Navigation-only: no routes, pages, or business logic changed. The toggle is
+   a <button> (not a link) since "Community Updates" has no page of its own —
+   it only groups the two existing links underneath it. Click-to-open on every
+   breakpoint (not hover-on-desktop) so the interaction is identical and fully
+   touch/keyboard-usable everywhere, rather than mixing hover and tap patterns
+   across screen sizes. */
+.nav-dropdown {
+  position: relative;
+  display: inline-flex;
+}
+.nav-dropdown-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: 0;
+  appearance: none;
+  font: inherit;
+  cursor: pointer;
+  color: inherit;
+}
+.nav-dropdown-caret {
+  width: 6px;
+  height: 6px;
+  margin-top: -3px;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(45deg);
+  transition: transform .2s ease;
+  flex-shrink: 0;
+}
+.nav-dropdown.open .nav-dropdown-caret {
+  margin-top: 2px;
+  transform: rotate(-135deg);
+}
+.nav-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 500;
+  min-width: 220px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px;
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 18px 40px rgba(10, 36, 83, .18);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-6px);
+  transition: opacity .18s ease, transform .18s ease, visibility 0s .18s;
+}
+.nav-dropdown.open .nav-dropdown-menu {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+  transition: opacity .18s ease, transform .18s ease;
+}
+.nav-dropdown-link {
+  text-align: left;
+  white-space: nowrap;
+}
+
+/* Below the hamburger breakpoint, .nav-menu becomes a 2-column grid overlay
+   (see the max-width:1280px rule earlier in this file) — a floating absolute
+   submenu would be cramped inside a single half-width grid cell there, so the
+   dropdown instead spans the full menu width and expands inline. */
+@media (max-width: 1280px) {
+  .nav-dropdown {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .nav-dropdown-toggle {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .nav-dropdown-menu {
+    position: static;
+    display: none;
+    min-width: 0;
+    padding: 4px 0 0 14px;
+    background: transparent;
+    border-radius: 0;
+    box-shadow: none;
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    transition: none;
+  }
+  .nav-dropdown.open .nav-dropdown-menu {
+    display: flex;
+  }
+}

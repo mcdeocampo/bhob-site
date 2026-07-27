@@ -45,10 +45,53 @@
     });
   }
 
+  // "Community Updates" nav dropdown (Announcements + Community Initiatives).
+  // Click-to-open/close on every breakpoint — independent of the mobile
+  // hamburger menu's own open/close state above.
+  document.querySelectorAll('.nav-dropdown').forEach((dropdown) => {
+    const toggle = dropdown.querySelector('.nav-dropdown-toggle');
+    if (!toggle) return;
+
+    const closeDropdown = () => {
+      dropdown.classList.remove('open');
+      toggle.setAttribute('aria-expanded', 'false');
+    };
+    const openDropdown = () => {
+      dropdown.classList.add('open');
+      toggle.setAttribute('aria-expanded', 'true');
+    };
+
+    toggle.addEventListener('click', (event) => {
+      event.stopPropagation();
+      if (dropdown.classList.contains('open')) closeDropdown();
+      else openDropdown();
+    });
+
+    document.addEventListener('click', (event) => {
+      if (!dropdown.contains(event.target)) closeDropdown();
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') closeDropdown();
+    });
+
+    dropdown.querySelectorAll('.nav-dropdown-link').forEach((link) => {
+      link.addEventListener('click', closeDropdown);
+    });
+  });
+
   // Active navigation state
   const currentPage = body.getAttribute('data-page') || 'index.html';
   document.querySelectorAll('.nav-link').forEach(link => {
-    if (link.getAttribute('data-page') === currentPage) link.classList.add('active');
+    if (link.getAttribute('data-page') === currentPage) {
+      link.classList.add('active');
+      // If the active link lives inside the Community Updates dropdown,
+      // also highlight its parent toggle so the current section is visible
+      // without needing the submenu open.
+      const menu = link.closest('.nav-dropdown-menu');
+      const toggle = menu && menu.previousElementSibling;
+      if (toggle && toggle.classList.contains('nav-dropdown-toggle')) toggle.classList.add('active');
+    }
   });
 
   // Auto-assign reveal animations to key sections/cards for a more modern feel

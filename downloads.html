@@ -23,7 +23,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/favicon.png">
   <link rel="apple-touch-icon" href="assets/images/logo.png">
-  <link rel="stylesheet" href="assets/css/style.css?v=18">
+  <link rel="stylesheet" href="assets/css/style.css?v=19">
 </head>
 <body data-page="downloads.html">
   <header class="site-header" id="top">
@@ -41,8 +41,13 @@
 <a href="officials" class="nav-link" data-page="officials.html">Officials</a>
 <a href="services" class="nav-link" data-page="services.html">Public Services</a>
 <a href="citizens-charter" class="nav-link" data-page="citizens-charter.html">Service Standards</a>
-<a href="announcements" class="nav-link" data-page="announcements.html">Announcements</a>
-<a href="projects" class="nav-link" data-page="projects.html">Community Initiatives</a>
+<div class="nav-dropdown">
+<button type="button" class="nav-link nav-dropdown-toggle" aria-haspopup="true" aria-expanded="false">Community Updates<span class="nav-dropdown-caret" aria-hidden="true"></span></button>
+<div class="nav-dropdown-menu">
+<a href="announcements" class="nav-link nav-dropdown-link" data-page="announcements.html">Announcements</a>
+<a href="projects" class="nav-link nav-dropdown-link" data-page="projects.html">Community Initiatives</a>
+</div>
+</div>
 <!-- TEMP HIDDEN: <a href="transparency" class="nav-link" data-page="transparency.html">Transparency</a> -->
 <!-- TEMP HIDDEN: <a href="downloads" class="nav-link" data-page="downloads.html">Downloads</a> -->
 <a href="directory" class="nav-link" data-page="directory.html">Directory</a>
@@ -87,7 +92,7 @@
     <div class="footer-bottom"><div class="container footer-grid footer-bottom-inner">© 2026 Barangay Hulo, Obando, Bulacan. All Rights Reserved.</div></div>
   </footer>
   <button class="back-to-top" aria-label="Back to top">↑</button>
-  <script src="assets/js/main.js"></script>
+  <script src="assets/js/main.js?v=6"></script>
   <script src="assets/js/emergency-alert.js?v=1"></script>
   <script>
   (function() {
