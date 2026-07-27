@@ -6138,16 +6138,6 @@ function renderDirMapList() {
   }).join('');
 }
 
-$('dirmap-search').addEventListener('input', e => { SDM.search=e.target.value; renderDirMapList(); });
-document.querySelectorAll('#dirmap-tabs .tab').forEach(t => {
-  t.onclick = () => { document.querySelectorAll('#dirmap-tabs .tab').forEach(x=>x.classList.remove('active')); t.classList.add('active'); SDM.filter=t.dataset.dmf; renderDirMapList(); };
-});
-$('btn-new-dirmap').onclick = openDirMapNew;
-renderHoursScheduleEditor('dirmap-hours-schedule');
-wireHoursScheduleEditor('dirmap-hours-schedule', () => {
-  $('dirmap-hours').value = formatHoursSchedule(readHoursSchedule('dirmap-hours-schedule'));
-});
-
 // ── Weekly Operating Hours (Business Directory + Community Map) ─────────────
 // hours_schedule is the single source of truth behind both the "Business
 // Hours" text shown to admins/visitors and the public site's live Open/
@@ -6258,6 +6248,16 @@ function formatHoursSchedule(schedule) {
     return label + ': ' + g.text;
   }).join(', ');
 }
+
+$('dirmap-search').addEventListener('input', e => { SDM.search=e.target.value; renderDirMapList(); });
+document.querySelectorAll('#dirmap-tabs .tab').forEach(t => {
+  t.onclick = () => { document.querySelectorAll('#dirmap-tabs .tab').forEach(x=>x.classList.remove('active')); t.classList.add('active'); SDM.filter=t.dataset.dmf; renderDirMapList(); };
+});
+$('btn-new-dirmap').onclick = openDirMapNew;
+renderHoursScheduleEditor('dirmap-hours-schedule');
+wireHoursScheduleEditor('dirmap-hours-schedule', () => {
+  $('dirmap-hours').value = formatHoursSchedule(readHoursSchedule('dirmap-hours-schedule'));
+});
 
 function resetDirMapForm() {
   SDM.editingId=null; SDM.imageUrl=''; SDM.gallery=[];
