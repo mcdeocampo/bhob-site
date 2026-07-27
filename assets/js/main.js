@@ -47,7 +47,11 @@
 
   // "Community Updates" nav dropdown (Announcements + Community Initiatives).
   // Click-to-open/close on every breakpoint — independent of the mobile
-  // hamburger menu's own open/close state above.
+  // hamburger menu's own open/close state above. Contract: opening/closing
+  // the dropdown toggles ONLY `.open` (on the wrapper) and `aria-expanded`
+  // (on the toggle) — it must never add or remove `.active` on anything.
+  // Active state is decided exclusively by the "Active navigation state"
+  // block below, from the current page's own data-page attribute.
   document.querySelectorAll('.nav-dropdown').forEach((dropdown) => {
     const toggle = dropdown.querySelector('.nav-dropdown-toggle');
     if (!toggle) return;
@@ -80,14 +84,19 @@
     });
   });
 
-  // Active navigation state
+  // Active navigation state — determined solely by the current page's own
+  // data-page attribute, independent of whether the Community Updates
+  // dropdown happens to be open or closed. Clears any pre-existing `.active`
+  // first so this is idempotent no matter how many times it runs.
   const currentPage = body.getAttribute('data-page') || 'index.html';
-  document.querySelectorAll('.nav-link').forEach(link => {
+  document.querySelectorAll('.nav-link.active').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.nav-link:not(.nav-dropdown-toggle)').forEach(link => {
     if (link.getAttribute('data-page') === currentPage) {
       link.classList.add('active');
       // If the active link lives inside the Community Updates dropdown,
       // also highlight its parent toggle so the current section is visible
-      // without needing the submenu open.
+      // without needing the submenu open. This is the ONLY way the toggle
+      // can ever receive `.active` — never from opening/closing it.
       const menu = link.closest('.nav-dropdown-menu');
       const toggle = menu && menu.previousElementSibling;
       if (toggle && toggle.classList.contains('nav-dropdown-toggle')) toggle.classList.add('active');
