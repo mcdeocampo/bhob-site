@@ -102,6 +102,21 @@ a{text-decoration:none;color:inherit}
 .field textarea{resize:vertical;min-height:76px;border-radius:10px}
 .field select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px}
 
+/* ─── WEEKLY OPERATING HOURS (Business Directory / Community Map) ──────── */
+.hours-schedule-editor{border:1.5px solid #dde3ec;border-radius:10px;overflow:hidden}
+.hours-day-row{display:flex;align-items:center;gap:10px;padding:8px 12px;
+  border-bottom:1px solid #eef1f6;font-size:.8rem}
+.hours-day-row:last-child{border-bottom:none}
+.hours-day-row:nth-child(even){background:#f8fafc}
+.hours-day-label{width:32px;font-weight:700;color:#475569;flex-shrink:0}
+.hours-day-check{display:flex;align-items:center;gap:4px;font-size:.72rem;color:#64748b;
+  flex-shrink:0;cursor:pointer;white-space:nowrap;margin-bottom:0}
+.hours-day-check input{width:auto;min-height:0;margin:0}
+.hours-day-row input[type=time]{width:auto;flex:1;min-width:0;padding:6px 8px;
+  min-height:34px;font-size:.8rem}
+.hours-day-row input[type=time]:disabled{background:#f1f5f9;color:#94a3b8}
+.hours-day-sep{color:#94a3b8;flex-shrink:0}
+
 /* ─── INPUT WITH PREFIX ICON ─────────────────────────────── */
 .input-icon-wrap{position:relative;display:flex;align-items:center}
 .input-icon-wrap .input-prefix-icon{
@@ -2412,9 +2427,9 @@ a{text-decoration:none;color:inherit}
           <label>Address</label>
           <input type="text" id="dirmap-address" maxlength="300">
         </div>
-        <div class="field">
-          <label>Operating Hours</label>
-          <input type="text" id="dirmap-hours" maxlength="150">
+        <div class="field field-full">
+          <label>Business Hours <span style="color:#94a3b8;font-size:.68rem;font-weight:600;text-transform:none;letter-spacing:normal">(auto-generated from the weekly schedule below)</span></label>
+          <input type="text" id="dirmap-hours" maxlength="150" readonly style="background:#f8fafc;color:#475569;cursor:default">
         </div>
         <div class="form-section-label">Media <span style="color:#94a3b8;font-size:.68rem;font-weight:600;text-transform:none;letter-spacing:normal">(optional)</span></div>
         <div class="field field-full">
@@ -2447,16 +2462,9 @@ a{text-decoration:none;color:inherit}
           <label>Keywords <span style="color:#94a3b8;font-size:.68rem">(comma-separated)</span></label>
           <input type="text" id="dirmap-keywords" maxlength="300">
         </div>
-        <div class="field">
-          <label>Opens At</label>
-          <input type="time" id="dirmap-hours-open">
-        </div>
-        <div class="field">
-          <label>Closes At</label>
-          <input type="time" id="dirmap-hours-close">
-        </div>
         <div class="field field-full">
-          <label><input type="checkbox" id="dirmap-hours-24h" style="width:auto;margin-right:6px">Open 24 Hours</label>
+          <label>Weekly Operating Hours</label>
+          <div class="hours-schedule-editor" id="dirmap-hours-schedule"></div>
         </div>
         <div class="field">
           <label><input type="checkbox" id="dirmap-featured" style="width:auto;margin-right:6px">Featured Listing</label>
@@ -2534,9 +2542,9 @@ a{text-decoration:none;color:inherit}
           <label>Address</label>
           <input type="text" id="dirbiz-address" maxlength="300">
         </div>
-        <div class="field">
-          <label>Operating Hours</label>
-          <input type="text" id="dirbiz-hours" maxlength="150">
+        <div class="field field-full">
+          <label>Business Hours <span style="color:#94a3b8;font-size:.68rem;font-weight:600;text-transform:none;letter-spacing:normal">(auto-generated from the weekly schedule below)</span></label>
+          <input type="text" id="dirbiz-hours" maxlength="150" readonly style="background:#f8fafc;color:#475569;cursor:default">
         </div>
         <div class="field">
           <label>Social Media Link</label>
@@ -2569,16 +2577,9 @@ a{text-decoration:none;color:inherit}
           <label>Keywords <span style="color:#94a3b8;font-size:.68rem">(comma-separated)</span></label>
           <input type="text" id="dirbiz-keywords" maxlength="300">
         </div>
-        <div class="field">
-          <label>Opens At</label>
-          <input type="time" id="dirbiz-hours-open">
-        </div>
-        <div class="field">
-          <label>Closes At</label>
-          <input type="time" id="dirbiz-hours-close">
-        </div>
         <div class="field field-full">
-          <label><input type="checkbox" id="dirbiz-hours-24h" style="width:auto;margin-right:6px">Open 24 Hours</label>
+          <label>Weekly Operating Hours</label>
+          <div class="hours-schedule-editor" id="dirbiz-hours-schedule"></div>
         </div>
         <div class="field">
           <label><input type="checkbox" id="dirbiz-featured" style="width:auto;margin-right:6px">Featured Listing</label>
@@ -6142,6 +6143,121 @@ document.querySelectorAll('#dirmap-tabs .tab').forEach(t => {
   t.onclick = () => { document.querySelectorAll('#dirmap-tabs .tab').forEach(x=>x.classList.remove('active')); t.classList.add('active'); SDM.filter=t.dataset.dmf; renderDirMapList(); };
 });
 $('btn-new-dirmap').onclick = openDirMapNew;
+renderHoursScheduleEditor('dirmap-hours-schedule');
+wireHoursScheduleEditor('dirmap-hours-schedule', () => {
+  $('dirmap-hours').value = formatHoursSchedule(readHoursSchedule('dirmap-hours-schedule'));
+});
+
+// ── Weekly Operating Hours (Business Directory + Community Map) ─────────────
+// hours_schedule is the single source of truth behind both the "Business
+// Hours" text shown to admins/visitors and the public site's live Open/
+// Closed badge (computeHoursStatus() in directory.js) — see the migration
+// notes for the full shape. `periods` is an array so a future multi-period-
+// per-day feature (e.g. a lunch-break split) needs no schema change; this
+// editor only ever reads/writes a single entry in it.
+const HOURS_DAYS = ['mon','tue','wed','thu','fri','sat','sun'];
+const HOURS_DAY_LABELS = {mon:'Mon',tue:'Tue',wed:'Wed',thu:'Thu',fri:'Fri',sat:'Sat',sun:'Sun'};
+
+function renderHoursScheduleEditor(containerId) {
+  const el = document.getElementById(containerId);
+  el.innerHTML = HOURS_DAYS.map(day => `
+    <div class="hours-day-row" data-day="${day}">
+      <span class="hours-day-label">${HOURS_DAY_LABELS[day]}</span>
+      <label class="hours-day-check"><input type="checkbox" class="hd-closed">Closed</label>
+      <label class="hours-day-check"><input type="checkbox" class="hd-24h">24 Hrs</label>
+      <input type="time" class="hd-open">
+      <span class="hours-day-sep">-</span>
+      <input type="time" class="hd-close">
+    </div>`).join('');
+}
+
+function _hoursRowSyncDisabled(row) {
+  const closed = row.querySelector('.hd-closed').checked;
+  const is24h = row.querySelector('.hd-24h').checked;
+  row.querySelector('.hd-24h').disabled = closed;
+  row.querySelector('.hd-open').disabled = closed || is24h;
+  row.querySelector('.hd-close').disabled = closed || is24h;
+}
+
+function wireHoursScheduleEditor(containerId, onChange) {
+  const el = document.getElementById(containerId);
+  el.querySelectorAll('.hours-day-row').forEach(row => {
+    row.querySelectorAll('input').forEach(inp => {
+      inp.addEventListener('change', () => {
+        if (inp.classList.contains('hd-closed') && inp.checked) row.querySelector('.hd-24h').checked = false;
+        if (inp.classList.contains('hd-24h') && inp.checked) row.querySelector('.hd-closed').checked = false;
+        _hoursRowSyncDisabled(row);
+        onChange && onChange();
+      });
+    });
+  });
+}
+
+function readHoursSchedule(containerId) {
+  const el = document.getElementById(containerId);
+  const out = {};
+  el.querySelectorAll('.hours-day-row').forEach(row => {
+    const day = row.getAttribute('data-day');
+    const closed = row.querySelector('.hd-closed').checked;
+    const is24h = row.querySelector('.hd-24h').checked && !closed;
+    const open = row.querySelector('.hd-open').value;
+    const close = row.querySelector('.hd-close').value;
+    out[day] = {
+      closed, is24h,
+      periods: (!closed && !is24h && open && close) ? [{open, close}] : []
+    };
+  });
+  return out;
+}
+
+function writeHoursSchedule(containerId, schedule) {
+  const el = document.getElementById(containerId);
+  schedule = schedule || {};
+  el.querySelectorAll('.hours-day-row').forEach(row => {
+    const day = row.getAttribute('data-day');
+    const entry = schedule[day] || {closed:false, is24h:false, periods:[]};
+    row.querySelector('.hd-closed').checked = !!entry.closed;
+    row.querySelector('.hd-24h').checked = !!entry.is24h;
+    const p = (entry.periods && entry.periods[0]) || {};
+    row.querySelector('.hd-open').value = p.open || '';
+    row.querySelector('.hd-close').value = p.close || '';
+    _hoursRowSyncDisabled(row);
+  });
+}
+
+// Mirrors formatHoursSchedule() in assets/js/directory.js — keep both in
+// sync if the shape or wording ever changes, so the admin preview always
+// matches what visitors see on the public page.
+function formatHoursSchedule(schedule) {
+  if (!schedule || !Object.keys(schedule).length) return '';
+  function fmtTime(t) {
+    if (!t) return '';
+    const parts = t.split(':'); const h = +parts[0], m = +parts[1];
+    const period = h >= 12 ? 'PM' : 'AM';
+    const h12 = (h % 12) === 0 ? 12 : (h % 12);
+    return h12 + ':' + String(m).padStart(2,'0') + ' ' + period;
+  }
+  function dayText(entry) {
+    if (!entry || entry.closed) return 'Closed';
+    if (entry.is24h) return 'Open 24 Hours';
+    const p = entry.periods && entry.periods[0];
+    if (!p || !p.open || !p.close) return 'Closed';
+    return fmtTime(p.open) + '-' + fmtTime(p.close);
+  }
+  const groups = [];
+  HOURS_DAYS.forEach(day => {
+    const text = dayText(schedule[day]);
+    const last = groups[groups.length-1];
+    if (last && last.text === text) last.days.push(day);
+    else groups.push({text, days:[day]});
+  });
+  return groups.map(g => {
+    const label = g.days.length > 1
+      ? HOURS_DAY_LABELS[g.days[0]] + '-' + HOURS_DAY_LABELS[g.days[g.days.length-1]]
+      : HOURS_DAY_LABELS[g.days[0]];
+    return label + ': ' + g.text;
+  }).join(', ');
+}
 
 function resetDirMapForm() {
   SDM.editingId=null; SDM.imageUrl=''; SDM.gallery=[];
@@ -6149,7 +6265,7 @@ function resetDirMapForm() {
   $('dirmap-contact').value=''; $('dirmap-desc').value=''; $('dirmap-address').value='';
   $('dirmap-hours').value=''; $('dirmap-lat').value=''; $('dirmap-lng').value='';
   $('dirmap-website').value=''; $('dirmap-email').value=''; $('dirmap-facebook').value=''; $('dirmap-keywords').value='';
-  $('dirmap-hours-open').value=''; $('dirmap-hours-close').value=''; $('dirmap-hours-24h').checked=false;
+  writeHoursSchedule('dirmap-hours-schedule', {});
   $('dirmap-featured').checked=false; $('dirmap-verified').checked=false;
   $('dirmap-s-draft').checked=true;
   $('dirmap-img-preview').style.display='none'; $('dirmap-img-preview').src='';
@@ -6173,8 +6289,8 @@ function openDirMapEdit(id) {
   $('dirmap-lat').value=p.lat??''; $('dirmap-lng').value=p.lng??'';
   $('dirmap-website').value=p.website||''; $('dirmap-email').value=p.email||'';
   $('dirmap-facebook').value=p.facebook||''; $('dirmap-keywords').value=p.keywords||'';
-  $('dirmap-hours-open').value=p.hoursOpen||''; $('dirmap-hours-close').value=p.hoursClose||'';
-  $('dirmap-hours-24h').checked=!!p.hoursIs24h;
+  writeHoursSchedule('dirmap-hours-schedule', p.hoursSchedule);
+  $('dirmap-hours').value = formatHoursSchedule(p.hoursSchedule) || p.hours || '';
   $('dirmap-featured').checked=!!p.featured; $('dirmap-verified').checked=!!p.verified;
   const sEl=document.getElementById('dirmap-s-'+p.status); if(sEl) sEl.checked=true; else $('dirmap-s-draft').checked=true;
   if(p.imageUrl){ $('dirmap-img-preview').src=p.imageUrl.indexOf('http')===0?p.imageUrl:'/'+p.imageUrl; $('dirmap-img-preview').style.display='block'; }
@@ -6225,8 +6341,7 @@ async function saveDirMapForm(forceStatus) {
     lng: $('dirmap-lng').value===''?null:parseFloat($('dirmap-lng').value),
     website:$('dirmap-website').value.trim(), email:$('dirmap-email').value.trim(),
     facebook:$('dirmap-facebook').value.trim(), keywords:$('dirmap-keywords').value.trim(),
-    hoursOpen:$('dirmap-hours-open').value, hoursClose:$('dirmap-hours-close').value,
-    hoursIs24h:$('dirmap-hours-24h').checked,
+    hoursSchedule: readHoursSchedule('dirmap-hours-schedule'),
     featured:$('dirmap-featured').checked, verified:$('dirmap-verified').checked,
     gallery:SDM.gallery,
     status
@@ -6326,6 +6441,10 @@ document.querySelectorAll('#dirbiz-tabs .tab').forEach(t => {
   t.onclick = () => { document.querySelectorAll('#dirbiz-tabs .tab').forEach(x=>x.classList.remove('active')); t.classList.add('active'); SDB.filter=t.dataset.dbf; renderDirBizList(); };
 });
 $('btn-new-dirbiz').onclick = openDirBizNew;
+renderHoursScheduleEditor('dirbiz-hours-schedule');
+wireHoursScheduleEditor('dirbiz-hours-schedule', () => {
+  $('dirbiz-hours').value = formatHoursSchedule(readHoursSchedule('dirbiz-hours-schedule'));
+});
 
 function resetDirBizForm() {
   SDB.editingId=null; SDB.imageUrl=''; SDB.gallery=[];
@@ -6334,7 +6453,7 @@ function resetDirBizForm() {
   $('dirbiz-hours').value=''; $('dirbiz-social').value='';
   $('dirbiz-lat').value=''; $('dirbiz-lng').value='';
   $('dirbiz-website').value=''; $('dirbiz-email').value=''; $('dirbiz-keywords').value='';
-  $('dirbiz-hours-open').value=''; $('dirbiz-hours-close').value=''; $('dirbiz-hours-24h').checked=false;
+  writeHoursSchedule('dirbiz-hours-schedule', {});
   $('dirbiz-featured').checked=false; $('dirbiz-verified').checked=false;
   $('dirbiz-s-draft').checked=true;
   $('dirbiz-img-preview').style.display='none'; $('dirbiz-img-preview').src='';
@@ -6358,8 +6477,8 @@ function openDirBizEdit(id) {
   $('dirbiz-social').value=p.social||'';
   $('dirbiz-lat').value=p.lat??''; $('dirbiz-lng').value=p.lng??'';
   $('dirbiz-website').value=p.website||''; $('dirbiz-email').value=p.email||''; $('dirbiz-keywords').value=p.keywords||'';
-  $('dirbiz-hours-open').value=p.hoursOpen||''; $('dirbiz-hours-close').value=p.hoursClose||'';
-  $('dirbiz-hours-24h').checked=!!p.hoursIs24h;
+  writeHoursSchedule('dirbiz-hours-schedule', p.hoursSchedule);
+  $('dirbiz-hours').value = formatHoursSchedule(p.hoursSchedule) || p.hours || '';
   $('dirbiz-featured').checked=!!p.featured; $('dirbiz-verified').checked=!!p.verified;
   const sEl=document.getElementById('dirbiz-s-'+p.status); if(sEl) sEl.checked=true; else $('dirbiz-s-draft').checked=true;
   if(p.imageUrl){ $('dirbiz-img-preview').src=p.imageUrl.indexOf('http')===0?p.imageUrl:'/'+p.imageUrl; $('dirbiz-img-preview').style.display='block'; }
@@ -6410,8 +6529,7 @@ async function saveDirBizForm(forceStatus) {
     lng: $('dirbiz-lng').value===''?null:parseFloat($('dirbiz-lng').value),
     website:$('dirbiz-website').value.trim(), email:$('dirbiz-email').value.trim(),
     keywords:$('dirbiz-keywords').value.trim(),
-    hoursOpen:$('dirbiz-hours-open').value, hoursClose:$('dirbiz-hours-close').value,
-    hoursIs24h:$('dirbiz-hours-24h').checked,
+    hoursSchedule: readHoursSchedule('dirbiz-hours-schedule'),
     featured:$('dirbiz-featured').checked, verified:$('dirbiz-verified').checked,
     gallery:SDB.gallery,
     status

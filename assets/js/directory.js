@@ -140,22 +140,98 @@
     return h * 60 + m;
   }
 
-  // Computes a live Open/Closed/Opening Soon/Closing Soon/24-Hours badge from
-  // structured hours. Returns null when structured hours aren't set (callers
-  // fall back to showing the free-text `hours` field instead).
+  var HOURS_DAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+  var HOURS_DAY_LABELS = { mon: 'Mon', tue: 'Tue', wed: 'Wed', thu: 'Thu', fri: 'Fri', sat: 'Sat', sun: 'Sun' };
+
+  // Same Asia/Manila convention as nowInManilaMinutes(), so "today" always
+  // matches the clock the status badge itself is computed against —
+  // regardless of the visitor's own device timezone.
+  function todayHoursKey() {
+    var fmt = new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Manila', weekday: 'short' });
+    return fmt.format(new Date()).toLowerCase().slice(0, 3);
+  }
+
+  function toMins(t) { var p = t.split(':'); return (+p[0]) * 60 + (+p[1]); }
+
+  // Shared by the schedule-based and legacy paths below — is "now" inside
+  // any of the given periods, and if not, how soon is the nearest one.
+  // Taking an array (not a single open/close pair) means a future
+  // multiple-periods-per-day feature (e.g. a lunch-break split) gets the
+  // same Opening/Closing Soon treatment for free.
+  function statusFromPeriods(periods) {
+    var nowM = nowInManilaMinutes();
+    var nearestToOpen = null;
+    for (var i = 0; i < periods.length; i++) {
+      var openM = toMins(periods[i].open), closeM = toMins(periods[i].close);
+      var isOpen = openM <= closeM ? (nowM >= openM && nowM < closeM) : (nowM >= openM || nowM < closeM);
+      if (isOpen) {
+        var toClose = (closeM - nowM + 1440) % 1440;
+        return toClose <= 30 ? { label: 'Closing Soon', cls: 'closing' } : { label: 'Open', cls: 'open' };
+      }
+      var toOpen = (openM - nowM + 1440) % 1440;
+      if (nearestToOpen === null || toOpen < nearestToOpen) nearestToOpen = toOpen;
+    }
+    return nearestToOpen !== null && nearestToOpen <= 30 ? { label: 'Opening Soon', cls: 'opening' } : { label: 'Closed', cls: 'closed' };
+  }
+
+  // Computes a live Open/Closed/Opening Soon/Closing Soon/24-Hours badge.
+  // hoursSchedule (one entry per weekday) is the single source of truth once
+  // a listing has one — the badge reads TODAY's specific entry, so a day
+  // marked closed can never show "Open" the way the old single
+  // hoursOpen/hoursClose window (applied to every day) used to. Listings
+  // without a schedule yet fall back to that legacy single-window behavior
+  // unchanged, so nothing regresses for un-migrated listings.
   function computeHoursStatus(it) {
+    var schedule = it.hoursSchedule;
+    if (schedule && Object.keys(schedule).length) {
+      var today = schedule[todayHoursKey()];
+      if (!today) return null;
+      if (today.closed) return { label: 'Closed', cls: 'closed' };
+      if (today.is24h) return { label: '24 Hours', cls: 'open' };
+      var periods = today.periods || [];
+      if (!periods.length) return { label: 'Closed', cls: 'closed' };
+      return statusFromPeriods(periods);
+    }
     if (it.hoursIs24h) return { label: '24 Hours', cls: 'open' };
     if (!it.hoursOpen || !it.hoursClose) return null;
-    function toMins(t) { var p = t.split(':'); return (+p[0]) * 60 + (+p[1]); }
-    var nowM = nowInManilaMinutes();
-    var openM = toMins(it.hoursOpen), closeM = toMins(it.hoursClose);
-    var isOpen = openM <= closeM ? (nowM >= openM && nowM < closeM) : (nowM >= openM || nowM < closeM);
-    if (isOpen) {
-      var toClose = (closeM - nowM + 1440) % 1440;
-      return toClose <= 30 ? { label: 'Closing Soon', cls: 'closing' } : { label: 'Open', cls: 'open' };
+    return statusFromPeriods([{ open: it.hoursOpen, close: it.hoursClose }]);
+  }
+
+  // Generates the human-readable "Business Hours" text from hoursSchedule,
+  // collapsing consecutive days with an identical schedule into a range
+  // (e.g. "Mon-Fri: 8:00 AM-5:00 PM, Sat-Sun: Closed"). Mirrors
+  // formatHoursSchedule() in admin/index.html — keep both in sync if the
+  // shape or wording ever changes, so the admin preview always matches what
+  // visitors see here.
+  function formatHoursSchedule(schedule) {
+    if (!schedule || !Object.keys(schedule).length) return '';
+    function fmtTime(t) {
+      if (!t) return '';
+      var parts = t.split(':'), h = +parts[0], m = +parts[1];
+      var period = h >= 12 ? 'PM' : 'AM';
+      var h12 = (h % 12) === 0 ? 12 : (h % 12);
+      return h12 + ':' + (m < 10 ? '0' + m : m) + ' ' + period;
     }
-    var toOpen = (openM - nowM + 1440) % 1440;
-    return toOpen <= 30 ? { label: 'Opening Soon', cls: 'opening' } : { label: 'Closed', cls: 'closed' };
+    function dayText(entry) {
+      if (!entry || entry.closed) return 'Closed';
+      if (entry.is24h) return 'Open 24 Hours';
+      var p = entry.periods && entry.periods[0];
+      if (!p || !p.open || !p.close) return 'Closed';
+      return fmtTime(p.open) + '-' + fmtTime(p.close);
+    }
+    var groups = [];
+    HOURS_DAYS.forEach(function (day) {
+      var text = dayText(schedule[day]);
+      var last = groups[groups.length - 1];
+      if (last && last.text === text) last.days.push(day);
+      else groups.push({ text: text, days: [day] });
+    });
+    return groups.map(function (g) {
+      var label = g.days.length > 1
+        ? HOURS_DAY_LABELS[g.days[0]] + '-' + HOURS_DAY_LABELS[g.days[g.days.length - 1]]
+        : HOURS_DAY_LABELS[g.days[0]];
+      return label + ': ' + g.text;
+    }).join(', ');
   }
 
   // Minimal transient toast (public site has no existing toast helper — admin's is not shared).
@@ -182,6 +258,7 @@
       featured: !!raw.featured, verified: !!raw.verified,
       keywords: raw.keywords || '', gallery: raw.gallery || [],
       hoursOpen: raw.hoursOpen || '', hoursClose: raw.hoursClose || '', hoursIs24h: !!raw.hoursIs24h,
+      hoursSchedule: raw.hoursSchedule || {},
       createdAt: raw.createdAt || '', updatedAt: raw.updatedAt || '',
       raw: raw
     };
@@ -197,6 +274,16 @@
     } else if (type === 'emergency') {
       base.address = raw.address || ''; base.phone = raw.number || ''; base.altPhone = raw.altNumber || '';
       base.hours = '';
+    }
+    // hoursSchedule is the single source of truth once a listing has one —
+    // regenerate the displayed hours text from it so it can never drift from
+    // the Open/Closed badge computed by computeHoursStatus() below (the bug
+    // this replaces: free-text hours and the badge used to be computed
+    // independently and could contradict each other). Listings without a
+    // schedule yet keep showing their legacy free-text `hours` value.
+    if (base.hoursSchedule && Object.keys(base.hoursSchedule).length) {
+      var generated = formatHoursSchedule(base.hoursSchedule);
+      if (generated) base.hours = generated;
     }
     return base;
   }

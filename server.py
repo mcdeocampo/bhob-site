@@ -3899,6 +3899,51 @@ def _to_float(v):
         return None
 
 
+# ── Weekly operating-hours schedule (Business Directory + Community Map) ─────
+# hours_schedule is the single source of truth behind both the displayed
+# "Business Hours" text and the live Open/Closed badge in directory.js — see
+# _clean_hours_schedule below for the exact shape. `periods` is a list (not a
+# single open/close pair) so a future multi-period-per-day feature (e.g. a
+# lunch-break split) needs no further schema change; the current admin UI
+# only ever writes one entry into it.
+_HOURS_DAYS = ('mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun')
+_HOURS_TIME_RE = re.compile(r'^([01]\d|2[0-3]):[0-5]\d$')
+
+
+def _clean_hours_time(v):
+    s = str(v or '').strip()
+    return s if _HOURS_TIME_RE.match(s) else ''
+
+
+def _clean_hours_schedule(raw):
+    """Sanitizes a weekly hours_schedule payload down to only the 7 known
+    day keys, each coerced to {closed, is24h, periods}. Unknown keys and
+    malformed entries are silently dropped rather than rejecting the whole
+    payload, matching this codebase's existing lenient-cleaning conventions
+    (see _clean above)."""
+    if not isinstance(raw, dict):
+        return {}
+    out = {}
+    for day in _HOURS_DAYS:
+        entry = raw.get(day)
+        if not isinstance(entry, dict):
+            continue
+        closed = bool(entry.get('closed'))
+        is24h = bool(entry.get('is24h')) and not closed
+        periods = []
+        if not closed and not is24h:
+            raw_periods = entry.get('periods')
+            if isinstance(raw_periods, list):
+                for p in raw_periods[:4]:
+                    if not isinstance(p, dict):
+                        continue
+                    o, c = _clean_hours_time(p.get('open')), _clean_hours_time(p.get('close'))
+                    if o and c:
+                        periods.append({'open': o, 'close': c})
+        out[day] = {'closed': closed, 'is24h': is24h, 'periods': periods}
+    return out
+
+
 # ── Community Map helpers ─────────────────────────────────────────────────────
 def _row_to_dirmap(row):
     return {
@@ -3914,6 +3959,7 @@ def _row_to_dirmap(row):
         'gallery': row.get('gallery') or [],
         'hoursOpen': row.get('hours_open', ''), 'hoursClose': row.get('hours_close', ''),
         'hoursIs24h': row.get('hours_is_24h', False),
+        'hoursSchedule': row.get('hours_schedule') or {},
         'createdAt': row.get('created_at', ''), 'updatedAt': row.get('updated_at', ''),
     }
 
@@ -3939,6 +3985,7 @@ def _dirmap_create(d):
         'gallery': d.get('gallery') or [],
         'hours_open': d.get('hoursOpen', ''), 'hours_close': d.get('hoursClose', ''),
         'hours_is_24h': d.get('hoursIs24h', False),
+        'hours_schedule': d.get('hoursSchedule') or {},
         'created_at': d.get('createdAt', ''), 'updated_at': d.get('updatedAt', ''),
     }
     res = supabase.table('directory_map_locations').insert(row).execute()
@@ -3954,7 +4001,8 @@ def _dirmap_update(item_id, patch):
                          ('featured', 'featured'), ('verified', 'verified'),
                          ('website', 'website'), ('email', 'email'), ('facebook', 'facebook'),
                          ('keywords', 'keywords'), ('gallery', 'gallery'),
-                         ('hoursOpen', 'hours_open'), ('hoursClose', 'hours_close'), ('hoursIs24h', 'hours_is_24h')]:
+                         ('hoursOpen', 'hours_open'), ('hoursClose', 'hours_close'), ('hoursIs24h', 'hours_is_24h'),
+                         ('hoursSchedule', 'hours_schedule')]:
         if camel in patch:
             row[snake] = patch[camel]
     res = supabase.table('directory_map_locations').update(row).eq('id', item_id).execute()
@@ -3980,6 +4028,7 @@ def _row_to_dirbiz(row):
         'keywords': row.get('keywords', ''), 'gallery': row.get('gallery') or [],
         'hoursOpen': row.get('hours_open', ''), 'hoursClose': row.get('hours_close', ''),
         'hoursIs24h': row.get('hours_is_24h', False),
+        'hoursSchedule': row.get('hours_schedule') or {},
         'createdAt': row.get('created_at', ''), 'updatedAt': row.get('updated_at', ''),
     }
 
@@ -4004,6 +4053,7 @@ def _dirbiz_create(d):
         'keywords': d.get('keywords', ''), 'gallery': d.get('gallery') or [],
         'hours_open': d.get('hoursOpen', ''), 'hours_close': d.get('hoursClose', ''),
         'hours_is_24h': d.get('hoursIs24h', False),
+        'hours_schedule': d.get('hoursSchedule') or {},
         'created_at': d.get('createdAt', ''), 'updated_at': d.get('updatedAt', ''),
     }
     res = supabase.table('directory_businesses').insert(row).execute()
@@ -4019,7 +4069,8 @@ def _dirbiz_update(item_id, patch):
                  'lat': 'lat', 'lng': 'lng', 'status': 'status',
                  'featured': 'featured', 'verified': 'verified',
                  'website': 'website', 'email': 'email', 'keywords': 'keywords', 'gallery': 'gallery',
-                 'hoursOpen': 'hours_open', 'hoursClose': 'hours_close', 'hoursIs24h': 'hours_is_24h'}
+                 'hoursOpen': 'hours_open', 'hoursClose': 'hours_close', 'hoursIs24h': 'hours_is_24h',
+                 'hoursSchedule': 'hours_schedule'}
     for camel, snake in field_map.items():
         if camel in patch:
             row[snake] = patch[camel]
@@ -4370,6 +4421,7 @@ def admin_dirmap_create():
         'gallery': gallery,
         'hoursOpen': _clean(d.get('hoursOpen'), 20), 'hoursClose': _clean(d.get('hoursClose'), 20),
         'hoursIs24h': bool(d.get('hoursIs24h')),
+        'hoursSchedule': _clean_hours_schedule(d.get('hoursSchedule')),
         'createdAt': now, 'updatedAt': now,
     }
     item = _dirmap_create(item)
@@ -4401,6 +4453,8 @@ def admin_dirmap_update(item_id):
         patch['verified'] = bool(d['verified'])
     if 'hoursIs24h' in d:
         patch['hoursIs24h'] = bool(d['hoursIs24h'])
+    if 'hoursSchedule' in d:
+        patch['hoursSchedule'] = _clean_hours_schedule(d['hoursSchedule'])
     if 'gallery' in d:
         gallery = d['gallery'] if isinstance(d['gallery'], list) else []
         patch['gallery'] = [_clean(g, 500) for g in gallery if _clean(g, 500)]
@@ -4452,6 +4506,7 @@ def admin_dirbiz_create():
         'keywords': _clean(d.get('keywords'), 300), 'gallery': gallery,
         'hoursOpen': _clean(d.get('hoursOpen'), 20), 'hoursClose': _clean(d.get('hoursClose'), 20),
         'hoursIs24h': bool(d.get('hoursIs24h')),
+        'hoursSchedule': _clean_hours_schedule(d.get('hoursSchedule')),
         'createdAt': now, 'updatedAt': now,
     }
     item = _dirbiz_create(item)
@@ -4483,6 +4538,8 @@ def admin_dirbiz_update(item_id):
         patch['verified'] = bool(d['verified'])
     if 'hoursIs24h' in d:
         patch['hoursIs24h'] = bool(d['hoursIs24h'])
+    if 'hoursSchedule' in d:
+        patch['hoursSchedule'] = _clean_hours_schedule(d['hoursSchedule'])
     if 'gallery' in d:
         gallery = d['gallery'] if isinstance(d['gallery'], list) else []
         patch['gallery'] = [_clean(g, 500) for g in gallery if _clean(g, 500)]
