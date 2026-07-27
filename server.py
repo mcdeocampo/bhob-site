@@ -3899,6 +3899,24 @@ def _to_float(v):
         return None
 
 
+def _find_duplicate_name(items, name, exclude_id=None):
+    """Case-insensitive, leading/trailing-whitespace-trimmed exact-match
+    duplicate check used by the Community Map, Business Directory,
+    Organization Directory, and Emergency Directory admin create/update
+    routes. `items` is a list of dicts as returned by a module's _load_*
+    helper. `exclude_id` excludes the record being edited so its own
+    (unchanged) name is never flagged as a duplicate of itself."""
+    target = (name or '').strip().lower()
+    if not target:
+        return False
+    for it in items:
+        if exclude_id is not None and it.get('id') == exclude_id:
+            continue
+        if (it.get('name') or '').strip().lower() == target:
+            return True
+    return False
+
+
 # ── Weekly operating-hours schedule (Business Directory + Community Map) ─────
 # hours_schedule is the single source of truth behind both the displayed
 # "Business Hours" text and the live Open/Closed badge in directory.js — see
@@ -4409,8 +4427,11 @@ def admin_dirmap_create():
     if not isinstance(gallery, list):
         gallery = []
     gallery = [_clean(g, 500) for g in gallery if _clean(g, 500)]
+    name = _clean(d.get('name'), 150)
+    if _find_duplicate_name(_load_dirmap(), name):
+        return jsonify({'error': 'A location with this name already exists'}), 400
     item = {
-        'id': uuid.uuid4().hex, 'name': _clean(d.get('name'), 150), 'category': category,
+        'id': uuid.uuid4().hex, 'name': name, 'category': category,
         'description': _clean(d.get('description'), 1000), 'address': _clean(d.get('address'), 300),
         'contact': _clean(d.get('contact'), 100), 'hours': _clean(d.get('hours'), 150),
         'imageUrl': _clean(d.get('imageUrl'), 300),
@@ -4439,6 +4460,8 @@ def admin_dirmap_update(item_id):
                           ('hoursOpen', 20), ('hoursClose', 20)]:
         if field in d:
             patch[field] = _clean(d[field], maxlen)
+    if 'name' in patch and _find_duplicate_name(_load_dirmap(), patch['name'], exclude_id=item_id):
+        return jsonify({'error': 'A location with this name already exists'}), 400
     if 'category' in d and d['category'] in _active_category_names('map'):
         patch['category'] = d['category']
     if 'lat' in d:
@@ -4495,8 +4518,11 @@ def admin_dirbiz_create():
     if not isinstance(gallery, list):
         gallery = []
     gallery = [_clean(g, 500) for g in gallery if _clean(g, 500)]
+    name = _clean(d.get('name'), 150)
+    if _find_duplicate_name(_load_dirbiz(), name):
+        return jsonify({'error': 'A business with this name already exists'}), 400
     item = {
-        'id': uuid.uuid4().hex, 'name': _clean(d.get('name'), 150), 'category': category,
+        'id': uuid.uuid4().hex, 'name': name, 'category': category,
         'description': _clean(d.get('description'), 1000), 'address': _clean(d.get('address'), 300),
         'contact': _clean(d.get('contact'), 100), 'hours': _clean(d.get('hours'), 150),
         'imageUrl': _clean(d.get('imageUrl'), 300), 'social': _clean(d.get('social'), 300),
@@ -4524,6 +4550,8 @@ def admin_dirbiz_update(item_id):
                           ('hoursOpen', 20), ('hoursClose', 20)]:
         if field in d:
             patch[field] = _clean(d[field], maxlen)
+    if 'name' in patch and _find_duplicate_name(_load_dirbiz(), patch['name'], exclude_id=item_id):
+        return jsonify({'error': 'A business with this name already exists'}), 400
     if 'category' in d and d['category'] in _active_category_names('business'):
         patch['category'] = d['category']
     if 'lat' in d:
@@ -4584,8 +4612,11 @@ def admin_dirorg_create():
     if not isinstance(gallery, list):
         gallery = []
     gallery = [_clean(g, 500) for g in gallery if _clean(g, 500)]
+    name = _clean(d.get('name'), 150)
+    if _find_duplicate_name(_load_dirorg(), name):
+        return jsonify({'error': 'An organization with this name already exists'}), 400
     item = {
-        'id': uuid.uuid4().hex, 'name': _clean(d.get('name'), 150), 'category': category,
+        'id': uuid.uuid4().hex, 'name': name, 'category': category,
         'description': _clean(d.get('description'), 1000), 'contactPerson': _clean(d.get('contactPerson'), 150),
         'officers': officers, 'contactDetails': _clean(d.get('contactDetails'), 150),
         'programs': _clean(d.get('programs'), 1000), 'location': _clean(d.get('location'), 300),
@@ -4611,6 +4642,8 @@ def admin_dirorg_update(item_id):
                           ('website', 300), ('email', 200), ('facebook', 300), ('keywords', 300)]:
         if field in d:
             patch[field] = _clean(d[field], maxlen)
+    if 'name' in patch and _find_duplicate_name(_load_dirorg(), patch['name'], exclude_id=item_id):
+        return jsonify({'error': 'An organization with this name already exists'}), 400
     if 'category' in d and d['category'] in _active_category_names('organization'):
         patch['category'] = d['category']
     if 'officers' in d:
@@ -4666,8 +4699,11 @@ def admin_direm_create():
     if not isinstance(gallery, list):
         gallery = []
     gallery = [_clean(g, 500) for g in gallery if _clean(g, 500)]
+    name = _clean(d.get('name'), 150)
+    if _find_duplicate_name(_load_direm(), name):
+        return jsonify({'error': 'A contact with this name already exists'}), 400
     item = {
-        'id': uuid.uuid4().hex, 'name': _clean(d.get('name'), 150), 'category': category,
+        'id': uuid.uuid4().hex, 'name': name, 'category': category,
         'number': _clean(d.get('number'), 100), 'altNumber': _clean(d.get('altNumber'), 100),
         'address': _clean(d.get('address'), 300), 'services': _clean(d.get('services'), 1000),
         'imageUrl': _clean(d.get('imageUrl'), 300),
@@ -4692,6 +4728,8 @@ def admin_direm_update(item_id):
                           ('website', 300), ('email', 200), ('facebook', 300), ('keywords', 300)]:
         if field in d:
             patch[field] = _clean(d[field], maxlen)
+    if 'name' in patch and _find_duplicate_name(_load_direm(), patch['name'], exclude_id=item_id):
+        return jsonify({'error': 'A contact with this name already exists'}), 400
     if 'category' in d and d['category'] in _active_category_names('emergency'):
         patch['category'] = d['category']
     if 'lat' in d:
