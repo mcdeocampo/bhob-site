@@ -1,0 +1,25 @@
+-- Migration: add hours_is_24h flag to directory_emergency (Emergency Directory)
+-- Additive only, no other column touched or dropped.
+--
+-- Context: Emergency Directory was intentionally built with no hours fields
+-- at all (see create_directory_emergency.sql's original comment: "emergency
+-- contacts don't have operating hours in this model"). After moving
+-- regular-hours entries (Rural Health Unit, Social Welfare/Development
+-- Office) out to Community Map, what remains in Emergency Directory is
+-- meant to be genuinely always-contactable (Fire Station, Police Hotline,
+-- etc.) - a simple per-record 24/7 flag communicates that without building
+-- a full weekly schedule editor this module doesn't need.
+--
+-- Reuses the exact same column name and semantics as hours_is_24h on
+-- directory_businesses / directory_map_locations, so the public site's
+-- existing computeHoursStatus() badge logic in directory.js already
+-- handles it with zero changes there — that function checks
+-- `if (it.hoursIs24h) return '24 Hours'` before anything else, regardless
+-- of which directory module the item came from.
+--
+-- Defaults to false: no existing contact is retroactively claimed to be
+-- 24/7 until an admin explicitly checks the box for it.
+--
+-- Run this in the Supabase SQL Editor.
+
+ALTER TABLE directory_emergency ADD COLUMN IF NOT EXISTS hours_is_24h BOOLEAN DEFAULT false;

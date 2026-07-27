@@ -2811,6 +2811,9 @@ a{text-decoration:none;color:inherit}
           <label>Keywords <span style="color:#94a3b8;font-size:.68rem">(comma-separated)</span></label>
           <input type="text" id="direm-keywords" maxlength="300">
         </div>
+        <div class="field field-full">
+          <label><input type="checkbox" id="direm-hours-24h" style="width:auto;margin-right:6px">Available 24/7</label>
+        </div>
         <div class="field">
           <label><input type="checkbox" id="direm-featured" style="width:auto;margin-right:6px">Featured Listing</label>
         </div>
@@ -6819,6 +6822,7 @@ function resetDirEmForm() {
   $('direm-number').value=''; $('direm-alt-number').value=''; $('direm-address').value='';
   $('direm-services').value=''; $('direm-lat').value=''; $('direm-lng').value='';
   $('direm-website').value=''; $('direm-email').value=''; $('direm-facebook').value=''; $('direm-keywords').value='';
+  $('direm-hours-24h').checked=false;
   $('direm-featured').checked=false; $('direm-verified').checked=false;
   $('direm-s-draft').checked=true;
   $('direm-img-preview').style.display='none'; $('direm-img-preview').src='';
@@ -6842,6 +6846,7 @@ function openDirEmEdit(id) {
   $('direm-lat').value=p.lat??''; $('direm-lng').value=p.lng??'';
   $('direm-website').value=p.website||''; $('direm-email').value=p.email||'';
   $('direm-facebook').value=p.facebook||''; $('direm-keywords').value=p.keywords||'';
+  $('direm-hours-24h').checked=!!p.hoursIs24h;
   $('direm-featured').checked=!!p.featured; $('direm-verified').checked=!!p.verified;
   const sEl=document.getElementById('direm-s-'+p.status); if(sEl) sEl.checked=true; else $('direm-s-draft').checked=true;
   if(p.imageUrl){ $('direm-img-preview').src=p.imageUrl.indexOf('http')===0?p.imageUrl:'/'+p.imageUrl; $('direm-img-preview').style.display='block'; }
@@ -6927,6 +6932,7 @@ async function saveDirEmForm(forceStatus) {
     lng: $('direm-lng').value===''?null:parseFloat($('direm-lng').value),
     website:$('direm-website').value.trim(), email:$('direm-email').value.trim(),
     facebook:$('direm-facebook').value.trim(), keywords:$('direm-keywords').value.trim(),
+    hoursIs24h:$('direm-hours-24h').checked,
     featured:$('direm-featured').checked, verified:$('direm-verified').checked,
     gallery:SDE.gallery,
     status

@@ -4180,6 +4180,7 @@ def _row_to_direm(row):
         'website': row.get('website', ''), 'email': row.get('email', ''),
         'facebook': row.get('facebook', ''), 'keywords': row.get('keywords', ''),
         'gallery': row.get('gallery') or [],
+        'hoursIs24h': row.get('hours_is_24h', False),
         'createdAt': row.get('created_at', ''), 'updatedAt': row.get('updated_at', ''),
     }
 
@@ -4203,6 +4204,7 @@ def _direm_create(d):
         'website': d.get('website', ''), 'email': d.get('email', ''),
         'facebook': d.get('facebook', ''), 'keywords': d.get('keywords', ''),
         'gallery': d.get('gallery') or [],
+        'hours_is_24h': d.get('hoursIs24h', False),
         'created_at': d.get('createdAt', ''), 'updated_at': d.get('updatedAt', ''),
     }
     res = supabase.table('directory_emergency').insert(row).execute()
@@ -4217,7 +4219,7 @@ def _direm_update(item_id, patch):
                  'imageUrl': 'image_url', 'lat': 'lat', 'lng': 'lng', 'status': 'status',
                  'featured': 'featured', 'verified': 'verified',
                  'website': 'website', 'email': 'email', 'facebook': 'facebook',
-                 'keywords': 'keywords', 'gallery': 'gallery'}
+                 'keywords': 'keywords', 'gallery': 'gallery', 'hoursIs24h': 'hours_is_24h'}
     for camel, snake in field_map.items():
         if camel in patch:
             row[snake] = patch[camel]
@@ -4712,6 +4714,7 @@ def admin_direm_create():
         'website': _clean(d.get('website'), 300), 'email': _clean(d.get('email'), 200),
         'facebook': _clean(d.get('facebook'), 300), 'keywords': _clean(d.get('keywords'), 300),
         'gallery': gallery,
+        'hoursIs24h': bool(d.get('hoursIs24h')),
         'createdAt': now, 'updatedAt': now,
     }
     item = _direm_create(item)
@@ -4742,6 +4745,8 @@ def admin_direm_update(item_id):
         patch['featured'] = bool(d['featured'])
     if 'verified' in d:
         patch['verified'] = bool(d['verified'])
+    if 'hoursIs24h' in d:
+        patch['hoursIs24h'] = bool(d['hoursIs24h'])
     if 'gallery' in d:
         gallery = d['gallery'] if isinstance(d['gallery'], list) else []
         patch['gallery'] = [_clean(g, 500) for g in gallery if _clean(g, 500)]
