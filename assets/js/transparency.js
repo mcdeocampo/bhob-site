@@ -88,7 +88,7 @@
     var body = document.createElement('div');
     var count = docs.length;
     body.innerHTML = '<strong>' + esc(cat.name) + '</strong><span>'
-      + (count ? count + (count === 1 ? ' Document' : ' Documents') : 'No Documents Available')
+      + (count ? count + (count === 1 ? ' Document' : ' Documents') : '')
       + '</span>';
 
     var btn = document.createElement('button');
