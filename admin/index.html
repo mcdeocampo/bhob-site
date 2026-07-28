@@ -5258,7 +5258,7 @@ function enableTransDocDrag(listEl) {
 }
 
 async function saveTransDocOrder() {
-  const visible = ST.docs.filter(d => ST.catFilter==='all' || d.category===ST.catFilter);
+  const visible = ST.docs.filter(d => ST.catFilter==='all' || d.categoryId===ST.catFilter);
   const payload = visible.map(d => ({ id: d.id, displayOrder: d.displayOrder }));
   try {
     const r = await adminFetch('/admin/api/transparency-documents/reorder', {
