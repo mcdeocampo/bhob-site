@@ -13535,7 +13535,7 @@ body[data-page="index.html"] .info-card{
     margin-top: 18px !important;
   }
 
-  body[data-page="index.html"] a[href*="announcements"],
+  body[data-page="index.html"] a[href*="announcements"]:not(.nav-link),
   body[data-page="index.html"] .view-all a,
   body[data-page="index.html"] .section-actions a{
     min-height: 38px !important;
@@ -18680,20 +18680,6 @@ body[data-page="index.html"] .hero-hotline-number {
   background-clip: text;
   -webkit-text-fill-color: transparent;
   animation: hHotlineShimmer 4s linear 2.5s infinite;
-}
-
-/* Fix: On the homepage, the selector a[href*="announcements"] inadvertently
-   catches the Announcements nav-link, overriding justify-content to center
-   and min-height to 38px. This restores it to match all other nav buttons. */
-@media (max-width: 900px) {
-  body[data-page="index.html"] .nav-menu .nav-link[href*="announcements"] {
-    justify-content: flex-start !important;
-  }
-}
-@media (max-width: 480px) {
-  body[data-page="index.html"] .nav-menu .nav-link[href*="announcements"] {
-    min-height: 34px !important;
-  }
 }
 
 /* =====================================================================
