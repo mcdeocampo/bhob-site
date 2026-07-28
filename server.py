@@ -1460,11 +1460,12 @@ def api_transparency_categories():
 def api_transparency_documents():
     all_docs  = _load_transdocs()
     published = [d for d in all_docs if d.get('status') == 'published' and d.get('fileUrl', '')]
-    # Default: Publication Date, newest first. Display Order only breaks
-    # ties (e.g. documents sharing a date, or with no date set) — it's not
-    # the primary sort unless a future need calls for manual ordering.
-    published.sort(key=_order_key)
+    # Display Order (as saved from the admin panel's drag-and-drop) is the
+    # primary sort — Publication Date only breaks ties between documents
+    # that share the same Display Order (or have none set). Sort is stable,
+    # so whichever .sort() call runs last is the dominant key.
     published.sort(key=lambda x: x.get('publicationDate') or '', reverse=True)
+    published.sort(key=_order_key)
     return jsonify({'status': 'ok', 'documents': published})
 
 

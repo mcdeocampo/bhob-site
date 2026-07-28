@@ -5140,11 +5140,11 @@ function showTdSaveBar(show) {
 
 function renderTransDocList() {
   let items = [...ST.docs];
-  // Default: Publication Date, newest first. Display Order only breaks
-  // ties (e.g. documents sharing a date, or with no date set) — it's not
-  // the primary sort unless a future need calls for manual ordering.
-  items.sort((a, b) => (a.displayOrder ?? 9999) - (b.displayOrder ?? 9999));
+  // Display Order (from drag-and-drop) is the primary sort — Publication
+  // Date only breaks ties between documents that share the same Display
+  // Order (or have none set). Sort is stable, so the last .sort() call wins.
   items.sort((a, b) => (b.publicationDate || '').localeCompare(a.publicationDate || ''));
+  items.sort((a, b) => (a.displayOrder ?? 9999) - (b.displayOrder ?? 9999));
   if (ST.catFilter !== 'all') items = items.filter(d => d.categoryId === ST.catFilter);
   if (ST.statusFilter !== 'all') items = items.filter(d => d.status === ST.statusFilter);
   if (ST.search) {
