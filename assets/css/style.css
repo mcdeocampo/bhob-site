@@ -21708,31 +21708,48 @@ body.dir2-modal-lock{overflow:hidden}
 }
 
 /* Below the hamburger breakpoint, .nav-menu becomes a 2-column grid overlay
-   (see the max-width:1280px rule earlier in this file) — a floating absolute
-   submenu would be cramped inside a single half-width grid cell there, so the
-   dropdown instead spans the full menu width and expands inline. */
+   (see the max-width:1280px rule earlier in this file). The dropdown keeps
+   its own dedicated grid-column:1/-1 row — giving the toggle+submenu a
+   single-cell width instead broke grid auto-placement, since the expanded
+   submenu is one tall flex column stacked inside one grid cell: the row
+   grew to fit it, leaving the paired cell (Service Standards) with a slab
+   of blank space, and every later nav item shifted down and interleaved
+   with the submenu's overflow. Full-row ownership avoids that entirely —
+   instead, only the toggle and its children are width-capped to match a
+   single standard column (the same math as the grid's own 2 equal
+   columns), so the row is still full-width for layout purposes, but
+   nothing visually reads as wider than Home/Officials/etc. */
 @media (max-width: 1280px) {
   .nav-dropdown {
     grid-column: 1 / -1;
     display: flex;
     flex-direction: column;
-    align-items: stretch;
+    align-items: flex-start;
   }
   .nav-dropdown-toggle {
-    width: 100%;
+    /* !important needed: several earlier .nav-link{width:100%!important}
+       rules in this file (shared by every nav link, including this one)
+       would otherwise force full width regardless of this rule's own
+       specificity or source position. */
+    width: calc((100% - 5px) / 2) !important;
     justify-content: space-between;
+    /* "Community Updates" + the caret icon sit right at this column's
+       width — without this, the label wraps to two lines and grows
+       taller than every other nav button. */
+    white-space: nowrap;
   }
   .nav-dropdown-menu {
     position: static;
     display: none;
     min-width: 0;
+    width: calc((100% - 5px) / 2) !important;
     /* Matches the 8px gap the standard nav grid uses between Home/Officials/
        etc. — at 0-4px, the toggle and its first child (and the children
        between themselves) sat close enough to visually fuse into one shape
        whenever both carried the active blue background at once. */
     margin-top: 8px;
     gap: 8px;
-    padding: 0 0 0 14px;
+    padding: 0;
     background: transparent;
     border-radius: 0;
     box-shadow: none;
