@@ -21716,7 +21716,13 @@ body.dir2-modal-lock{overflow:hidden}
     position: static;
     display: none;
     min-width: 0;
-    padding: 4px 0 0 14px;
+    /* Matches the 8px gap the standard nav grid uses between Home/Officials/
+       etc. — at 0-4px, the toggle and its first child (and the children
+       between themselves) sat close enough to visually fuse into one shape
+       whenever both carried the active blue background at once. */
+    margin-top: 8px;
+    gap: 8px;
+    padding: 0 0 0 14px;
     background: transparent;
     border-radius: 0;
     box-shadow: none;
