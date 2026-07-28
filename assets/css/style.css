@@ -21744,6 +21744,17 @@ body.dir2-modal-lock{overflow:hidden}
   .nav-dropdown.open .nav-dropdown-menu {
     display: flex;
   }
+  /* The shared .nav-link.active box-shadow (0 8px 18px, defined for compact
+     pill-shaped buttons elsewhere) reads as much heavier here because it
+     wraps a full-width bar instead of a small pill — same shadow value,
+     far more glowing surface area. Softening it (not removing it, so the
+     active state still reads clearly) just for these full-width items
+     brings the visual weight back in line with the standard nav buttons,
+     without touching the shared rule every other active nav-link relies on. */
+  .nav-dropdown-toggle.active,
+  .nav-dropdown-link.active {
+    box-shadow: 0 3px 8px rgba(21, 94, 239, .14) !important;
+  }
 }
 
 /* Transparency — document listing (v2, refined). A single grouped list
