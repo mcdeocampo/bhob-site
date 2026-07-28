@@ -21648,9 +21648,19 @@ body.dir2-modal-lock{overflow:hidden}
   align-items: center;
   gap: 6px;
   background: none;
-  border: 0;
+  /* border left unset here (rather than forced to 0) so the shared
+     .nav-link class's own border rule — 1px solid transparent in some
+     breakpoints — still applies. That invisible border still occupies
+     box height; zeroing it out shaved 2px off the button versus the
+     <a> nav links it must match. */
+  margin: 0;
+  -webkit-appearance: none;
+  -moz-appearance: none;
   appearance: none;
+  box-sizing: border-box;
   font: inherit;
+  line-height: inherit;
+  text-align: left;
   cursor: pointer;
   color: inherit;
 }
