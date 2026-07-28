@@ -233,6 +233,66 @@ def _row_to_form(row):
     }
 
 
+# ── Transparency Categories (CMS-managed) ────────────────────────────────────
+# Categories used to be a fixed 7-slug Python dict; they're now rows in
+# transparency_categories that an admin can create/rename/reorder/
+# deactivate/delete, so a future barangay can have any number of
+# categories with no code change. See migrations/create_transparency_categories.sql.
+def _load_transcats():
+    try:
+        res = supabase.table('transparency_categories').select('*').execute()
+        return res.data or []
+    except Exception:
+        return []
+
+
+def _row_to_transcat(row):
+    return {
+        'id':           row['id'],
+        'name':         row.get('name', ''),
+        'displayOrder': row.get('display_order', 0),
+        'active':       bool(row.get('active', True)),
+    }
+
+
+def _transcats_sorted(active_only):
+    cats = _load_transcats()
+    if active_only:
+        cats = [c for c in cats if c.get('active', True)]
+    cats.sort(key=lambda c: c.get('display_order', 0))
+    return [_row_to_transcat(c) for c in cats]
+
+
+def _transcat_bulk_order(order_map):
+    for cat_id, order in order_map.items():
+        supabase.table('transparency_categories').update(
+            {'display_order': order}
+        ).eq('id', cat_id).execute()
+
+
+def _row_to_transdoc(row):
+    file_url = row.get('file_url', '')
+    return {
+        'id':              row['id'],
+        'categoryId':      row.get('category_id', ''),
+        'title':           row.get('title', ''),
+        'docNumber':       row.get('doc_number', ''),
+        'description':     row.get('description', ''),
+        'publicationDate': row.get('publication_date') or '',
+        'year':            row.get('doc_year'),
+        'fileUrl':         file_url,
+        'fileName':        row.get('file_name', ''),
+        'fileType':        row.get('file_type', ''),
+        'fileSize':        row.get('file_size', 0),
+        'status':          row.get('status', 'draft'),
+        'displayOrder':    row.get('display_order', 0),
+        'allowDownload':   bool(row.get('allow_download', True)),
+        'createdAt':       row.get('created_at', ''),
+        'updatedAt':       row.get('updated_at', ''),
+        'fileAvailable':   bool(file_url),
+    }
+
+
 def _row_to_user(row):
     return {
         'id':                  row['id'],
@@ -904,6 +964,72 @@ def _form_bulk_order(order_map):
         ).eq('id', form_id).execute()
 
 
+# ── Transparency documents data helpers (Supabase) ───────────────────────────
+def _load_transdocs():
+    try:
+        res = supabase.table('transparency_documents').select('*').execute()
+        return [_row_to_transdoc(r) for r in (res.data or [])]
+    except Exception:
+        return []
+
+
+def _transdoc_create(doc_dict):
+    row = {
+        'id':               doc_dict['id'],
+        'category_id':      doc_dict.get('categoryId', ''),
+        'title':            doc_dict.get('title', ''),
+        'doc_number':       doc_dict.get('docNumber', ''),
+        'description':      doc_dict.get('description', ''),
+        'publication_date': doc_dict.get('publicationDate') or None,
+        'doc_year':         doc_dict.get('year'),
+        'file_url':         doc_dict.get('fileUrl', ''),
+        'file_name':        doc_dict.get('fileName', ''),
+        'file_type':        doc_dict.get('fileType', ''),
+        'file_size':        int(doc_dict.get('fileSize', 0)),
+        'status':           doc_dict.get('status', 'draft'),
+        'display_order':    int(doc_dict.get('displayOrder', 0)),
+        'allow_download':   bool(doc_dict.get('allowDownload', True)),
+        'created_at':       doc_dict.get('createdAt', ''),
+        'updated_at':       doc_dict.get('updatedAt', ''),
+    }
+    res = supabase.table('transparency_documents').insert(row).execute()
+    return _row_to_transdoc(res.data[0]) if res.data else doc_dict
+
+
+def _transdoc_update(doc_id, patch_dict):
+    now = datetime.now(timezone.utc).isoformat()
+    row = {'updated_at': now}
+    field_map = {
+        'categoryId': 'category_id', 'title': 'title', 'docNumber': 'doc_number',
+        'description': 'description', 'publicationDate': 'publication_date',
+        'year': 'doc_year', 'fileUrl': 'file_url', 'fileName': 'file_name',
+        'fileType': 'file_type', 'fileSize': 'file_size',
+        'status': 'status', 'displayOrder': 'display_order',
+        'allowDownload': 'allow_download',
+    }
+    for camel, snake in field_map.items():
+        if camel in patch_dict:
+            row[snake] = patch_dict[camel]
+    res = (supabase.table('transparency_documents')
+           .update(row)
+           .eq('id', doc_id)
+           .execute())
+    return _row_to_transdoc(res.data[0]) if res.data else None
+
+
+def _transdoc_delete(doc_id):
+    res = supabase.table('transparency_documents').delete().eq('id', doc_id).execute()
+    return bool(res.data)
+
+
+def _transdoc_bulk_order(order_map):
+    now = datetime.now(timezone.utc).isoformat()
+    for doc_id, order in order_map.items():
+        supabase.table('transparency_documents').update(
+            {'display_order': order, 'updated_at': now}
+        ).eq('id', doc_id).execute()
+
+
 # ── Public services data helpers (Supabase) ──────────────────────────────────
 def _row_to_pubservice(row):
     return {
@@ -1322,6 +1448,24 @@ def api_forms():
     published.sort(key=lambda x: x.get('updatedAt', ''), reverse=True)
     published.sort(key=_order_key)
     return jsonify({'status': 'ok', 'forms': published})
+
+
+# ── Public transparency documents API ────────────────────────────────────────
+@app.route('/api/transparency-categories')
+def api_transparency_categories():
+    return jsonify({'status': 'ok', 'categories': _transcats_sorted(active_only=True)})
+
+
+@app.route('/api/transparency-documents')
+def api_transparency_documents():
+    all_docs  = _load_transdocs()
+    published = [d for d in all_docs if d.get('status') == 'published' and d.get('fileUrl', '')]
+    # Default: Publication Date, newest first. Display Order only breaks
+    # ties (e.g. documents sharing a date, or with no date set) — it's not
+    # the primary sort unless a future need calls for manual ordering.
+    published.sort(key=_order_key)
+    published.sort(key=lambda x: x.get('publicationDate') or '', reverse=True)
+    return jsonify({'status': 'ok', 'documents': published})
 
 
 # ── Public services API ───────────────────────────────────────────────────────
@@ -2246,6 +2390,229 @@ def admin_forms_delete(form_id):
     return jsonify({'status': 'ok'})
 
 
+# ── Admin — transparency documents CRUD ──────────────────────────────────────
+@app.route('/admin/api/transparency-documents')
+@admin_required
+def admin_transdocs_list():
+    all_docs = _load_transdocs()
+    all_docs.sort(key=lambda x: x.get('updatedAt', ''), reverse=True)
+    all_docs.sort(key=_order_key)
+    cats = _transcats_sorted(active_only=False)
+    names_by_id = {c['id']: c['name'] for c in cats}
+    for d in all_docs:
+        d['categoryName'] = names_by_id.get(d.get('categoryId'), '')
+    return jsonify({'status': 'ok', 'documents': all_docs, 'categories': cats})
+
+
+@app.route('/admin/api/transparency-documents', methods=['POST'])
+@admin_required
+def admin_transdocs_create():
+    d = request.get_json(silent=True) or {}
+    category_id = d.get('categoryId', '')
+    if category_id not in {c['id'] for c in _transcats_sorted(active_only=False)}:
+        return jsonify({'error': 'Invalid category'}), 400
+    status = d.get('status', 'draft')
+    if status not in ('draft', 'published', 'archived'):
+        status = 'draft'
+    all_docs   = _load_transdocs()
+    same_cat   = [x for x in all_docs if x.get('categoryId') == category_id]
+    min_order  = min((x.get('displayOrder', 1) for x in same_cat), default=1)
+    now        = datetime.now(timezone.utc).isoformat()
+    year_val   = d.get('year')
+    try:
+        year_val = int(year_val) if year_val not in (None, '') else None
+    except (ValueError, TypeError):
+        year_val = None
+    doc = {
+        'id':               uuid.uuid4().hex,
+        'categoryId':       category_id,
+        'title':            _clean(d.get('title'), 200),
+        'docNumber':        _clean(d.get('docNumber'), 100),
+        'description':      _clean(d.get('description'), 500),
+        'publicationDate':  _clean(d.get('publicationDate'), 10) or None,
+        'year':             year_val,
+        'fileUrl':          _clean(d.get('fileUrl'), 300),
+        'fileName':         _clean(d.get('fileName'), 200),
+        'fileType':         _clean(d.get('fileType'), 10),
+        'fileSize':         int(d.get('fileSize', 0)),
+        'status':           status,
+        'displayOrder':     min_order - 1,
+        'allowDownload':    bool(d.get('allowDownload', True)),
+        'createdAt':        now,
+        'updatedAt':        now,
+    }
+    doc = _transdoc_create(doc)
+    return jsonify({'status': 'ok', 'document': doc}), 201
+
+
+@app.route('/admin/api/transparency-documents/reorder', methods=['PUT'])
+@admin_required
+def admin_transdocs_reorder():
+    items = request.get_json(silent=True) or []
+    if not isinstance(items, list):
+        return jsonify({'error': 'Invalid payload'}), 400
+    order_map = {}
+    for item in items:
+        if isinstance(item, dict) and 'id' in item:
+            try:
+                order_map[str(item['id'])] = int(item['displayOrder'])
+            except (ValueError, TypeError, KeyError):
+                pass
+    _transdoc_bulk_order(order_map)
+    return jsonify({'status': 'ok'})
+
+
+@app.route('/admin/api/transparency-documents/<doc_id>', methods=['PUT'])
+@admin_required
+def admin_transdocs_update(doc_id):
+    d = request.get_json(silent=True) or {}
+    patch = {}
+    if 'categoryId' in d:
+        if d['categoryId'] not in {c['id'] for c in _transcats_sorted(active_only=False)}:
+            return jsonify({'error': 'Invalid category'}), 400
+        patch['categoryId'] = d['categoryId']
+    for field, maxlen in [('title', 200), ('docNumber', 100), ('description', 500),
+                          ('fileUrl', 300), ('fileName', 200), ('fileType', 10)]:
+        if field in d:
+            patch[field] = _clean(d[field], maxlen)
+    if 'publicationDate' in d:
+        patch['publicationDate'] = _clean(d['publicationDate'], 10) or None
+    if 'year' in d:
+        try:
+            patch['year'] = int(d['year']) if d['year'] not in (None, '') else None
+        except (ValueError, TypeError):
+            pass
+    if 'fileSize' in d:
+        try:
+            patch['fileSize'] = int(d['fileSize'])
+        except (ValueError, TypeError):
+            pass
+    if 'status' in d and d['status'] in ('draft', 'published', 'archived'):
+        patch['status'] = d['status']
+    if 'displayOrder' in d:
+        try:
+            patch['displayOrder'] = int(d['displayOrder'])
+        except (ValueError, TypeError):
+            pass
+    if 'allowDownload' in d:
+        patch['allowDownload'] = bool(d['allowDownload'])
+    doc = _transdoc_update(doc_id, patch)
+    if doc is None:
+        return jsonify({'error': 'Not found'}), 404
+    return jsonify({'status': 'ok', 'document': doc})
+
+
+@app.route('/admin/api/transparency-documents/<doc_id>', methods=['DELETE'])
+@admin_required
+def admin_transdocs_delete(doc_id):
+    try:
+        res = supabase.table('transparency_documents').select('file_url').eq('id', doc_id).limit(1).execute()
+        if res.data:
+            file_url = res.data[0].get('file_url', '')
+            if file_url and file_url.startswith('http'):
+                marker = f'/object/public/{STORAGE_BUCKET}/'
+                idx = file_url.find(marker)
+                if idx != -1:
+                    storage_path = file_url[idx + len(marker):]
+                    try:
+                        supabase.storage.from_(STORAGE_BUCKET).remove([storage_path])
+                    except Exception:
+                        pass
+    except Exception:
+        pass
+    if not _transdoc_delete(doc_id):
+        return jsonify({'error': 'Not found'}), 404
+    return jsonify({'status': 'ok'})
+
+
+# ── Admin — Transparency Categories CRUD ─────────────────────────────────────
+@app.route('/admin/api/transparency-categories')
+@admin_required
+def admin_transcats_list():
+    return jsonify({'status': 'ok', 'categories': _transcats_sorted(active_only=False)})
+
+
+@app.route('/admin/api/transparency-categories', methods=['POST'])
+@admin_required
+def admin_transcats_create():
+    d = request.get_json(silent=True) or {}
+    name = _clean(d.get('name'), 100)
+    if not name:
+        return jsonify({'error': 'Category name is required.'}), 400
+    existing = _load_transcats()
+    if _find_duplicate_name(existing, name):
+        return jsonify({'error': 'A category with this name already exists.'}), 400
+    min_order = min((c.get('display_order', 0) for c in existing), default=0)
+    row = {
+        'id':            uuid.uuid4().hex,
+        'name':          name,
+        'display_order': int(d['displayOrder']) if 'displayOrder' in d else min_order - 1,
+        'active':        bool(d.get('active', True)),
+    }
+    try:
+        res = supabase.table('transparency_categories').insert(row).execute()
+    except Exception as exc:
+        return jsonify({'error': f'Could not create category: {exc}'}), 400
+    return jsonify({'status': 'ok', 'category': _row_to_transcat(res.data[0])}), 201
+
+
+@app.route('/admin/api/transparency-categories/reorder', methods=['PUT'])
+@admin_required
+def admin_transcats_reorder():
+    items = request.get_json(silent=True) or []
+    if not isinstance(items, list):
+        return jsonify({'error': 'Invalid payload'}), 400
+    order_map = {}
+    for item in items:
+        if isinstance(item, dict) and 'id' in item:
+            try:
+                order_map[str(item['id'])] = int(item['displayOrder'])
+            except (ValueError, TypeError, KeyError):
+                pass
+    _transcat_bulk_order(order_map)
+    return jsonify({'status': 'ok'})
+
+
+@app.route('/admin/api/transparency-categories/<cat_id>', methods=['PUT'])
+@admin_required
+def admin_transcats_update(cat_id):
+    d = request.get_json(silent=True) or {}
+    patch = {}
+    if 'name' in d:
+        name = _clean(d['name'], 100)
+        if not name:
+            return jsonify({'error': 'Category name is required.'}), 400
+        if _find_duplicate_name(_load_transcats(), name, exclude_id=cat_id):
+            return jsonify({'error': 'A category with this name already exists.'}), 400
+        patch['name'] = name
+    if 'displayOrder' in d:
+        try:
+            patch['display_order'] = int(d['displayOrder'])
+        except (ValueError, TypeError):
+            pass
+    if 'active' in d:
+        patch['active'] = bool(d['active'])
+    try:
+        res = supabase.table('transparency_categories').update(patch).eq('id', cat_id).execute()
+    except Exception as exc:
+        return jsonify({'error': f'Could not update category: {exc}'}), 400
+    if not res.data:
+        return jsonify({'error': 'Not found'}), 404
+    return jsonify({'status': 'ok', 'category': _row_to_transcat(res.data[0])})
+
+
+@app.route('/admin/api/transparency-categories/<cat_id>', methods=['DELETE'])
+@admin_required
+def admin_transcats_delete(cat_id):
+    in_use = supabase.table('transparency_documents').select('id').eq('category_id', cat_id).limit(1).execute()
+    if in_use.data:
+        return jsonify({'error': 'This category still has documents — move or remove them first.'}), 400
+    res = supabase.table('transparency_categories').delete().eq('id', cat_id).execute()
+    if not res.data:
+        return jsonify({'error': 'Not found'}), 404
+    return jsonify({'status': 'ok'})
+
+
 # ── Admin — public services CRUD ──────────────────────────────────────────────
 @app.route('/admin/api/public-services')
 @admin_required
@@ -2523,6 +2890,35 @@ def admin_upload_form_file():
     original_name = os.path.basename(f.filename)
     try:
         url = _upload_to_storage(data, 'forms', ext)
+    except Exception as exc:
+        return jsonify({'error': f'Upload failed: {exc}'}), 500
+    return jsonify({
+        'status':   'ok',
+        'url':      url,
+        'fileName': original_name,
+        'fileType': ext,
+        'fileSize': len(data),
+    })
+
+
+@app.route('/admin/api/upload/transparency-file', methods=['POST'])
+@admin_required
+def admin_upload_transparency_file():
+    """Upload a Transparency document file (PDF, DOC, DOCX). Max 10 MB."""
+    f = request.files.get('file')
+    if not f or not f.filename:
+        return jsonify({'error': 'No file selected'}), 400
+    ext = f.filename.rsplit('.', 1)[-1].lower() if '.' in f.filename else ''
+    allowed = {'pdf', 'doc', 'docx'}
+    if ext not in allowed:
+        return jsonify({'error': 'Invalid file type. Only PDF, DOC, and DOCX are allowed.'}), 400
+    max_bytes = 10 * 1024 * 1024
+    data = f.read(max_bytes + 1)
+    if len(data) > max_bytes:
+        return jsonify({'error': 'File too large (max 10 MB)'}), 400
+    original_name = os.path.basename(f.filename)
+    try:
+        url = _upload_to_storage(data, 'transparency', ext)
     except Exception as exc:
         return jsonify({'error': f'Upload failed: {exc}'}), 500
     return jsonify({

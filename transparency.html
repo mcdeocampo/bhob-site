@@ -23,7 +23,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/favicon.png">
   <link rel="apple-touch-icon" href="assets/images/logo.png">
-  <link rel="stylesheet" href="assets/css/style.css?v=19">
+  <link rel="stylesheet" href="assets/css/style.css?v=50">
 </head>
 <body data-page="transparency.html">
   <header class="site-header" id="top">
@@ -48,7 +48,7 @@
 <a href="projects" class="nav-link nav-dropdown-link" data-page="projects.html">Community Initiatives</a>
 </div>
 </div>
-<!-- TEMP HIDDEN: <a href="transparency" class="nav-link" data-page="transparency.html">Transparency</a> -->
+<a href="transparency" class="nav-link" data-page="transparency.html">Transparency</a>
 <!-- TEMP HIDDEN: <a href="downloads" class="nav-link" data-page="downloads.html">Downloads</a> -->
 <a href="directory" class="nav-link" data-page="directory.html">Directory</a>
 <a href="contact" class="nav-link nav-contact" data-page="contact.html">Contact Us</a>
@@ -59,9 +59,9 @@
       <div class="container reveal">
         <span class="eyebrow">Public Documents</span>
         <h1>Transparency</h1>
-        <p>Access public document sections for transparency, accountability, and community information.</p>
+        <p class="transparency-subtitle">Access public document sections for transparency, accountability, and community information.</p>
       </div>
-    </section><section class="section-pad"><div class="container document-list"><div class="doc-row reveal"><div><strong>Barangay Budget Summary</strong><span>Public document section - replace with official approved file.</span></div><a class="btn btn-small" href="assets/documents/other-forms.pdf" download>Download</a></div><div class="doc-row reveal"><div><strong>Financial Reports</strong><span>Public document section - replace with official approved file.</span></div><a class="btn btn-small" href="assets/documents/other-forms.pdf" download>Download</a></div><div class="doc-row reveal"><div><strong>Procurement Notices</strong><span>Public document section - replace with official approved file.</span></div><a class="btn btn-small" href="assets/documents/other-forms.pdf" download>Download</a></div><div class="doc-row reveal"><div><strong>Barangay Resolutions</strong><span>Public document section - replace with official approved file.</span></div><a class="btn btn-small" href="assets/documents/other-forms.pdf" download>Download</a></div><div class="doc-row reveal"><div><strong>Barangay Ordinances</strong><span>Public document section - replace with official approved file.</span></div><a class="btn btn-small" href="assets/documents/other-forms.pdf" download>Download</a></div><div class="doc-row reveal"><div><strong>Project Accomplishments</strong><span>Public document section - replace with official approved file.</span></div><a class="btn btn-small" href="assets/documents/other-forms.pdf" download>Download</a></div><div class="doc-row reveal"><div><strong>Barangay Assembly Reports</strong><span>Public document section - replace with official approved file.</span></div><a class="btn btn-small" href="assets/documents/other-forms.pdf" download>Download</a></div></div></section>  </main>
+    </section><section class="section-pad"><div class="container document-list" id="document-list"><div class="doc-row reveal"><div><strong>Loading…</strong><span>Fetching transparency documents.</span></div></div></div></section>  </main>
   <footer class="site-footer">
     <div class="container footer-grid">
       <div>
@@ -81,6 +81,7 @@
   <button class="back-to-top" aria-label="Back to top">↑</button>
   <script src="assets/js/main.js?v=7"></script>
   <script src="assets/js/emergency-alert.js?v=1"></script>
+  <script src="assets/js/transparency.js?v=11"></script>
   <script>
   fetch('/api/site-settings').then(function(r){return r.json();}).then(function(d){
     // /api/site-settings answers {} when the database read fails, which is

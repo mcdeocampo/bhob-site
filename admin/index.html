@@ -102,6 +102,12 @@ a{text-decoration:none;color:inherit}
 .field textarea{resize:vertical;min-height:76px;border-radius:10px}
 .field select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px}
 
+/* Hide the native mm/dd/yyyy segment placeholder until a real date is
+   picked — the calendar icon (::-webkit-calendar-picker-indicator) is
+   untouched and stays fully visible/clickable either way. */
+input[type="date"]::-webkit-datetime-edit{color:transparent}
+input[type="date"].td-has-value::-webkit-datetime-edit{color:inherit}
+
 /* ─── WEEKLY OPERATING HOURS (Business Directory / Community Map) ──────── */
 .hours-schedule-editor{border:1.5px solid #dde3ec;border-radius:10px;overflow:hidden}
 .hours-day-row{display:flex;align-items:center;gap:10px;padding:8px 12px;
@@ -333,6 +339,7 @@ a{text-decoration:none;color:inherit}
 .badge-published{background:#dcfce7;color:#15803d}
 .badge-draft{background:#fef3c7;color:#b45309}
 .badge-hidden{background:#f1f5f9;color:#64748b}
+.badge-archived{background:#fee2e2;color:#b91c1c}
 .badge-scheduled{background:#eff6ff;color:#1d4ed8}
 .badge-ongoing{background:#dcfce7;color:#15803d}
 .badge-completed{background:#f0fdf4;color:#166534}
@@ -812,6 +819,14 @@ a{text-decoration:none;color:inherit}
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         Download Forms
       </button>
+      <button class="nav-item" data-sec="transparency">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg>
+        Transparency
+      </button>
+      <button class="nav-item" data-sec="transcats">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Transparency Categories
+      </button>
       <button class="nav-item" data-sec="pubservices">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
         Public Services
@@ -1237,6 +1252,60 @@ a{text-decoration:none;color:inherit}
         <button class="btn-save-order" onclick="saveFormOrder()">Save Order</button>
       </div>
       <div class="ann-list" id="form-list"><div class="loading">Loading…</div></div>
+    </section>
+
+    <!-- Transparency -->
+    <section id="sec-transparency" style="display:none">
+      <div class="page-hdr">
+        <div>
+          <h2>Transparency Management</h2>
+          <p>Manage documents shown under each Transparency category on the public Transparency page.</p>
+        </div>
+        <button class="btn-new" id="btn-new-transdoc">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          New Document
+        </button>
+      </div>
+      <div class="toolbar">
+        <div class="search-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input class="search-input" id="td-search" type="search" placeholder="Search documents…">
+        </div>
+        <select class="search-input" id="td-status-filter" style="max-width:160px">
+          <option value="all">All statuses</option>
+          <option value="published">Published</option>
+          <option value="draft">Draft</option>
+          <option value="archived">Archived</option>
+        </select>
+      </div>
+      <div class="tabs" id="td-cat-tabs">
+        <button class="tab active" data-tc="all">All Categories</button>
+      </div>
+      <p style="font-size:.78rem;color:#94a3b8;margin:0 0 10px">Select a single category above to drag-reorder its documents.</p>
+      <div class="save-order-bar" id="td-save-order-bar">
+        <p>⠿ Drag items to reorder, then save.</p>
+        <button class="btn-save-order" onclick="saveTransDocOrder()">Save Order</button>
+      </div>
+      <div class="ann-list" id="td-list"><div class="loading">Loading…</div></div>
+    </section>
+
+    <!-- Transparency Categories -->
+    <section id="sec-transcats" style="display:none">
+      <div class="page-hdr">
+        <div>
+          <h2>Transparency Categories</h2>
+          <p>Manage the categories documents can be filed under on the public Transparency page. Only active categories appear there and in the document form's Category dropdown.</p>
+        </div>
+        <button class="btn-new" id="btn-new-transcat">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          New Category
+        </button>
+      </div>
+      <div class="save-order-bar" id="tc-save-order-bar">
+        <p>⠿ Drag items to reorder, then save.</p>
+        <button class="btn-save-order" onclick="saveTransCatOrder()">Save Order</button>
+      </div>
+      <div class="ann-list" id="tc-list"><div class="loading">Loading…</div></div>
     </section>
 
     <!-- Officials -->
@@ -2186,6 +2255,119 @@ a{text-decoration:none;color:inherit}
       <button class="btn-cancel" id="btn-cancel-form-modal">Cancel</button>
       <button class="btn-draft" id="btn-form-draft">Save Draft</button>
       <button class="btn-publish" id="btn-form-pub">Publish</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ TRANSPARENCY DOCUMENT MODAL ══════════════════ -->
+<div class="overlay" id="td-modal-overlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="td-modal-title">New Document</h3>
+      <button class="btn-close" id="btn-close-td-modal">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-section-label">Content</div>
+        <div class="field">
+          <label>Category <span style="color:#ef4444">*</span></label>
+          <select id="td-category"></select>
+        </div>
+        <div class="field">
+          <label>Document Number <span style="color:#94a3b8;font-size:.68rem">(optional)</span></label>
+          <input type="text" id="td-docnum" maxlength="100">
+        </div>
+        <div class="field field-full">
+          <label>Title <span style="color:#ef4444">*</span></label>
+          <input type="text" id="td-title" maxlength="200">
+        </div>
+        <div class="field field-full">
+          <label>Description <span style="color:#94a3b8;font-size:.7rem">(optional)</span></label>
+          <textarea id="td-desc" rows="2" maxlength="500"></textarea>
+        </div>
+        <div class="field">
+          <label>Publication Date</label>
+          <input type="date" id="td-pubdate" onkeydown="return tdBlockDateTyping(event)" onclick="this.showPicker && this.showPicker()" onfocus="this.showPicker && this.showPicker()">
+        </div>
+        <div class="field">
+          <label>Year <span style="color:#94a3b8;font-size:.68rem">(auto-filled from Publication Date — editable)</span></label>
+          <input type="number" id="td-year" min="1900" max="2100" step="1">
+        </div>
+        <div class="form-section-label">File</div>
+        <div class="field field-full">
+          <label>Upload File <span style="color:#94a3b8;font-size:.7rem">PDF, DOC, DOCX — max 10 MB</span></label>
+          <div id="td-current-file" style="display:none" class="file-current">
+            <span class="file-current-icon">📄</span>
+            <div class="file-current-info">
+              <div class="file-current-name" id="td-current-name">—</div>
+              <div class="file-current-meta" id="td-current-meta">—</div>
+            </div>
+            <label class="btn-act" style="font-size:.7rem" for="td-file-input">Replace File</label>
+            <button type="button" class="btn-act danger" style="font-size:.7rem" onclick="clearTransDocFile()">Remove File</button>
+          </div>
+          <div class="file-upload-area" id="td-drop-area">
+            <div style="font-size:1.8rem;margin-bottom:8px">📂</div>
+            <div class="img-upload-row">
+              <label class="btn-upload-file" for="td-file-input">Choose File</label>
+              <input type="file" id="td-file-input" accept=".pdf,.doc,.docx" style="display:none">
+            </div>
+            <div class="img-hint" style="margin-top:8px">Drag and drop or click to upload · PDF, DOC, DOCX · Max 10 MB</div>
+            <div id="td-upload-progress" style="font-size:.78rem;color:var(--blue);margin-top:6px;display:none">Uploading…</div>
+          </div>
+        </div>
+        <div class="form-section-label">Settings</div>
+        <div class="field">
+          <label>Status</label>
+          <div class="radio-row">
+            <div class="rc"><input type="radio" name="td-status" id="tds-draft" value="draft" checked><label for="tds-draft">Draft</label></div>
+            <div class="rc"><input type="radio" name="td-status" id="tds-pub" value="published"><label for="tds-pub">Published</label></div>
+            <div class="rc"><input type="radio" name="td-status" id="tds-arc" value="archived"><label for="tds-arc">Archived</label></div>
+          </div>
+        </div>
+        <div class="field">
+          <label>Download</label>
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:600" title="Published documents are always viewable. Disable download to allow online viewing only.">
+            <input type="checkbox" id="td-allow-download" style="width:auto" checked> Allow Public Download
+          </label>
+          <span style="color:#94a3b8;font-size:.68rem;display:block;margin-top:4px">Published documents are always viewable. Disable download to allow online viewing only.</span>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-cancel" id="btn-cancel-td-modal">Cancel</button>
+      <button class="btn-draft" id="btn-td-draft">Save Draft</button>
+      <button class="btn-publish" id="btn-td-pub">Publish</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ TRANSPARENCY CATEGORY MODAL ══════════════════ -->
+<div class="overlay" id="tc-modal-overlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="tc-modal-title">New Category</h3>
+      <button class="btn-close" id="btn-close-tc-modal">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="field field-full">
+          <label>Category Name <span style="color:#ef4444">*</span></label>
+          <input type="text" id="tc-name" maxlength="100">
+        </div>
+        <div class="field">
+          <label>Display Order</label>
+          <input type="number" id="tc-order" step="1">
+        </div>
+        <div class="field" style="display:flex;align-items:flex-end">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:600">
+            <input type="checkbox" id="tc-active" style="width:auto"> Active
+          </label>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-cancel" id="btn-cancel-tc-modal">Cancel</button>
+      <button class="btn-publish" id="btn-tc-save">Save</button>
     </div>
   </div>
 </div>
@@ -3277,7 +3459,7 @@ async function adminFetch(url, opts) {
 
 // ── Nav ────────────────────────────────────────────────────────────────────
 function showSection(name) {
-  ['dashboard','announcements','initiatives','forms','officials','pubservices','calendar','dirmap','dirbiz','dirorg','direm','dircats','alerts','content','settings'].forEach(s => {
+  ['dashboard','announcements','initiatives','forms','transparency','transcats','officials','pubservices','calendar','dirmap','dirbiz','dirorg','direm','dircats','alerts','content','settings'].forEach(s => {
     $('sec-'+s).style.display = s===name ? 'block' : 'none';
   });
   document.querySelectorAll('.nav-item[data-sec]').forEach(b => {
@@ -3286,6 +3468,8 @@ function showSection(name) {
   if (name==='announcements') renderList();
   if (name==='initiatives') renderInitList();
   if (name==='forms') renderFormList();
+  if (name==='transparency') renderTransDocList();
+  if (name==='transcats') renderTransCatList();
   if (name==='officials') renderOfficialList();
   if (name==='pubservices') renderPsvcList();
   if (name==='calendar') renderCalList();
@@ -3336,6 +3520,8 @@ async function loadAll() {
       if ($('sec-forms').style.display !== 'none') renderFormList();
     }
   } catch {}
+  try { await loadTransCats(); } catch {}
+  try { await loadTransDocs(); } catch {}
   try { await loadOfficials(); } catch {}
   try { await loadPsvc(); } catch {}
   try { await loadCalendarActivities(); } catch {}
@@ -4874,6 +5060,595 @@ function confirmFormDel(id, title) {
       await loadForms(); toast('Form deleted','ok');
     } catch(e){ if(e.message!=='unauthorized') toast('Delete error','err'); }
     pendingFormDelId=null;
+  };
+}
+
+// ══════════════════ TRANSPARENCY ══════════════════
+
+// TD_CATEGORIES is the active-only projection of TC.cats (Transparency
+// Categories, managed further below) — this is what the document list's
+// category tabs and the document form's Category dropdown read from.
+// Both are CMS-managed now: no hardcoded slug/label dict, no code change
+// needed to add a category.
+let TD_CATEGORIES = [];
+const TC = { cats: [], editingId: null };
+
+const ST = { docs:[], catFilter:'all', statusFilter:'all', search:'', editingId:null,
+             fileUrl:'', fileName:'', fileType:'', fileSize:0 };
+let tdOrderDirty = false;
+let tdDragSrc = null;
+
+function renderTransDocCategoryUI() {
+  const tabsEl = $('td-cat-tabs');
+  const prevFilter = ST.catFilter;
+  tabsEl.innerHTML = '<button class="tab' + (prevFilter === 'all' ? ' active' : '') + '" data-tc="all">All Categories</button>';
+  TD_CATEGORIES.forEach(c => {
+    const btn = document.createElement('button');
+    btn.className = 'tab' + (prevFilter === c.id ? ' active' : '');
+    btn.dataset.tc = c.id;
+    btn.textContent = c.name;
+    tabsEl.appendChild(btn);
+  });
+  // The active filter's own category may have just been deactivated —
+  // fall back to "All Categories" rather than pointing at a tab that no
+  // longer exists.
+  if (prevFilter !== 'all' && !TD_CATEGORIES.some(c => c.id === prevFilter)) {
+    ST.catFilter = 'all';
+    tabsEl.querySelector('.tab[data-tc="all"]').classList.add('active');
+  }
+  tabsEl.querySelectorAll('.tab').forEach(t => {
+    t.onclick = () => {
+      tabsEl.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+      t.classList.add('active');
+      ST.catFilter = t.dataset.tc;
+      renderTransDocList();
+    };
+  });
+  const sel = $('td-category');
+  const prevValue = sel.value;
+  sel.innerHTML = TD_CATEGORIES.map(c => `<option value="${c.id}">${esc(c.name)}</option>`).join('');
+  if (TD_CATEGORIES.some(c => c.id === prevValue)) sel.value = prevValue;
+}
+
+async function loadTransCats() {
+  try {
+    const r = await adminFetch('/admin/api/transparency-categories');
+    if (!r.ok) return;
+    const d = await r.json();
+    TC.cats = d.categories || [];
+    TD_CATEGORIES = TC.cats.filter(c => c.active);
+    renderTransDocCategoryUI();
+    if ($('sec-transcats').style.display !== 'none') renderTransCatList();
+  } catch {}
+}
+
+async function loadTransDocs() {
+  try {
+    const r = await adminFetch('/admin/api/transparency-documents');
+    if (!r.ok) return;
+    const d = await r.json();
+    ST.docs = d.documents || [];
+    if ($('sec-transparency').style.display !== 'none') renderTransDocList();
+  } catch {}
+}
+
+function showTdSaveBar(show) {
+  $('td-save-order-bar').classList.toggle('visible', show);
+  if (!show) tdOrderDirty = false;
+}
+
+function renderTransDocList() {
+  let items = [...ST.docs];
+  // Default: Publication Date, newest first. Display Order only breaks
+  // ties (e.g. documents sharing a date, or with no date set) — it's not
+  // the primary sort unless a future need calls for manual ordering.
+  items.sort((a, b) => (a.displayOrder ?? 9999) - (b.displayOrder ?? 9999));
+  items.sort((a, b) => (b.publicationDate || '').localeCompare(a.publicationDate || ''));
+  if (ST.catFilter !== 'all') items = items.filter(d => d.categoryId === ST.catFilter);
+  if (ST.statusFilter !== 'all') items = items.filter(d => d.status === ST.statusFilter);
+  if (ST.search) {
+    const q = ST.search.toLowerCase();
+    items = items.filter(d =>
+      (d.title||'').toLowerCase().includes(q) ||
+      (d.docNumber||'').toLowerCase().includes(q) ||
+      (d.description||'').toLowerCase().includes(q)
+    );
+  }
+  const el = $('td-list');
+  const reorderable = ST.catFilter !== 'all';
+  showTdSaveBar(false);
+  if (!items.length) {
+    el.innerHTML = `<div class="empty-state"><div class="es-icon">📄</div><h3>No documents found</h3><p>${ST.catFilter==='all'?'Click "+ New Document" to add your first Transparency document.':'No documents in this category yet.'}</p></div>`;
+    return;
+  }
+  el.innerHTML = items.map((d, i) => {
+    const ext = (d.fileType||'').toLowerCase();
+    const iconClass = 'file-type-badge ' + (ext || 'pdf');
+    const iconLabel = ext ? ext.toUpperCase() : 'PDF';
+    let fileInfo = '';
+    if (d.fileAvailable && d.fileName) {
+      fileInfo = `<div class="file-meta-row">
+        <span class="file-meta-chip">${esc(d.fileName)}</span>
+        ${ext ? '<span class="file-meta-chip">'+esc(ext.toUpperCase())+'</span>' : ''}
+        ${d.fileSize ? '<span class="file-meta-chip">'+esc(fmtFileSize(d.fileSize))+'</span>' : ''}
+      </div>`;
+    } else {
+      fileInfo = '<div class="file-missing">No file uploaded</div>';
+    }
+    const metaBits = [d.categoryName || '', d.docNumber, d.publicationDate, d.year].filter(Boolean);
+    const viewBtn = (d.fileAvailable && d.fileUrl)
+      ? `<a class="btn-act" href="/${esc(d.fileUrl)}" target="_blank" rel="noopener">View</a>`
+      : `<button class="btn-act" disabled title="No file uploaded" style="opacity:.4;cursor:not-allowed">View</button>`;
+    const pubToggle = d.status === 'archived' ? '' :
+      (d.status === 'published'
+        ? `<button class="btn-act" onclick="setTransDocStatus('${d.id}','draft')">Unpublish</button>`
+        : `<button class="btn-act" onclick="setTransDocStatus('${d.id}','published')">Publish</button>`);
+    const archiveToggle = d.status === 'archived'
+      ? `<button class="btn-act" onclick="setTransDocStatus('${d.id}','draft')">Restore</button>`
+      : `<button class="btn-act" onclick="setTransDocStatus('${d.id}','archived')">Archive</button>`;
+    return `<div class="ann-card" data-id="${d.id}">
+      ${reorderable ? '<span class="drag-handle" title="Drag to reorder">⠿</span>' : ''}
+      <span class="order-badge">${i+1}</span>
+      <div class="${iconClass}" title="${esc(iconLabel)}">${esc(iconLabel)}</div>
+      <div class="ann-body">
+        <div class="ann-meta">
+          <span class="badge badge-${d.status}">${d.status}</span>
+          <span style="font-size:.72rem;color:#94a3b8">${esc(metaBits.join(' · '))}</span>
+        </div>
+        <div class="ann-title">${esc(d.title||'(no title)')}</div>
+        <div class="ann-desc">${esc(d.description||'')}</div>
+        ${fileInfo}
+      </div>
+      <div class="ann-actions">
+        ${viewBtn}
+        <button class="btn-act" onclick="openTransDocEdit('${d.id}')">Edit</button>
+        ${pubToggle}
+        ${archiveToggle}
+        <button class="btn-act danger" onclick="confirmTransDocDel('${d.id}','${esc(d.title||'')}')">Delete</button>
+      </div>
+    </div>`;
+  }).join('');
+  if (reorderable) enableTransDocDrag(el);
+}
+
+function enableTransDocDrag(listEl) {
+  listEl.addEventListener('dragover', e => e.preventDefault());
+  listEl.addEventListener('drop', e => e.preventDefault());
+  listEl.querySelectorAll('.ann-card[data-id]').forEach(card => {
+    card.setAttribute('draggable', 'true');
+    card.addEventListener('dragstart', e => {
+      tdDragSrc = card;
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', card.dataset.id);
+      setTimeout(() => card.classList.add('dragging'), 0);
+    });
+    card.addEventListener('dragend', () => {
+      card.classList.remove('dragging');
+      listEl.querySelectorAll('.ann-card').forEach(c => c.classList.remove('drag-over-card'));
+      tdDragSrc = null;
+    });
+    card.addEventListener('dragover', e => {
+      e.preventDefault(); e.stopPropagation();
+      if (!tdDragSrc || tdDragSrc === card) return;
+      listEl.querySelectorAll('.ann-card').forEach(c => c.classList.remove('drag-over-card'));
+      card.classList.add('drag-over-card');
+    });
+    card.addEventListener('dragleave', e => {
+      if (!card.contains(e.relatedTarget)) card.classList.remove('drag-over-card');
+    });
+    card.addEventListener('drop', e => {
+      e.preventDefault(); e.stopPropagation();
+      listEl.querySelectorAll('.ann-card').forEach(c => c.classList.remove('drag-over-card'));
+      if (!tdDragSrc || tdDragSrc === card) return;
+      const allCards = [...listEl.querySelectorAll('.ann-card[data-id]')];
+      const srcIdx = allCards.indexOf(tdDragSrc);
+      const dstIdx = allCards.indexOf(card);
+      if (srcIdx < dstIdx) listEl.insertBefore(tdDragSrc, card.nextSibling);
+      else listEl.insertBefore(tdDragSrc, card);
+      [...listEl.querySelectorAll('.ann-card[data-id]')].forEach((c, idx) => {
+        const d = ST.docs.find(x => x.id === c.dataset.id);
+        if (d) d.displayOrder = idx + 1;
+      });
+      tdOrderDirty = true;
+      renderTransDocList();
+      showTdSaveBar(true);
+    });
+  });
+}
+
+async function saveTransDocOrder() {
+  const visible = ST.docs.filter(d => ST.catFilter==='all' || d.category===ST.catFilter);
+  const payload = visible.map(d => ({ id: d.id, displayOrder: d.displayOrder }));
+  try {
+    const r = await adminFetch('/admin/api/transparency-documents/reorder', {
+      method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)
+    });
+    if (!r.ok) { toast('Failed to save order', 'err'); return; }
+    tdOrderDirty = false;
+    showTdSaveBar(false);
+    toast('Display order saved', 'ok');
+  } catch(e) { if(e.message !== 'unauthorized') toast('Save error', 'err'); }
+}
+
+$('td-search').addEventListener('input', e => { ST.search=e.target.value; renderTransDocList(); });
+$('td-status-filter').addEventListener('change', e => { ST.statusFilter=e.target.value; renderTransDocList(); });
+$('btn-new-transdoc').onclick = openTransDocNew;
+
+function updateTdPubdateHasValue() {
+  $('td-pubdate').classList.toggle('td-has-value', !!$('td-pubdate').value);
+}
+
+// Allow Public Download has no effect until the document is Published, so
+// it's disabled (not hidden — the saved choice is preserved) whenever
+// Draft is selected.
+function updateTdAllowDownloadAvailability() {
+  const isDraft = document.querySelector('input[name="td-status"]:checked')?.value === 'draft';
+  $('td-allow-download').disabled = isDraft;
+}
+document.querySelectorAll('input[name="td-status"]').forEach(r => r.addEventListener('change', updateTdAllowDownloadAvailability));
+
+function resetTransDocModal() {
+  ST.editingId=null; ST.fileUrl=''; ST.fileName=''; ST.fileType=''; ST.fileSize=0;
+  $('td-title').value=''; $('td-desc').value=''; $('td-docnum').value='';
+  $('td-pubdate').value=''; $('td-year').value='';
+  updateTdPubdateHasValue();
+  $('td-category').value = ST.catFilter !== 'all' ? ST.catFilter : (TD_CATEGORIES[0]?.id || '');
+  $('tds-draft').checked=true;
+  $('td-allow-download').checked=true;
+  updateTdAllowDownloadAvailability();
+  $('td-current-file').style.display='none';
+  $('td-current-name').textContent='—';
+  $('td-current-meta').textContent='—';
+  $('td-upload-progress').style.display='none';
+  $('td-drop-area').style.display='block';
+  $('td-file-input').value='';
+}
+
+// Publication Date is picker-only: block every key except navigation
+// (Tab/Shift) and modifier combos (Ctrl/Cmd+C etc.), so the field can't be
+// typed into but stays a normal, fully-interactive date input — which is
+// what keeps the native calendar icon visible and clickable. `readonly`
+// looks simpler but Chrome hides the picker icon entirely on a readonly
+// date input, which is the opposite of what we want here.
+function tdBlockDateTyping(e) {
+  if (e.key === 'Tab' || e.key === 'Shift' || e.ctrlKey || e.metaKey || e.altKey) return true;
+  e.preventDefault();
+  return false;
+}
+
+// Publication Date drives Year — auto-fill on selection, but leave the
+// field open for the admin to correct manually afterward.
+$('td-pubdate').addEventListener('change', e => {
+  const val = e.target.value;
+  if (val) $('td-year').value = val.slice(0, 4);
+  updateTdPubdateHasValue();
+});
+
+function showTransDocFile(fileName, fileType, fileSize) {
+  ST.fileName=fileName; ST.fileType=fileType; ST.fileSize=fileSize;
+  $('td-current-name').textContent=fileName||'—';
+  $('td-current-meta').textContent=[(fileType||'').toUpperCase(), fmtFileSize(fileSize)].filter(Boolean).join(' · ');
+  $('td-current-file').style.display='flex';
+  $('td-drop-area').style.display='none';
+}
+
+function clearTransDocFile() {
+  ST.fileUrl=''; ST.fileName=''; ST.fileType=''; ST.fileSize=0;
+  $('td-current-file').style.display='none';
+  $('td-drop-area').style.display='block';
+  $('td-file-input').value='';
+}
+
+function openTransDocNew() {
+  resetTransDocModal();
+  $('td-modal-title').textContent='New Document';
+  $('td-modal-overlay').classList.add('open');
+  $('td-title').focus();
+}
+
+function openTransDocEdit(id) {
+  const d = ST.docs.find(x=>x.id===id); if(!d) return;
+  resetTransDocModal();
+  ST.editingId=id; ST.fileUrl=d.fileUrl||''; ST.fileName=d.fileName||'';
+  ST.fileType=d.fileType||''; ST.fileSize=d.fileSize||0;
+  $('td-modal-title').textContent='Edit Document';
+  const catSel = $('td-category');
+  if (d.categoryId && !TD_CATEGORIES.some(c => c.id === d.categoryId)) {
+    // Category was deactivated after this document was filed under it —
+    // show its real (inactive) category instead of silently falling back
+    // to whichever active option happens to be first.
+    const opt = document.createElement('option');
+    opt.value = d.categoryId;
+    opt.textContent = (d.categoryName || 'Inactive category') + ' (inactive)';
+    catSel.appendChild(opt);
+  }
+  catSel.value = d.categoryId || (TD_CATEGORIES[0]?.id || '');
+  $('td-title').value=d.title||'';
+  $('td-docnum').value=d.docNumber||'';
+  $('td-desc').value=d.description||'';
+  $('td-pubdate').value=d.publicationDate||'';
+  updateTdPubdateHasValue();
+  $('td-year').value=d.year||'';
+  const sEl=document.getElementById('tds-'+({draft:'draft',published:'pub',archived:'arc'}[d.status]||'draft'));
+  if(sEl) sEl.checked=true; else $('tds-draft').checked=true;
+  $('td-allow-download').checked = d.allowDownload !== false;
+  updateTdAllowDownloadAvailability();
+  if(d.fileAvailable && d.fileName) showTransDocFile(d.fileName, d.fileType, d.fileSize);
+  $('td-modal-overlay').classList.add('open');
+  $('td-title').focus();
+}
+
+function closeTransDocModal() { $('td-modal-overlay').classList.remove('open'); }
+$('btn-close-td-modal').onclick=closeTransDocModal;
+$('btn-cancel-td-modal').onclick=closeTransDocModal;
+$('td-modal-overlay').onclick=e=>{ if(e.target===$('td-modal-overlay')) closeTransDocModal(); };
+
+const TD_ALLOWED_EXT = ['pdf', 'doc', 'docx'];
+const TD_MAX_FILE_BYTES = 10 * 1024 * 1024;
+
+function validateTransDocFile(file) {
+  const ext = (file.name.split('.').pop() || '').toLowerCase();
+  if (!TD_ALLOWED_EXT.includes(ext)) {
+    return 'Invalid file type. Only PDF, DOC, and DOCX are allowed.';
+  }
+  if (file.size > TD_MAX_FILE_BYTES) {
+    return 'File too large. Maximum size is 10 MB.';
+  }
+  return null;
+}
+
+async function doTransDocFileUpload(file) {
+  const validationError = validateTransDocFile(file);
+  if (validationError) { toast(validationError, 'err'); return; }
+  const prog=$('td-upload-progress');
+  prog.style.display='block'; prog.textContent='Uploading…';
+  const fd=new FormData(); fd.append('file',file);
+  try {
+    const r=await adminFetch('/admin/api/upload/transparency-file',{method:'POST',body:fd});
+    const d=await r.json();
+    if(!r.ok){toast(d.error||'Upload failed','err');prog.style.display='none';return;}
+    ST.fileUrl=d.url;
+    showTransDocFile(d.fileName, d.fileType, d.fileSize);
+    prog.style.display='none';
+    toast('File uploaded','ok');
+  } catch(e){ prog.style.display='none'; if(e.message!=='unauthorized') toast('Upload error','err'); }
+}
+
+$('td-file-input').onchange=async e=>{ const f=e.target.files[0]; if(!f) return; await doTransDocFileUpload(f); e.target.value=''; };
+
+const tdDropArea=$('td-drop-area');
+tdDropArea.addEventListener('dragover',e=>{e.preventDefault();tdDropArea.classList.add('drag-over');});
+tdDropArea.addEventListener('dragleave',()=>tdDropArea.classList.remove('drag-over'));
+tdDropArea.addEventListener('drop',async e=>{
+  e.preventDefault();tdDropArea.classList.remove('drag-over');
+  const f=e.dataTransfer.files[0]; if(!f) return;
+  await doTransDocFileUpload(f);
+});
+
+async function saveTransDocRecord(forceStatus) {
+  const title=$('td-title').value.trim();
+  if(!title){toast('Document title is required','err');$('td-title').focus();return;}
+  const categoryId=$('td-category').value;
+  if(!TC.cats.some(c=>c.id===categoryId)){toast('Please choose a category','err');return;}
+  const status=forceStatus||document.querySelector('input[name="td-status"]:checked')?.value||'draft';
+  if(status==='published' && !ST.fileUrl){toast('Please upload a document file before publishing.','err');return;}
+  const body={
+    categoryId, title,
+    docNumber:$('td-docnum').value.trim(),
+    description:$('td-desc').value.trim(),
+    publicationDate:$('td-pubdate').value||null,
+    year:$('td-year').value?parseInt($('td-year').value,10):null,
+    fileUrl:ST.fileUrl, fileName:ST.fileName, fileType:ST.fileType, fileSize:ST.fileSize,
+    status,
+    allowDownload: $('td-allow-download').checked,
+  };
+  const url=ST.editingId?`/admin/api/transparency-documents/${ST.editingId}`:'/admin/api/transparency-documents';
+  const method=ST.editingId?'PUT':'POST';
+  try {
+    const r=await adminFetch(url,{method,headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const d=await r.json();
+    if(!r.ok){toast(d.error||'Save failed','err');return;}
+    closeTransDocModal(); await loadTransDocs();
+    toast(ST.editingId?'Document updated':`Document ${status==='published'?'published':'saved as draft'}`,'ok');
+  } catch(e){ if(e.message!=='unauthorized'&&e.message!=='password_change_required') toast('Save error','err'); }
+}
+
+$('btn-td-draft').onclick=()=>saveTransDocRecord('draft');
+$('btn-td-pub').onclick=()=>saveTransDocRecord('published');
+
+async function setTransDocStatus(id, status) {
+  try {
+    const r=await adminFetch(`/admin/api/transparency-documents/${id}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({status})});
+    if(!r.ok){toast('Update failed','err');return;}
+    await loadTransDocs();
+    toast('Status updated to ' + status, 'ok');
+  } catch(e){ if(e.message!=='unauthorized') toast('Update error','err'); }
+}
+
+let pendingTransDocDelId=null;
+function confirmTransDocDel(id, title) {
+  pendingTransDocDelId=id;
+  $('confirm-title').textContent='Delete document?';
+  $('confirm-msg').textContent=`"${title}" and its uploaded file will be permanently deleted. This cannot be undone.`;
+  $('confirm-overlay').classList.add('open');
+  $('confirm-yes').onclick=async()=>{
+    if(!pendingTransDocDelId) return;
+    $('confirm-overlay').classList.remove('open');
+    try {
+      const r=await adminFetch(`/admin/api/transparency-documents/${pendingTransDocDelId}`,{method:'DELETE'});
+      if(!r.ok){toast('Delete failed','err');return;}
+      await loadTransDocs(); toast('Document deleted','ok');
+    } catch(e){ if(e.message!=='unauthorized') toast('Delete error','err'); }
+    pendingTransDocDelId=null;
+  };
+}
+
+// ══════════════════ TRANSPARENCY CATEGORIES ══════════════════
+
+function showTcSaveBar(show) {
+  $('tc-save-order-bar').classList.toggle('visible', show);
+}
+
+let tcOrderDirty = false;
+let tcDragSrc = null;
+
+function renderTransCatList() {
+  const items = [...TC.cats].sort((a, b) => (a.displayOrder ?? 9999) - (b.displayOrder ?? 9999));
+  const el = $('tc-list');
+  showTcSaveBar(false);
+  if (!items.length) {
+    el.innerHTML = '<div class="empty-state"><div class="es-icon"></div><h3>No categories yet</h3><p>Click "+ New Category" to add your first Transparency category.</p></div>';
+    return;
+  }
+  el.innerHTML = items.map((c, i) => `<div class="ann-card" data-id="${c.id}">
+      <span class="drag-handle" title="Drag to reorder">⠿</span>
+      <span class="order-badge">${i + 1}</span>
+      <div class="ann-body">
+        <div class="ann-meta">
+          <span class="badge badge-${c.active ? 'published' : 'hidden'}">${c.active ? 'active' : 'inactive'}</span>
+        </div>
+        <div class="ann-title">${esc(c.name)}</div>
+      </div>
+      <div class="ann-actions">
+        <button class="btn-act" onclick="openTransCatEdit('${c.id}')">Edit</button>
+        <button class="btn-act" onclick="toggleTransCatActive('${c.id}','${c.active}')">${c.active ? 'Deactivate' : 'Activate'}</button>
+        <button class="btn-act danger" onclick="confirmTransCatDel('${c.id}','${esc(c.name)}')">Delete</button>
+      </div>
+    </div>`).join('');
+  enableTransCatDrag(el);
+}
+
+function enableTransCatDrag(listEl) {
+  listEl.addEventListener('dragover', e => e.preventDefault());
+  listEl.addEventListener('drop', e => e.preventDefault());
+  listEl.querySelectorAll('.ann-card[data-id]').forEach(card => {
+    card.setAttribute('draggable', 'true');
+    card.addEventListener('dragstart', e => {
+      tcDragSrc = card;
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', card.dataset.id);
+      setTimeout(() => card.classList.add('dragging'), 0);
+    });
+    card.addEventListener('dragend', () => {
+      card.classList.remove('dragging');
+      listEl.querySelectorAll('.ann-card').forEach(c => c.classList.remove('drag-over-card'));
+      tcDragSrc = null;
+    });
+    card.addEventListener('dragover', e => {
+      e.preventDefault(); e.stopPropagation();
+      if (!tcDragSrc || tcDragSrc === card) return;
+      listEl.querySelectorAll('.ann-card').forEach(c => c.classList.remove('drag-over-card'));
+      card.classList.add('drag-over-card');
+    });
+    card.addEventListener('dragleave', e => {
+      if (!card.contains(e.relatedTarget)) card.classList.remove('drag-over-card');
+    });
+    card.addEventListener('drop', e => {
+      e.preventDefault(); e.stopPropagation();
+      listEl.querySelectorAll('.ann-card').forEach(c => c.classList.remove('drag-over-card'));
+      if (!tcDragSrc || tcDragSrc === card) return;
+      const allCards = [...listEl.querySelectorAll('.ann-card[data-id]')];
+      const srcIdx = allCards.indexOf(tcDragSrc);
+      const dstIdx = allCards.indexOf(card);
+      if (srcIdx < dstIdx) listEl.insertBefore(tcDragSrc, card.nextSibling);
+      else listEl.insertBefore(tcDragSrc, card);
+      [...listEl.querySelectorAll('.ann-card[data-id]')].forEach((c, idx) => {
+        const cat = TC.cats.find(x => x.id === c.dataset.id);
+        if (cat) cat.displayOrder = idx + 1;
+      });
+      tcOrderDirty = true;
+      renderTransCatList();
+      showTcSaveBar(true);
+    });
+  });
+}
+
+async function saveTransCatOrder() {
+  const payload = TC.cats.map(c => ({ id: c.id, displayOrder: c.displayOrder }));
+  try {
+    const r = await adminFetch('/admin/api/transparency-categories/reorder', {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+    });
+    if (!r.ok) { toast('Failed to save order', 'err'); return; }
+    tcOrderDirty = false;
+    showTcSaveBar(false);
+    toast('Display order saved', 'ok');
+  } catch (e) { if (e.message !== 'unauthorized') toast('Save error', 'err'); }
+}
+
+function openTransCatNew() {
+  $('tc-modal-title').textContent = 'New Category';
+  $('tc-name').value = '';
+  $('tc-order').value = String((TC.cats.length + 1) * 10);
+  $('tc-active').checked = true;
+  $('tc-modal-overlay').dataset.editId = '';
+  $('tc-modal-overlay').classList.add('open');
+  $('tc-name').focus();
+}
+$('btn-new-transcat').onclick = openTransCatNew;
+
+function openTransCatEdit(id) {
+  const c = TC.cats.find(x => x.id === id); if (!c) return;
+  $('tc-modal-title').textContent = 'Edit Category';
+  $('tc-name').value = c.name || '';
+  $('tc-order').value = c.displayOrder || 0;
+  $('tc-active').checked = !!c.active;
+  $('tc-modal-overlay').dataset.editId = id;
+  $('tc-modal-overlay').classList.add('open');
+  $('tc-name').focus();
+}
+
+function closeTransCatModal() { $('tc-modal-overlay').classList.remove('open'); }
+$('btn-close-tc-modal').onclick = closeTransCatModal;
+$('btn-cancel-tc-modal').onclick = closeTransCatModal;
+$('tc-modal-overlay').onclick = e => { if (e.target === $('tc-modal-overlay')) closeTransCatModal(); };
+
+async function saveTransCatForm() {
+  const name = $('tc-name').value.trim();
+  if (!name) { toast('Category name is required', 'err'); $('tc-name').focus(); return; }
+  const editId = $('tc-modal-overlay').dataset.editId;
+  const body = {
+    name, displayOrder: parseInt($('tc-order').value, 10) || 0, active: $('tc-active').checked
+  };
+  const url = editId ? `/admin/api/transparency-categories/${editId}` : '/admin/api/transparency-categories';
+  const method = editId ? 'PUT' : 'POST';
+  try {
+    const r = await adminFetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    const d = await r.json();
+    if (!r.ok) { toast(d.error || 'Save failed', 'err'); return; }
+    closeTransCatModal(); await loadTransCats();
+    toast(editId ? 'Category updated' : 'Category added', 'ok');
+  } catch (e) { if (e.message !== 'unauthorized') toast('Save error', 'err'); }
+}
+$('btn-tc-save').onclick = saveTransCatForm;
+
+async function toggleTransCatActive(id, curStr) {
+  const cur = curStr === 'true';
+  try {
+    const r = await adminFetch(`/admin/api/transparency-categories/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ active: !cur }) });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok) { toast(d.error || 'Update failed', 'err'); return; }
+    await loadTransCats();
+    toast(cur ? 'Category deactivated' : 'Category activated', 'ok');
+  } catch (e) { if (e.message !== 'unauthorized') toast('Update error', 'err'); }
+}
+
+let pendingTransCatDelId = null;
+function confirmTransCatDel(id, name) {
+  pendingTransCatDelId = id;
+  $('confirm-title').textContent = 'Delete category?';
+  $('confirm-msg').textContent = `"${name}" will be permanently deleted. This cannot be undone. (If it still has documents, move or remove them first — or deactivate it instead.)`;
+  $('confirm-overlay').classList.add('open');
+  $('confirm-yes').onclick = async () => {
+    if (!pendingTransCatDelId) return;
+    $('confirm-overlay').classList.remove('open');
+    try {
+      const r = await adminFetch(`/admin/api/transparency-categories/${pendingTransCatDelId}`, { method: 'DELETE' });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) { toast(d.error || 'Delete failed', 'err'); return; }
+      await loadTransCats(); toast('Category deleted', 'ok');
+    } catch (e) { if (e.message !== 'unauthorized') toast('Delete error', 'err'); }
+    pendingTransCatDelId = null;
   };
 }
 
