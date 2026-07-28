@@ -21727,16 +21727,18 @@ body.dir2-modal-lock{overflow:hidden}
     align-items: flex-start;
   }
   .nav-dropdown-toggle {
-    /* !important needed: several earlier .nav-link{width:100%!important}
-       rules in this file (shared by every nav link, including this one)
-       would otherwise force full width regardless of this rule's own
-       specificity or source position. */
+    /* !important needed on width AND white-space: several earlier
+       .nav-link{width:100%!important; white-space:normal!important} rules
+       in this file (shared by every nav link, including this one) would
+       otherwise win regardless of this rule's specificity or source
+       position — non-important declarations always lose to !important
+       ones, even when declared later. */
     width: calc((100% - 5px) / 2) !important;
     justify-content: space-between;
     /* "Community Updates" + the caret icon sit right at this column's
        width — without this, the label wraps to two lines and grows
        taller than every other nav button. */
-    white-space: nowrap;
+    white-space: nowrap !important;
   }
   .nav-dropdown-menu {
     position: static;
