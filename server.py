@@ -1641,6 +1641,28 @@ def _inject_officials_page(doc, settings, officials):
         _set_inner_html(cg[0], ''.join(cards))
 
 
+def _logo_cache_bust():
+    """A short, URL-safe token that changes whenever the active logo source
+    changes (CMS override or the shipped file's mtime).
+
+    /favicon.png and /share-card.png are served with a 24h Cache-Control, so a
+    CDN edge or a third-party crawler (Facebook, etc.) that already cached the
+    old image at the bare URL has no reason to refetch until that expires --
+    appending this as a ?v= query string makes a logo change produce a new
+    URL, so stale caches at the old one simply stop mattering instead of
+    requiring a manual purge everywhere the image was ever cached.
+    """
+    try:
+        key, _ = _share_logo_source()
+    except Exception:
+        key = None
+    if key is None:
+        return '0'
+    if isinstance(key, float):
+        return str(int(key))
+    return hashlib.md5(str(key).encode()).hexdigest()[:10]
+
+
 def _inject_social_meta(doc, settings, shipped, logo, title_parts):
     """Bring og:/twitter: tags in line with the configured barangay.
 
@@ -1681,9 +1703,13 @@ def _inject_social_meta(doc, settings, shipped, logo, title_parts):
                 content = content.replace(old, new)
             el.set('content', content)
 
-    social_img = absolute('/share-card.png') if logo else ''
+    # /share-card.png resolves the CMS-or-shipped logo itself (_share_logo_source),
+    # so this applies regardless of whether `logo` (a CMS override) is set --
+    # otherwise the shipped-default case (the common one) would keep pointing at
+    # the bare, cacheable URL and never benefit from the cache-bust below.
+    social_img = absolute('/share-card.png?v=' + _logo_cache_bust())
     for el in doc.xpath('//meta[@property="og:image" or @name="twitter:image"]'):
-        el.set('content', social_img or absolute(el.get('content')))
+        el.set('content', social_img)
 
     def _ensure_meta(attr, name, value):
         existing = doc.xpath('//meta[@%s="%s"]' % (attr, name))
@@ -1758,7 +1784,7 @@ def _inject_page(html, settings, officials):
     # apple-touch-icon takes the full logo — iOS only fetches it on add-to-home,
     # not every page load, so its size doesn't matter and higher res is better.
     for el in doc.xpath('//link[@rel="icon"]'):
-        el.set('href', '/favicon.png')
+        el.set('href', '/favicon.png?v=' + _logo_cache_bust())
     if logo:
         for el in doc.xpath('//link[@rel="apple-touch-icon"]'):
             el.set('href', logo)
