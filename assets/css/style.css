@@ -20249,7 +20249,12 @@ body[data-page="index.html"] .image-card .proj-card-banner-img.bhob-banner img {
   width: 100% !important;
   height: 100% !important;
   max-height: none !important;
-  object-fit: cover !important;
+  /* contain, not cover: uploaded initiative images are often text-bearing
+     infographics/posters (title, icons, captions run to the edges), and any
+     aspect-ratio mismatch with this 16:9 banner would crop into that content.
+     The banner background (white, from .image-card) fills the letterbox gap
+     for images that don't match the container ratio. */
+  object-fit: contain !important;
   object-position: center !important;
   display: block !important;
   border-radius: 0 !important;
