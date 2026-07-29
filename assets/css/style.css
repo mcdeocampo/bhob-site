@@ -19663,9 +19663,12 @@ body[data-page="index.html"] .opc-features {
 }
 
 /* Full-width banner at all viewports — negative margins cancel card's fluid padding;
-   card overflow:hidden + border-radius clips the corners cleanly */
+   card overflow:hidden + border-radius clips the corners cleanly.
+   Announcements' .ann-img-wrap shares this rule (not a separate copy) so its
+   image container always tracks whatever Community Initiatives does. */
 body[data-page="index.html"] .proj-card-banner,
-body[data-page="projects.html"] .proj-card-banner {
+body[data-page="projects.html"] .proj-card-banner,
+body[data-page="announcements.html"] .ann-img-wrap {
   margin-top: calc(-1 * var(--fluid-card-pad, 22px)) !important;
   margin-left: calc(-1 * var(--fluid-card-pad, 22px)) !important;
   margin-right: calc(-1 * var(--fluid-card-pad, 22px)) !important;
@@ -19899,28 +19902,12 @@ body[data-page="announcements.html"] .image-card img {
   display: block !important;
 }
 
-/* ── Announcement card image wrapper — inset so all 4 corners are rounded ── */
-.ann-img-wrap {
-  overflow: hidden;
-  margin: 10px 10px 0;
-  line-height: 0;
-  flex-shrink: 0;
-  border-radius: 20px;
-}
-.ann-img-wrap img {
-  width: 100%;
-  height: 185px;
-  object-fit: cover;
-  object-position: center;
-  display: block;
-  border-radius: 0;
-}
-@media (max-width: 768px) {
-  .ann-img-wrap img { height: 160px; }
-}
-@media (max-width: 480px) {
-  .ann-img-wrap img { height: 140px; }
-}
+/* Announcements' image wrapper (.ann-img-wrap) now reuses Community
+   Initiatives' banner rules directly (see the shared selectors further
+   down: the full-bleed base rule above, "uploaded image quality
+   refinement", and "desktop image inset") instead of a parallel,
+   independently-tuned copy -- that duplication was the root cause of the
+   two sections drifting out of sync over several rounds of fixes. */
 
 /* ── Initiative banner — inset so all 4 corners are rounded ── */
 .bhob-banner {
@@ -20036,36 +20023,13 @@ body[data-page="announcements.html"] .image-card img {
 
 /* =====================================================================
    Targeted fix: rounded public card image edges only
-   Scope: Announcements and Community Initiatives public cards.
+   Scope: Community Initiatives public cards (Announcements' .ann-img-wrap
+   shares these same rules via the selectors below and the "uploaded image
+   quality refinement" / "desktop image inset" rules further down, rather
+   than keeping its own copy -- see the note near .ann-img-wrap's old base
+   rule for why).
    Do not use these rules for admin panels, downloads, navigation, or other sections.
    ===================================================================== */
-
-/* Announcements page: uploaded/default announcement image wrapper */
-body[data-page="announcements.html"] .image-card .ann-img-wrap {
-  border-radius: 24px !important;
-  overflow: hidden !important;
-  -webkit-mask-image: -webkit-radial-gradient(white, black);
-  line-height: 0 !important;
-}
-
-body[data-page="announcements.html"] .image-card .ann-img-wrap img {
-  border-radius: 24px !important;
-  overflow: hidden !important;
-  display: block !important;
-  width: 100% !important;
-  height: 185px !important;
-  object-fit: cover !important;
-  object-position: center !important;
-}
-
-/* Keep any card overlay from visually squaring the image area */
-body[data-page="announcements.html"] .image-card::after {
-  border-radius: 24px !important;
-  left: 10px !important;
-  right: 10px !important;
-  width: auto !important;
-  overflow: hidden !important;
-}
 
 /* Community Initiatives page: default/generated and uploaded header image blocks */
 body[data-page="projects.html"] .image-card .bhob-banner,
@@ -20109,18 +20073,6 @@ body[data-page="index.html"] .image-card .ict-banner img {
   display: block !important;
   object-fit: cover !important;
   object-position: center !important;
-}
-
-@media (max-width: 768px) {
-  body[data-page="announcements.html"] .image-card .ann-img-wrap img {
-    height: 160px !important;
-  }
-}
-
-@media (max-width: 480px) {
-  body[data-page="announcements.html"] .image-card .ann-img-wrap img {
-    height: 140px !important;
-  }
 }
 
 /* =====================================================================
@@ -20181,74 +20133,16 @@ body[data-page="index.html"] .image-card .prog-banner .ict-banner-label span {
   white-space: normal !important;
 }
 /* =====================================================================
-   Targeted fix: Announcement card image spacing refinement only
-   Scope: public Announcements cards.
-   Keeps existing card design, rounded corners, content, backend, and admin unchanged.
-   ===================================================================== */
-/* Matches the Community Initiatives banner's actual behavior (see
-   ".proj-card-banner" full-bleed rule + the later "desktop image inset"
-   override): flush with the card edges on mobile (<=560px), a small
-   rounded inset on tablet/desktop (>=561px) -- not flush at every size. */
-body[data-page="announcements.html"] .image-card .ann-img-wrap {
-  padding: 0 !important;
-  /* Negative margin cancels .image-card's own --fluid-card-pad so the photo
-     reaches the card's true edge (flush) below 561px -- a plain margin:0
-     would only remove the wrapper's own margin, not the ambient card
-     padding it still sits inside of. */
-  margin: calc(-1 * var(--fluid-card-pad, 22px)) calc(-1 * var(--fluid-card-pad, 22px)) 0 !important;
-  width: calc(100% + 2 * var(--fluid-card-pad, 22px)) !important;
-  /* Rounding lives on the wrapper itself (not just the parent .image-card's
-     overflow:hidden clip) because iOS/WebKit doesn't reliably clip a flush
-     child image to a rounded parent -- the -webkit-mask-image trick forces
-     it to, the same fix Community Initiatives already relies on for its
-     own banner. */
-  border-radius: 22px !important;
-  overflow: hidden !important;
-  -webkit-mask-image: -webkit-radial-gradient(white, black);
-  line-height: 0 !important;
-  box-sizing: border-box !important;
-}
-
-body[data-page="announcements.html"] .image-card .ann-img-wrap img {
-  width: 100% !important;
-  height: 185px !important;
-  object-fit: cover !important;
-  object-position: center !important;
-  display: block !important;
-  border-radius: 0 !important;
-}
-
-@media (min-width: 561px) {
-  body[data-page="announcements.html"] .image-card .ann-img-wrap {
-    margin: 12px 12px 0 !important;
-    width: calc(100% - 24px) !important;
-    border-radius: 22px !important;
-  }
-
-  body[data-page="announcements.html"] .image-card .ann-img-wrap img {
-    border-radius: 0 !important;
-  }
-}
-
-@media (max-width: 768px) {
-  body[data-page="announcements.html"] .image-card .ann-img-wrap img {
-    height: 160px !important;
-  }
-}
-
-@media (max-width: 480px) {
-  body[data-page="announcements.html"] .image-card .ann-img-wrap img {
-    height: 140px !important;
-  }
-}
-
-/* =====================================================================
    Targeted fix: Community Initiatives uploaded image quality refinement
-   Scope: public Community Initiatives cards and Home preview cards only.
+   Scope: public Community Initiatives cards and Home preview cards --
+   Announcements' .ann-img-wrap shares this rule too (see the note by its
+   old base rule above) so both sections' image containers are driven by
+   one declaration instead of two hand-kept-in-sync copies.
    Keeps card layout, rounded corners, admin, data, downloads, and routes unchanged.
    ===================================================================== */
 body[data-page="projects.html"] .image-card .proj-card-banner-img.bhob-banner,
-body[data-page="index.html"] .image-card .proj-card-banner-img.bhob-banner {
+body[data-page="index.html"] .image-card .proj-card-banner-img.bhob-banner,
+body[data-page="announcements.html"] .image-card .ann-img-wrap {
   border-radius: 22px !important;
   overflow: hidden !important;
   background: transparent !important;
@@ -20258,10 +20152,17 @@ body[data-page="index.html"] .image-card .proj-card-banner-img.bhob-banner {
   box-sizing: border-box !important;
   -webkit-mask-image: none !important;
   mask-image: none !important;
+  /* Fixed height (not aspect-ratio, not a per-breakpoint value) is what
+     keeps every card the same height regardless of what size photo an
+     admin uploads -- this is the actual value both sections render at;
+     making it explicit here instead of leaving it to the legacy unscoped
+     .bhob-banner rule further up. */
+  height: 200px !important;
 }
 
 body[data-page="projects.html"] .image-card .proj-card-banner-img.bhob-banner img,
-body[data-page="index.html"] .image-card .proj-card-banner-img.bhob-banner img {
+body[data-page="index.html"] .image-card .proj-card-banner-img.bhob-banner img,
+body[data-page="announcements.html"] .image-card .ann-img-wrap img {
   width: 100% !important;
   height: 100% !important;
   max-height: none !important;
@@ -20587,16 +20488,20 @@ body[data-page="contact.html"] .contact-card-modern .contact-social-featured {
   min-width: 0 !important;
 }
 
-/* ── Community Initiatives: desktop image inset (overrides full-bleed negative margins) ── */
+/* ── Community Initiatives: desktop image inset (overrides full-bleed negative margins) ──
+   Announcements' .ann-img-wrap shares this override too, for the same reason
+   noted at the other two rules it's added to. */
 @media (min-width: 561px) {
   body[data-page="projects.html"] .image-card .bhob-banner,
-  body[data-page="index.html"] .image-card .bhob-banner {
+  body[data-page="index.html"] .image-card .bhob-banner,
+  body[data-page="announcements.html"] .ann-img-wrap {
     margin: 12px 12px 0 !important;
     width: calc(100% - 24px) !important;
     border-radius: 20px !important;
   }
   body[data-page="projects.html"] .image-card .bhob-banner img,
-  body[data-page="index.html"] .image-card .bhob-banner img {
+  body[data-page="index.html"] .image-card .bhob-banner img,
+  body[data-page="announcements.html"] .ann-img-wrap img {
     border-radius: 20px !important;
   }
 }
