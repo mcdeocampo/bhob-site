@@ -20197,8 +20197,14 @@ body[data-page="announcements.html"] .image-card .ann-img-wrap {
      padding it still sits inside of. */
   margin: calc(-1 * var(--fluid-card-pad, 22px)) calc(-1 * var(--fluid-card-pad, 22px)) 0 !important;
   width: calc(100% + 2 * var(--fluid-card-pad, 22px)) !important;
-  border-radius: 0 !important;
+  /* Rounding lives on the wrapper itself (not just the parent .image-card's
+     overflow:hidden clip) because iOS/WebKit doesn't reliably clip a flush
+     child image to a rounded parent -- the -webkit-mask-image trick forces
+     it to, the same fix Community Initiatives already relies on for its
+     own banner. */
+  border-radius: 22px !important;
   overflow: hidden !important;
+  -webkit-mask-image: -webkit-radial-gradient(white, black);
   line-height: 0 !important;
   box-sizing: border-box !important;
 }
