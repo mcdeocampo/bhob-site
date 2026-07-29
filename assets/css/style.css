@@ -21724,13 +21724,14 @@ body.dir2-modal-lock{overflow:hidden}
    at every width in range, rather than hunting down and editing each of
    those older rules individually. */
 @media (max-width: 1280px) {
-  /* Plain .nav-menu plus every higher-specificity "open" form used
-     elsewhere in this file (.nav-menu.open, .nav-menu.active,
-     body.nav-open .nav-menu) — several earlier rules set display:grid
-     on those exact compound selectors, which outrank a plain .nav-menu
-     selector on specificity alone regardless of !important or source
-     order. Matching the same selectors is the only way to reliably win. */
-  .nav-menu,
+  /* Only the "open" forms — .nav-menu.open, .nav-menu.active,
+     body.nav-open .nav-menu — not the bare .nav-menu selector: the
+     closed state's own display:none (elsewhere in this file) must keep
+     controlling visibility. Several earlier rules set display:grid on
+     these exact compound selectors for the open state, which outranks a
+     plain .nav-menu selector on specificity alone regardless of
+     !important or source order — matching the same selectors is the
+     only way to reliably win for the open state specifically. */
   .nav-menu.open,
   .nav-menu.active,
   body.nav-open .nav-menu {
