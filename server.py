@@ -4231,11 +4231,11 @@ def share_card():
 
 
 # ── Favicon ──────────────────────────────────────────────────────────────────
-# The logo is a ~230KB, 427x440 image. Pointing the favicon <link>s straight at
-# it meant every page load fetched a quarter-megabyte file to draw a 16px icon.
-# This serves a 32x32 PNG resized from the same source, following the CMS logo
-# via _share_logo_source (so it still updates when the logo is changed) and
-# falling back to the shipped file. Cached against the logo key, like the card.
+# Pointing the favicon <link>s straight at the full logo file meant every page
+# load fetched a few hundred KB to draw a 16px icon. This serves a 32x32 PNG
+# resized from the same source, following the CMS logo via _share_logo_source
+# (so it still updates when the logo is changed) and falling back to the
+# shipped file. Cached against the logo key, like the card.
 _favicon_cache = {'key': None, 'png': None}
 
 
@@ -4249,11 +4249,15 @@ def _build_favicon(logo_src, size=32):
     else:
         seal = Image.open(logo_src).convert('RGBA')
 
-    # Fit the seal into a transparent square, preserving aspect ratio.
-    scale = min(size / seal.width, size / seal.height)
+    # White ground, matching _build_share_card: at 16-32px the seal's own
+    # soft-fading edge has nothing to sit on, so it loses contrast against
+    # dark browser chrome. A small pad keeps the ring from touching the edge.
+    pad = max(1, round(size * 0.06))
+    inner = size - pad * 2
+    scale = min(inner / seal.width, inner / seal.height)
     seal = seal.resize((max(1, round(seal.width * scale)),
                         max(1, round(seal.height * scale))), Image.LANCZOS)
-    icon = Image.new('RGBA', (size, size), (0, 0, 0, 0))
+    icon = Image.new('RGBA', (size, size), (255, 255, 255, 255))
     icon.paste(seal, ((size - seal.width) // 2, (size - seal.height) // 2), seal)
 
     buf = io.BytesIO()
