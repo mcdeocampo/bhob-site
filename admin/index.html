@@ -105,9 +105,14 @@ a{text-decoration:none;color:inherit}
 
 /* Hide the native mm/dd/yyyy segment placeholder until a real date is
    picked — the calendar icon (::-webkit-calendar-picker-indicator) is
-   untouched and stays fully visible/clickable either way. */
-input[type="date"]::-webkit-datetime-edit{color:transparent}
-input[type="date"].td-has-value::-webkit-datetime-edit{color:inherit}
+   untouched and stays fully visible/clickable either way.
+   Scoped to #td-pubdate specifically (the only field that toggles
+   .td-has-value once a value is set, see tdBlockDateTyping/its onchange
+   handler) -- a blanket input[type="date"] selector previously hid every
+   other date field's value too (New/Edit Announcement, Calendar event),
+   since nothing ever added .td-has-value to them. */
+#td-pubdate::-webkit-datetime-edit{color:transparent}
+#td-pubdate.td-has-value::-webkit-datetime-edit{color:inherit}
 
 /* ─── WEEKLY OPERATING HOURS (Business Directory / Community Map) ──────── */
 .hours-schedule-editor{border:1.5px solid #dde3ec;border-radius:10px;overflow:hidden}
