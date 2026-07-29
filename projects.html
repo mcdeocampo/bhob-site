@@ -82,6 +82,10 @@
         <img id="proj-modal-img" src="" alt="" style="width:100%;max-height:240px;object-fit:cover;border-radius:8px;display:none;margin-bottom:16px">
         <div id="proj-modal-meta" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:center"></div>
         <p id="proj-modal-body" style="font-size:.9rem;color:#1e293b;line-height:1.75;white-space:pre-wrap;margin:0"></p>
+        <div id="proj-modal-attachments" style="display:none;margin-top:16px;border-top:1px solid #e2e8f0;padding-top:14px">
+          <div style="font-size:.72rem;font-weight:700;color:#64748b;letter-spacing:.03em;text-transform:uppercase;margin-bottom:8px">Attachments</div>
+          <div id="proj-modal-attachments-list" style="display:flex;flex-direction:column;gap:6px"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -100,6 +104,32 @@
       'Other':             'prog-banner--blue'
     };
 
+    function renderAttachments(list) {
+      var wrap = document.getElementById('proj-modal-attachments');
+      var listEl = document.getElementById('proj-modal-attachments-list');
+      listEl.innerHTML = '';
+      if (!Array.isArray(list) || !list.length) { wrap.style.display = 'none'; return; }
+      list.forEach(function(f) {
+        if (!f || !f.url) return;
+        var row = document.createElement('a');
+        row.href = f.url; row.target = '_blank'; row.rel = 'noopener';
+        row.style.cssText = 'display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid #e2e8f0;border-radius:8px;text-decoration:none;color:#1e293b;font-size:.82rem';
+        var isImg = /\.(jpe?g|png|webp)$/i.test(f.name || '');
+        var icon = document.createElement('span');
+        icon.textContent = isImg ? '🖼️' : '📄';
+        icon.style.flexShrink = '0';
+        var name = document.createElement('span');
+        name.textContent = f.name || 'Attachment';
+        name.style.cssText = 'flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap';
+        var action = document.createElement('span');
+        action.textContent = 'View';
+        action.style.cssText = 'color:#2563eb;font-size:.75rem;flex-shrink:0;font-weight:600';
+        row.appendChild(icon); row.appendChild(name); row.appendChild(action);
+        listEl.appendChild(row);
+      });
+      wrap.style.display = 'block';
+    }
+
     function openModal(p) {
       document.getElementById('proj-modal-title').textContent = p.title || '';
       var img = document.getElementById('proj-modal-img');
@@ -109,6 +139,7 @@
       meta.innerHTML = (p.category ? '<span style="font-size:.7rem;color:#2563eb;background:rgba(37,99,235,.08);padding:2px 9px;border-radius:10px;font-weight:500">' + p.category + '</span>' : '')
         + (p.subtitle ? '<span style="font-size:.75rem;color:#64748b">' + p.subtitle + '</span>' : '');
       document.getElementById('proj-modal-body').textContent = p.fullDetails || p.shortDescription || '';
+      renderAttachments(p.attachments);
       var ov = document.getElementById('proj-modal-overlay');
       var nav = document.querySelector('.site-header');
       var navH = nav ? nav.offsetHeight : 0;

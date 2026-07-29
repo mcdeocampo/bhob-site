@@ -2068,6 +2068,16 @@ input[type="date"].td-has-value::-webkit-datetime-edit{color:inherit}
             </div>
           </div>
         </div>
+        <div class="form-section-label">Attachments <span style="color:#94a3b8;font-size:.7rem;font-weight:400">(optional)</span></div>
+        <div class="field field-full">
+          <div id="f-attach-wrap" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px"></div>
+          <div class="img-upload-row">
+            <label class="btn-upload-file" for="f-attach-file">+ Add Attachments</label>
+            <input type="file" id="f-attach-file" accept=".pdf,.jpg,.jpeg,.png,.webp" style="display:none" multiple>
+            <span id="f-attach-uploading" style="display:none;font-size:.82rem;color:var(--gray);margin-left:10px">Uploading…</span>
+          </div>
+          <div class="img-hint">PDF, JPG, PNG, WebP · Max 10 MB each · Up to 10 files</div>
+        </div>
         <div class="form-section-label">Settings</div>
         <div class="field">
           <label>Status</label>
@@ -2175,6 +2185,16 @@ input[type="date"].td-has-value::-webkit-datetime-edit{color:inherit}
             <div class="img-url-note" id="init-img-url-note"></div>
             <div class="img-hint">JPG, PNG, WebP — max 5 MB. Leave empty to use a colored banner.</div>
           </div>
+        </div>
+        <div class="form-section-label">Attachments <span style="color:#94a3b8;font-size:.7rem;font-weight:400">(optional)</span></div>
+        <div class="field field-full">
+          <div id="if-attach-wrap" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px"></div>
+          <div class="img-upload-row">
+            <label class="btn-upload-file" for="if-attach-file">+ Add Attachments</label>
+            <input type="file" id="if-attach-file" accept=".pdf,.jpg,.jpeg,.png,.webp" style="display:none" multiple>
+            <span id="if-attach-uploading" style="display:none;font-size:.82rem;color:var(--gray);margin-left:10px">Uploading…</span>
+          </div>
+          <div class="img-hint">PDF, JPG, PNG, WebP · Max 10 MB each · Up to 10 files</div>
         </div>
         <div class="form-section-label">Settings</div>
         <div class="field">
@@ -3137,7 +3157,7 @@ input[type="date"].td-has-value::-webkit-datetime-edit{color:inherit}
 'use strict';
 
 // ── State ──────────────────────────────────────────────────────────────────
-const S = { announcements:[], filter:'all', search:'', editingId:null, imageUrl:'' };
+const S = { announcements:[], filter:'all', search:'', editingId:null, imageUrl:'', attachments:[] };
 let CURRENT_ROLE = 'admin';
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -4305,15 +4325,53 @@ document.querySelectorAll('.tab').forEach(t => {
 });
 $('btn-new').onclick = openNew;
 
+// ── Shared attachment widget (Announcements + Initiatives) ────────────────
+function _attachIsImage(name) { return /\.(jpe?g|png|webp)$/i.test(name||''); }
+function _renderAttachments(wrapId, list, removeFnName) {
+  const wrap = $(wrapId); if (!wrap) return;
+  wrap.innerHTML = list.map((f, i) => {
+    const thumb = _attachIsImage(f.name)
+      ? `<img src="${esc(f.url)}" style="width:64px;height:64px;object-fit:cover;border-radius:6px;border:1px solid var(--border)">`
+      : `<div style="width:64px;height:64px;display:flex;align-items:center;justify-content:center;border-radius:6px;border:1px solid var(--border);background:#f8fafc"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>`;
+    return `<div style="position:relative;display:inline-flex;flex-direction:column;align-items:center;width:64px">
+       <a href="${esc(f.url)}" target="_blank" rel="noopener">${thumb}</a>
+       <span style="font-size:.62rem;color:var(--gray);max-width:64px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:2px" title="${esc(f.name)}">${esc(f.name)}</span>
+       <button type="button" onclick="${removeFnName}(${i})" title="Remove" style="position:absolute;top:-6px;right:-6px;background:#ef4444;color:#fff;border:none;border-radius:50%;width:18px;height:18px;font-size:11px;cursor:pointer;line-height:18px;text-align:center;padding:0">×</button>
+     </div>`;
+  }).join('');
+}
+async function _uploadAttachments(fileInput, targetArray, renderFn, uploadingId, module) {
+  if (!fileInput || !fileInput.files.length) return;
+  const uploading = $(uploadingId);
+  if (uploading) uploading.style.display = '';
+  for (const file of Array.from(fileInput.files)) {
+    if (targetArray.length >= 10) { toast('Maximum 10 attachments.', 'err'); break; }
+    if (file.size > 10 * 1024 * 1024) { toast(`"${file.name}" exceeds 10 MB.`, 'err'); continue; }
+    const fd = new FormData(); fd.append('file', file); fd.append('module', module);
+    try {
+      const r = await adminFetch('/admin/api/upload/attachment', { method:'POST', body: fd });
+      const d = await r.json();
+      if (r.ok && d.url) { targetArray.push({ url: d.url, name: d.fileName || file.name }); renderFn(); }
+      else toast(d.error || 'Upload failed.', 'err');
+    } catch { toast('Upload error.', 'err'); }
+  }
+  if (uploading) uploading.style.display = 'none';
+  fileInput.value = '';
+}
+function _renderAnnAttachments() { _renderAttachments('f-attach-wrap', S.attachments, 'removeAnnAttachment'); }
+function removeAnnAttachment(i) { S.attachments.splice(i,1); _renderAnnAttachments(); }
+$('f-attach-file').onchange = () => _uploadAttachments($('f-attach-file'), S.attachments, _renderAnnAttachments, 'f-attach-uploading', 'announcements');
+
 // ── Announcement form ──────────────────────────────────────────────────────
 function resetForm() {
-  S.editingId=null; S.imageUrl='';
+  S.editingId=null; S.imageUrl=''; S.attachments=[];
   $('f-title').value=''; $('f-date').value=new Date().toISOString().slice(0,10);
   $('f-cat').value='Barangay Assembly'; $('f-short').value=''; $('f-details').value='';
   $('s-draft').checked=true; $('feat-no').checked=true;
   $('img-preview').style.display='none'; $('img-preview').src='';
   $('img-url-note').classList.remove('show-note'); $('img-url-note').textContent='';
   document.querySelectorAll('.di-btn').forEach(b=>b.classList.remove('sel'));
+  _renderAnnAttachments();
 }
 
 function openNew() { resetForm(); $('modal-title').textContent='New Announcement'; $('form-overlay').classList.add('open'); $('f-title').focus(); }
@@ -4335,6 +4393,8 @@ function openEdit(id) {
     $('img-preview').src=(a.imageUrl.indexOf('http')===0?a.imageUrl:'/'+a.imageUrl); $('img-preview').style.display='block';
     document.querySelectorAll('.di-btn').forEach(b=>b.classList.toggle('sel',b.dataset.url===a.imageUrl));
   }
+  S.attachments = Array.isArray(a.attachments) ? [...a.attachments] : [];
+  _renderAnnAttachments();
   $('form-overlay').classList.add('open'); $('f-title').focus();
 }
 
@@ -4374,7 +4434,7 @@ async function saveForm(forceStatus) {
   const title=$('f-title').value.trim();
   if(!title){toast('Title is required','err');$('f-title').focus();return;}
   const status=forceStatus||document.querySelector('input[name="status"]:checked')?.value||'draft';
-  const body={title,date:$('f-date').value,category:$('f-cat').value,shortDescription:$('f-short').value.trim(),fullDetails:$('f-details').value.trim(),imageUrl:S.imageUrl,status,featured:$('feat-yes').checked};
+  const body={title,date:$('f-date').value,category:$('f-cat').value,shortDescription:$('f-short').value.trim(),fullDetails:$('f-details').value.trim(),imageUrl:S.imageUrl,status,featured:$('feat-yes').checked,attachments:S.attachments};
   const url=S.editingId?`/admin/api/announcements/${S.editingId}`:'/admin/api/announcements';
   const method=S.editingId?'PUT':'POST';
   try {
@@ -4481,7 +4541,7 @@ document.addEventListener('keydown', e => {
 
 // ══════════════════ COMMUNITY INITIATIVES ══════════════════
 
-const SI = { initiatives:[], filter:'all', search:'', editingId:null, imageUrl:'' };
+const SI = { initiatives:[], filter:'all', search:'', editingId:null, imageUrl:'', attachments:[] };
 
 async function loadInitiatives() {
   try {
@@ -4626,13 +4686,18 @@ document.querySelectorAll('#init-tabs .tab').forEach(t => {
 });
 $('btn-new-init').onclick = openInitNew;
 
+function _renderInitAttachments() { _renderAttachments('if-attach-wrap', SI.attachments, 'removeInitAttachment'); }
+function removeInitAttachment(i) { SI.attachments.splice(i,1); _renderInitAttachments(); }
+$('if-attach-file').onchange = () => _uploadAttachments($('if-attach-file'), SI.attachments, _renderInitAttachments, 'if-attach-uploading', 'initiatives');
+
 function resetInitForm() {
-  SI.editingId=null; SI.imageUrl='';
+  SI.editingId=null; SI.imageUrl=''; SI.attachments=[];
   $('if-title').value=''; $('if-cat').value='Technology';
   $('if-subtitle').value=''; $('if-short').value=''; $('if-details').value='';
   $('is-draft').checked=true; $('if-feat-no').checked=true;
   $('init-img-preview').style.display='none'; $('init-img-preview').src='';
   $('init-img-url-note').classList.remove('show-note'); $('init-img-url-note').textContent='';
+  _renderInitAttachments();
 }
 
 function openInitNew() {
@@ -4660,6 +4725,8 @@ function openInitEdit(id) {
   if(p.imageUrl) {
     $('init-img-preview').src=(p.imageUrl.indexOf('http')===0?p.imageUrl:'/'+p.imageUrl); $('init-img-preview').style.display='block';
   }
+  SI.attachments = Array.isArray(p.attachments) ? [...p.attachments] : [];
+  _renderInitAttachments();
   $('init-form-overlay').classList.add('open');
   $('if-title').focus();
 }
@@ -4712,7 +4779,8 @@ async function saveInitForm(forceStatus) {
     fullDetails:$('if-details').value.trim(),
     imageUrl:SI.imageUrl,
     status,
-    featured:$('if-feat-yes').checked
+    featured:$('if-feat-yes').checked,
+    attachments:SI.attachments
   };
   const url=SI.editingId?`/admin/api/community-initiatives/${SI.editingId}`:'/admin/api/community-initiatives';
   const method=SI.editingId?'PUT':'POST';

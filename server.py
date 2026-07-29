@@ -191,6 +191,7 @@ def _row_to_ann(row):
         'status':           row.get('status', 'draft'),
         'featured':         bool(row.get('featured', False)),
         'displayOrder':     row.get('display_order', 0),
+        'attachments':      row.get('attachments') or [],
         'createdAt':        row.get('created_at', ''),
         'updatedAt':        row.get('updated_at', ''),
     }
@@ -210,6 +211,7 @@ def _row_to_proj(row):
         'displayOrder':     row.get('display_order', 0),
         'buttonLabel':      row.get('button_label', ''),
         'buttonLink':       row.get('button_link', ''),
+        'attachments':      row.get('attachments') or [],
         'createdAt':        row.get('created_at', ''),
         'updatedAt':        row.get('updated_at', ''),
     }
@@ -803,6 +805,7 @@ def _ann_create(ann_dict):
         'status':            ann_dict.get('status', 'draft'),
         'featured':          bool(ann_dict.get('featured', False)),
         'display_order':     int(ann_dict.get('displayOrder', 0)),
+        'attachments':       ann_dict.get('attachments') or [],
         'created_at':        ann_dict.get('createdAt', ''),
         'updated_at':        ann_dict.get('updatedAt', ''),
     }
@@ -818,6 +821,7 @@ def _ann_update(ann_id, patch_dict):
         'shortDescription': 'short_description', 'fullDetails': 'full_details',
         'imageUrl': 'image_url', 'status': 'status',
         'featured': 'featured', 'displayOrder': 'display_order',
+        'attachments': 'attachments',
     }
     for camel, snake in field_map.items():
         if camel in patch_dict:
@@ -865,6 +869,7 @@ def _proj_create(proj_dict):
         'display_order':     int(proj_dict.get('displayOrder', 0)),
         'button_label':      proj_dict.get('buttonLabel', ''),
         'button_link':       proj_dict.get('buttonLink', ''),
+        'attachments':       proj_dict.get('attachments') or [],
         'created_at':        proj_dict.get('createdAt', ''),
         'updated_at':        proj_dict.get('updatedAt', ''),
     }
@@ -881,6 +886,7 @@ def _proj_update(proj_id, patch_dict):
         'imageUrl': 'image_url', 'status': 'status',
         'featured': 'featured', 'displayOrder': 'display_order',
         'buttonLabel': 'button_label', 'buttonLink': 'button_link',
+        'attachments': 'attachments',
     }
     for camel, snake in field_map.items():
         if camel in patch_dict:
@@ -2138,6 +2144,7 @@ def admin_create():
         'status':           status,
         'featured':         bool(d.get('featured', False)),
         'displayOrder':     min_order - 1,
+        'attachments':      _clean_attachments(d.get('attachments')),
         'createdAt':        now,
         'updatedAt':        now,
     }
@@ -2180,15 +2187,35 @@ def admin_update(ann_id):
             patch['displayOrder'] = int(d['displayOrder'])
         except (ValueError, TypeError):
             pass
+    removed_urls = []
+    if 'attachments' in d:
+        new_attachments = _clean_attachments(d.get('attachments'))
+        patch['attachments'] = new_attachments
+        try:
+            res = supabase.table('announcements').select('attachments').eq('id', ann_id).limit(1).execute()
+            old_urls = {a.get('url') for a in (res.data[0].get('attachments') or [])} if res.data else set()
+            new_urls = {a.get('url') for a in new_attachments}
+            removed_urls = list(old_urls - new_urls)
+        except Exception:
+            removed_urls = []
     ann = _ann_update(ann_id, patch)
     if ann is None:
         return jsonify({'error': 'Not found'}), 404
+    if removed_urls:
+        _remove_attachments_from_storage(removed_urls)
     return jsonify({'status': 'ok', 'announcement': ann})
 
 
 @app.route('/admin/api/announcements/<ann_id>', methods=['DELETE'])
 @admin_required
 def admin_delete(ann_id):
+    try:
+        res = supabase.table('announcements').select('attachments').eq('id', ann_id).limit(1).execute()
+        if res.data:
+            urls = [a.get('url') for a in (res.data[0].get('attachments') or []) if a.get('url')]
+            _remove_attachments_from_storage(urls)
+    except Exception:
+        pass
     if not _ann_delete(ann_id):
         return jsonify({'error': 'Not found'}), 404
     return jsonify({'status': 'ok'})
@@ -2227,6 +2254,7 @@ def admin_proj_create():
         'displayOrder':     min_order - 1,
         'buttonLabel':      _clean(d.get('buttonLabel'), 100),
         'buttonLink':       _clean(d.get('buttonLink'), 300),
+        'attachments':      _clean_attachments(d.get('attachments')),
         'createdAt':        now,
         'updatedAt':        now,
     }
@@ -2270,15 +2298,35 @@ def admin_proj_update(proj_id):
             patch['displayOrder'] = int(d['displayOrder'])
         except (ValueError, TypeError):
             pass
+    removed_urls = []
+    if 'attachments' in d:
+        new_attachments = _clean_attachments(d.get('attachments'))
+        patch['attachments'] = new_attachments
+        try:
+            res = supabase.table('community_initiatives').select('attachments').eq('id', proj_id).limit(1).execute()
+            old_urls = {a.get('url') for a in (res.data[0].get('attachments') or [])} if res.data else set()
+            new_urls = {a.get('url') for a in new_attachments}
+            removed_urls = list(old_urls - new_urls)
+        except Exception:
+            removed_urls = []
     proj = _proj_update(proj_id, patch)
     if proj is None:
         return jsonify({'error': 'Not found'}), 404
+    if removed_urls:
+        _remove_attachments_from_storage(removed_urls)
     return jsonify({'status': 'ok', 'initiative': proj})
 
 
 @app.route('/admin/api/community-initiatives/<proj_id>', methods=['DELETE'])
 @admin_required
 def admin_proj_delete(proj_id):
+    try:
+        res = supabase.table('community_initiatives').select('attachments').eq('id', proj_id).limit(1).execute()
+        if res.data:
+            urls = [a.get('url') for a in (res.data[0].get('attachments') or []) if a.get('url')]
+            _remove_attachments_from_storage(urls)
+    except Exception:
+        pass
     if not _proj_delete(proj_id):
         return jsonify({'error': 'Not found'}), 404
     return jsonify({'status': 'ok'})
@@ -2831,6 +2879,87 @@ def _upload_to_storage(data, folder, ext):
     res = supabase.storage.from_(STORAGE_BUCKET).get_public_url(path)
     # get_public_url returns the URL string directly in supabase-py >=2
     return res if isinstance(res, str) else res.get('publicUrl', '')
+
+
+# ── Announcement / Initiative attachments (shared) ───────────────────────────
+# Separate from and additional to the existing single Featured Image
+# (image_url) on each module, which is untouched. Multiple attachments per
+# item, stored as a JSON array of {url, name}, mirroring the pattern already
+# used by calendar_activities.photos/documents. Deliberately does NOT call
+# _optimize_image() -- attachments are meant to preserve the original file
+# (including large images) rather than the Featured Image's resize/compress
+# treatment, matching how calendar attachments are stored today.
+ATTACHMENT_EXT        = {'jpg', 'jpeg', 'png', 'webp', 'pdf'}
+ATTACHMENT_MAX_BYTES  = 10 * 1024 * 1024
+ATTACHMENT_MAX_COUNT  = 10
+ATTACHMENT_FOLDERS    = {
+    'announcements': 'announcement-attachments',
+    'initiatives':   'initiative-attachments',
+}
+
+
+def _clean_attachments(raw):
+    """Sanitize a client-submitted attachments list into [{url, name}, ...].
+
+    Caps the count and field lengths and silently drops anything malformed
+    rather than rejecting the whole save -- the admin only ever supplies
+    this list via the upload endpoint below, so a malformed entry means a
+    client bug, not a validation failure worth blocking on.
+    """
+    if not isinstance(raw, list):
+        return []
+    out = []
+    for item in raw[:ATTACHMENT_MAX_COUNT]:
+        if not isinstance(item, dict):
+            continue
+        url = _clean(item.get('url'), 500)
+        name = _clean(item.get('name'), 200)
+        if url:
+            out.append({'url': url, 'name': name or url})
+    return out
+
+
+def _storage_path_from_url(url):
+    """Extract the bucket-relative path from a Supabase public CDN URL."""
+    marker = f'/object/public/{STORAGE_BUCKET}/'
+    idx = (url or '').find(marker)
+    if idx == -1:
+        return None
+    return url[idx + len(marker):]
+
+
+def _remove_attachments_from_storage(urls):
+    for url in urls:
+        path = _storage_path_from_url(url)
+        if path:
+            try:
+                supabase.storage.from_(STORAGE_BUCKET).remove([path])
+            except Exception:
+                pass
+
+
+@app.route('/admin/api/upload/attachment', methods=['POST'])
+@admin_required
+def admin_upload_attachment():
+    module = request.form.get('module', '')
+    folder = ATTACHMENT_FOLDERS.get(module)
+    if not folder:
+        return jsonify({'error': 'Invalid module.'}), 400
+    f = request.files.get('file')
+    if not f or not f.filename:
+        return jsonify({'error': 'No file provided.'}), 400
+    ext = f.filename.rsplit('.', 1)[-1].lower() if '.' in f.filename else ''
+    if ext not in ATTACHMENT_EXT:
+        return jsonify({'error': 'File type not allowed. Use PDF, JPG, PNG, or WebP.'}), 400
+    data = f.read(ATTACHMENT_MAX_BYTES + 1)
+    if len(data) > ATTACHMENT_MAX_BYTES:
+        return jsonify({'error': 'File exceeds 10 MB limit.'}), 400
+    try:
+        url = _upload_to_storage(data, folder, ext)
+        return jsonify({'status': 'ok', 'url': url, 'fileName': f.filename})
+    except Exception as exc:
+        app.logger.error('admin_upload_attachment error: %s', exc)
+        return jsonify({'error': 'Upload failed.'}), 500
 
 
 @app.route('/admin/api/upload', methods=['POST'])
