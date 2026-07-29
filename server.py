@@ -1815,13 +1815,11 @@ def _render_page(directory, filename):
 
 
 def _render_admin_shell(path):
-    """Serve the admin panel with the favicon and title already correct.
+    """Serve the admin panel with the title already correct.
 
-    The browser resolves and commits the favicon while parsing <head>, so
-    replacing the link node client-side afterwards leaves the tab showing
-    whatever was hardcoded. Deliberately a targeted substitution rather than the
-    lxml pass used for public pages — the admin document is large and parsing it
-    on every request would cost far more than it's worth.
+    The favicon link is hardcoded to /favicon.png, same as the public pages —
+    that route already resolves the CMS logo vs. the shipped default itself
+    (see _share_logo_source), so there's nothing to rewrite here for it.
     """
     settings, _ = _page_context()
     if not settings:
@@ -1832,11 +1830,6 @@ def _render_admin_shell(path):
 
     logo = _asset_url(settings.get('barangay_logo_url'))
     if logo:
-        # Tab icon. The browser commits this while parsing <head>, which is why
-        # it cannot be left to a client-side swap.
-        html = re.sub(
-            r'(<link\b[^>]*\brel="[^"]*icon[^"]*"[^>]*\bhref=")[^"]*(")',
-            lambda m: m.group(1) + logo + m.group(2), html)
         # Login screen and sidebar seal.
         html = re.sub(r'(<img\b[^>]*\bdata-admin-logo\b[^>]*\bsrc=")[^"]*(")',
                       lambda m: m.group(1) + logo + m.group(2), html)
@@ -4249,15 +4242,12 @@ def _build_favicon(logo_src, size=32):
     else:
         seal = Image.open(logo_src).convert('RGBA')
 
-    # White ground, matching _build_share_card: at 16-32px the seal's own
-    # soft-fading edge has nothing to sit on, so it loses contrast against
-    # dark browser chrome. A small pad keeps the ring from touching the edge.
-    pad = max(1, round(size * 0.06))
-    inner = size - pad * 2
-    scale = min(inner / seal.width, inner / seal.height)
+    # Fit the seal into a transparent square, preserving aspect ratio -- the
+    # official logo only, no added background.
+    scale = min(size / seal.width, size / seal.height)
     seal = seal.resize((max(1, round(seal.width * scale)),
                         max(1, round(seal.height * scale))), Image.LANCZOS)
-    icon = Image.new('RGBA', (size, size), (255, 255, 255, 255))
+    icon = Image.new('RGBA', (size, size), (0, 0, 0, 0))
     icon.paste(seal, ((size - seal.width) // 2, (size - seal.height) // 2), seal)
 
     buf = io.BytesIO()
