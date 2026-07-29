@@ -5747,6 +5747,13 @@ main > section:not(.hero):not(.page-hero):not(.gradient-panel):not(.official-str
   margin: 0 !important;
 }
 
+/* "911" number only -- font, size, weight, spacing, and alignment are
+   untouched, all inherited from the shared .hero-emergency-item/span rules
+   above; this overrides color alone. */
+#hp-emergency-number{
+  color: #DC2626 !important;
+}
+
 @keyframes emergencyPulse{
   0%{ box-shadow: 0 0 0 0 rgba(255,91,87,.46); }
   70%{ box-shadow: 0 0 0 10px rgba(255,91,87,0); }
