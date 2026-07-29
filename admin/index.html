@@ -1978,8 +1978,6 @@ input[type="date"].td-has-value::-webkit-datetime-edit{color:inherit}
             <div class="form-grid">
               <div class="field"><label>Emergency Label</label><input type="text" id="ss-hp-emergency-label"></div>
               <div class="field"><label>Emergency Number</label><input type="text" id="ss-hp-emergency-number"></div>
-              <div class="field"><label>Police Label</label><input type="text" id="ss-hp-police-label"></div>
-              <div class="field"><label>Police Number</label><input type="text" id="ss-hp-police-number"></div>
             </div>
           </div>
 
@@ -6028,8 +6026,6 @@ async function loadSiteSettings() {
       ['ss-hp-hotline-desc',    d.homepage_hotline_description],
       ['ss-hp-emergency-label', d.emergency_card_label],
       ['ss-hp-emergency-number',d.emergency_card_number],
-      ['ss-hp-police-label',    d.police_card_label],
-      ['ss-hp-police-number',   d.police_card_number],
       ['ss-hp-social-facebook', d.social_facebook_url],
       ['ss-hp-social-linkedin', d.social_linkedin_url],
       ['ss-hp-social-instagram',d.social_instagram_url],
@@ -6281,8 +6277,6 @@ async function saveHomepageContactSettings() {
   const desc    = (($('ss-hp-hotline-desc')    || {}).value || '').trim();
   const emLabel = (($('ss-hp-emergency-label') || {}).value || '').trim();
   const emNum   = (($('ss-hp-emergency-number')|| {}).value || '').trim();
-  const plLabel = (($('ss-hp-police-label')    || {}).value || '').trim();
-  const plNum   = (($('ss-hp-police-number')   || {}).value || '').trim();
   const payload = {
     social_facebook_url:        ($('ss-hp-social-facebook') || {}).value || '',
     social_linkedin_url:        ($('ss-hp-social-linkedin') || {}).value || '',
@@ -6295,8 +6289,6 @@ async function saveHomepageContactSettings() {
     homepage_hotline_description: desc,
     emergency_card_label:         emLabel,
     emergency_card_number:        emNum,
-    police_card_label:            plLabel,
-    police_card_number:           plNum,
   };
   try {
     const r = await adminFetch('/admin/api/site-settings', { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });

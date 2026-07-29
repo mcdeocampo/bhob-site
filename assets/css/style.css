@@ -5708,7 +5708,7 @@ main > section:not(.hero):not(.page-hero):not(.gradient-panel):not(.official-str
 
 .hero-emergency-grid{
   display: grid !important;
-  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   gap: 10px !important;
   position: relative;
   z-index: 1;
@@ -6576,7 +6576,7 @@ img{
 }
 
 .hero-emergency-grid{
-  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
 }
 
 .hero-hotline-number{
@@ -7498,7 +7498,7 @@ iframe{
 }
 
 .hero-emergency-grid{
-  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
 }
 
 .emergency-siren-badge{
@@ -7703,7 +7703,7 @@ iframe{
   }
 
   .hero-emergency-grid{
-    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     gap: 7px !important;
   }
 
@@ -8082,7 +8082,7 @@ iframe{
 
   .hero-emergency-grid{
     display:grid !important;
-    grid-template-columns:repeat(3, minmax(0,1fr)) !important;
+    grid-template-columns:repeat(2, minmax(0,1fr)) !important;
     gap:6px !important;
     margin-bottom:0 !important;
   }
@@ -8180,7 +8180,7 @@ iframe{
   .emergency-card-alt .hero-hotline-number{ font-size:1.05rem !important; }
   .hero-emergency-card p,
   .emergency-card-alt p{ font-size:.72rem !important; }
-  .hero-emergency-grid{ grid-template-columns:repeat(3, minmax(0,1fr)) !important; }
+  .hero-emergency-grid{ grid-template-columns:repeat(2, minmax(0,1fr)) !important; }
 }
 
 @media (max-width:360px){
@@ -8352,7 +8352,7 @@ iframe{
   }
 
   .hero-emergency-grid{
-    grid-template-columns:repeat(3, minmax(0,1fr)) !important;
+    grid-template-columns:repeat(2, minmax(0,1fr)) !important;
     gap:5px !important;
   }
 
@@ -9390,7 +9390,7 @@ iframe{
 
   .hero-emergency-grid,
   .emergency-card-alt .hero-emergency-grid{
-    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     gap: 7px !important;
     margin-bottom: 8px !important;
   }
@@ -9683,7 +9683,7 @@ iframe{
 
   .hero-emergency-grid,
   .emergency-card-alt .hero-emergency-grid{
-    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     gap: 6px !important;
     margin: 0 !important;
   }
@@ -17921,10 +17921,10 @@ body[data-page="services.html"] .svc-chip-emergency {
   }
 }
 
-/* 7. Emergency number grid: 3 columns on mobile (saves ~60px height) */
+/* 7. Emergency number grid: 2 columns on mobile (Police tile removed) */
 @media (max-width: 640px) {
   body[data-page="index.html"] .hero-emergency-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     gap: 6px !important;
   }
   body[data-page="index.html"] .hero-emergency-item {

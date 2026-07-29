@@ -175,10 +175,6 @@
             <label id="hp-emergency-label">Emergency</label>
             <a id="hp-emergency-number" href="tel:911">911</a>
           </div>
-          <div class="hero-emergency-item">
-            <label id="hp-police-label">Police</label>
-            <a id="hp-police-number" href="tel:117">117</a>
-          </div>
           <div class="hero-emergency-item hero-emergency-item--hotlines" onclick="openHotlinesModal()" role="button" tabindex="0" style="cursor:pointer;" onkeydown="if(event.key==='Enter'||event.key===' ')openHotlinesModal()">
             <label>Other Hotlines</label>
             <span class="hotlines-view-link">View List</span>
@@ -697,13 +693,10 @@
         ['hp-hotline-desc',    d.homepage_hotline_description],
         ['hp-emergency-label', d.emergency_card_label],
         ['hp-emergency-number',d.emergency_card_number],
-        ['hp-police-label',    d.police_card_label],
-        ['hp-police-number',   d.police_card_number],
       ];
       var hpPhoneIds = {
         'hp-hotline-number': true,
-        'hp-emergency-number': true,
-        'hp-police-number': true
+        'hp-emergency-number': true
       };
       // A blank setting clears the field — without this the hardcoded markup
       // would stay on screen and look like the old value never got removed.
@@ -720,8 +713,7 @@
       });
       // An emergency tile exists only to dial its number, so drop the whole
       // tile when no number is configured rather than leaving a bare label.
-      [['hp-emergency-number', d.emergency_card_number],
-       ['hp-police-number',    d.police_card_number]].forEach(function(pair) {
+      [['hp-emergency-number', d.emergency_card_number]].forEach(function(pair) {
         var el = document.getElementById(pair[0]);
         var tile = el && el.closest('.hero-emergency-item');
         if (tile) tile.style.display = pair[1] ? '' : 'none';
