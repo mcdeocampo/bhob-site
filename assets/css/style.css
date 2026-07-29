@@ -20185,11 +20185,19 @@ body[data-page="index.html"] .image-card .prog-banner .ict-banner-label span {
    Scope: public Announcements cards.
    Keeps existing card design, rounded corners, content, backend, and admin unchanged.
    ===================================================================== */
+/* Matches the Community Initiatives banner's actual behavior (see
+   ".proj-card-banner" full-bleed rule + the later "desktop image inset"
+   override): flush with the card edges on mobile (<=560px), a small
+   rounded inset on tablet/desktop (>=561px) -- not flush at every size. */
 body[data-page="announcements.html"] .image-card .ann-img-wrap {
   padding: 0 !important;
-  margin: 16px 16px 0 !important;
-  width: calc(100% - 32px) !important;
-  border-radius: 24px !important;
+  /* Negative margin cancels .image-card's own --fluid-card-pad so the photo
+     reaches the card's true edge (flush) below 561px -- a plain margin:0
+     would only remove the wrapper's own margin, not the ambient card
+     padding it still sits inside of. */
+  margin: calc(-1 * var(--fluid-card-pad, 22px)) calc(-1 * var(--fluid-card-pad, 22px)) 0 !important;
+  width: calc(100% + 2 * var(--fluid-card-pad, 22px)) !important;
+  border-radius: 0 !important;
   overflow: hidden !important;
   line-height: 0 !important;
   box-sizing: border-box !important;
@@ -20201,26 +20209,28 @@ body[data-page="announcements.html"] .image-card .ann-img-wrap img {
   object-fit: cover !important;
   object-position: center !important;
   display: block !important;
-  border-radius: 24px !important;
+  border-radius: 0 !important;
+}
+
+@media (min-width: 561px) {
+  body[data-page="announcements.html"] .image-card .ann-img-wrap {
+    margin: 12px 12px 0 !important;
+    width: calc(100% - 24px) !important;
+    border-radius: 22px !important;
+  }
+
+  body[data-page="announcements.html"] .image-card .ann-img-wrap img {
+    border-radius: 0 !important;
+  }
 }
 
 @media (max-width: 768px) {
-  body[data-page="announcements.html"] .image-card .ann-img-wrap {
-    margin: 14px 14px 0 !important;
-    width: calc(100% - 28px) !important;
-  }
-
   body[data-page="announcements.html"] .image-card .ann-img-wrap img {
     height: 160px !important;
   }
 }
 
 @media (max-width: 480px) {
-  body[data-page="announcements.html"] .image-card .ann-img-wrap {
-    margin: 12px 12px 0 !important;
-    width: calc(100% - 24px) !important;
-  }
-
   body[data-page="announcements.html"] .image-card .ann-img-wrap img {
     height: 140px !important;
   }
