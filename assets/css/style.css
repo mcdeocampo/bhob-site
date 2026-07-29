@@ -21707,72 +21707,135 @@ body.dir2-modal-lock{overflow:hidden}
   white-space: nowrap;
 }
 
-/* Below the hamburger breakpoint, .nav-menu becomes a 2-column grid overlay
-   (see the max-width:1280px rule earlier in this file). The dropdown keeps
-   its own dedicated grid-column:1/-1 row — giving the toggle+submenu a
-   single-cell width instead broke grid auto-placement, since the expanded
-   submenu is one tall flex column stacked inside one grid cell: the row
-   grew to fit it, leaving the paired cell (Service Standards) with a slab
-   of blank space, and every later nav item shifted down and interleaved
-   with the submenu's overflow. Full-row ownership avoids that entirely —
-   instead, only the toggle and its children are width-capped to match a
-   single standard column (the same math as the grid's own 2 equal
-   columns), so the row is still full-width for layout purposes, but
-   nothing visually reads as wider than Home/Officials/etc. */
+/* Below the hamburger breakpoint, the nav is a traditional single-column
+   drawer: every item is a full-width row with a bottom divider, and
+   Community Updates expands inline with its two children indented beneath
+   it, connected by a left rule — the standard mobile "hamburger drawer"
+   pattern, replacing the paired 2-column grid this used before. Desktop
+   nav (above 1280px) is untouched; this only re-targets .nav-menu within
+   the same max-width:1280px range the hamburger already used.
+
+   !important is used throughout because dozens of earlier .nav-link /
+   .nav-menu rules at narrower nested breakpoints (480/640/768/900px)
+   elsewhere in this file already carry !important themselves — a plain
+   declaration, even one written later in the file, still loses to any
+   earlier !important rule. Being declared last in the file plus
+   !important on every contested property is what makes this reliably win
+   at every width in range, rather than hunting down and editing each of
+   those older rules individually. */
 @media (max-width: 1280px) {
+  /* Plain .nav-menu plus every higher-specificity "open" form used
+     elsewhere in this file (.nav-menu.open, .nav-menu.active,
+     body.nav-open .nav-menu) — several earlier rules set display:grid
+     on those exact compound selectors, which outrank a plain .nav-menu
+     selector on specificity alone regardless of !important or source
+     order. Matching the same selectors is the only way to reliably win. */
+  .nav-menu,
+  .nav-menu.open,
+  .nav-menu.active,
+  body.nav-open .nav-menu {
+    display: flex !important;
+    flex-direction: column !important;
+    grid-template-columns: none !important;
+    gap: 0 !important;
+  }
+
+  .nav-link {
+    width: 100% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 8px !important;
+    margin: 0 !important;
+    padding: 14px 6px !important;
+    border: 0 !important;
+    border-bottom: 1px solid rgba(21, 94, 239, .12) !important;
+    border-left: 3px solid transparent !important;
+    border-radius: 0 !important;
+    background: none !important;
+    box-shadow: none !important;
+    color: #1c2e4a !important;
+    font-size: .92rem !important;
+    font-weight: 700 !important;
+    line-height: 1.3 !important;
+    white-space: normal !important;
+    text-align: left !important;
+  }
+  .nav-link::after {
+    display: none !important;
+  }
+  .nav-link:hover {
+    background: rgba(21, 94, 239, .05) !important;
+    color: var(--civic-blue) !important;
+  }
+  .nav-link.active {
+    color: var(--civic-blue) !important;
+    background: rgba(21, 94, 239, .05) !important;
+    border-left-color: var(--civic-blue) !important;
+  }
+
+  /* Community Updates renders as a plain full-width row like everything
+     else; the caret (defined outside this breakpoint) rotates on open
+     exactly as it already does on desktop. */
   .nav-dropdown {
-    grid-column: 1 / -1;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
+    width: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
   }
   .nav-dropdown-toggle {
-    /* !important needed on width AND white-space: several earlier
-       .nav-link{width:100%!important; white-space:normal!important} rules
-       in this file (shared by every nav link, including this one) would
-       otherwise win regardless of this rule's specificity or source
-       position — non-important declarations always lose to !important
-       ones, even when declared later. */
-    width: calc((100% - 5px) / 2) !important;
-    justify-content: space-between;
-    /* "Community Updates" + the caret icon sit right at this column's
-       width — without this, the label wraps to two lines and grows
-       taller than every other nav button. */
-    white-space: nowrap !important;
+    justify-content: space-between !important;
   }
+
+  /* Children indent under the parent with a connecting rule down the
+     left side — the standard "this belongs to the row above" cue —
+     rather than matching the parent's own left edge. */
   .nav-dropdown-menu {
-    position: static;
-    display: none;
-    min-width: 0;
-    width: calc((100% - 5px) / 2) !important;
-    /* Matches the 8px gap the standard nav grid uses between Home/Officials/
-       etc. — at 0-4px, the toggle and its first child (and the children
-       between themselves) sat close enough to visually fuse into one shape
-       whenever both carried the active blue background at once. */
-    margin-top: 8px;
-    gap: 8px;
-    padding: 0;
-    background: transparent;
-    border-radius: 0;
-    box-shadow: none;
-    opacity: 1;
-    visibility: visible;
-    transform: none;
-    transition: none;
+    position: relative !important;
+    display: none !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    gap: 0 !important;
+    background: transparent !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    transform: none !important;
+    transition: none !important;
   }
   .nav-dropdown.open .nav-dropdown-menu {
-    display: flex;
+    display: flex !important;
   }
-  /* The shared .nav-link.active box-shadow (0 8px 18px, defined for compact
-     pill-shaped buttons elsewhere) reads as much heavier here because it
-     wraps a full-width bar instead of a small pill — same shadow value,
-     far more glowing surface area. Softening it (not removing it, so the
-     active state still reads clearly) just for these full-width items
-     brings the visual weight back in line with the standard nav buttons,
-     without touching the shared rule every other active nav-link relies on. */
-  .nav-dropdown-toggle.active,
+  .nav-dropdown-menu::before {
+    content: "";
+    position: absolute;
+    left: 18px;
+    top: 4px;
+    bottom: 4px;
+    width: 1px;
+    background: rgba(21, 94, 239, .16);
+  }
+  .nav-dropdown-link {
+    padding: 12px 6px 12px 32px !important;
+    font-size: .86rem !important;
+    font-weight: 600 !important;
+    color: #5b6b85 !important;
+    border-bottom: 1px solid rgba(21, 94, 239, .08) !important;
+  }
+  .nav-dropdown-link:hover {
+    color: var(--civic-blue) !important;
+    background: rgba(21, 94, 239, .04) !important;
+  }
   .nav-dropdown-link.active {
-    box-shadow: 0 3px 8px rgba(21, 94, 239, .14) !important;
+    color: var(--civic-blue) !important;
+    font-weight: 800 !important;
+    /* Cancels the base .nav-link.active left-border accent so the
+       connector rule above is the only left-side cue — two competing
+       left accents would look busy on an already-indented row. */
+    border-left-color: transparent !important;
   }
 }
 
