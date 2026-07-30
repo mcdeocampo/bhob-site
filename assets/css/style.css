@@ -20159,12 +20159,19 @@ body[data-page="announcements.html"] .image-card .ann-img-wrap {
   box-sizing: border-box !important;
   -webkit-mask-image: none !important;
   mask-image: none !important;
-  /* Fixed height (not aspect-ratio, not a per-breakpoint value) is what
-     keeps every card the same height regardless of what size photo an
-     admin uploads -- this is the actual value both sections render at;
-     making it explicit here instead of leaving it to the legacy unscoped
-     .bhob-banner rule further up. */
-  height: 200px !important;
+  /* aspect-ratio (not a fixed px height) so the box's own proportions stay
+     constant at every screen width instead of drifting as the card's fluid
+     width changes against a fixed height. 2:1 matches the uploaded
+     initiative graphics exactly (1774x887), so object-fit:cover crops
+     nothing for them at any size -- previously a fixed 200px height meant
+     the effective ratio varied by breakpoint, cropping the same 2:1 image
+     on the sides at some widths and not others. Plain photos at other
+     ratios still crop slightly (top/bottom, not the sides), which is far
+     less destructive since they don't have content pinned to the edge.
+     Overrides the legacy unscoped .bhob-banner rule's fixed height/
+     aspect-ratio:unset further up. */
+  aspect-ratio: 2 / 1 !important;
+  height: auto !important;
 }
 
 body[data-page="projects.html"] .image-card .proj-card-banner-img.bhob-banner img,
