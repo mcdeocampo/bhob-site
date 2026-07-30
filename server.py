@@ -2852,7 +2852,13 @@ def _optimize_image(data, ext):
         img = _PILImage.open(_io.BytesIO(data))
         ext = (ext or '').lower()
 
-        max_w = 1800
+        # The largest this ever displays at is the 640px-wide "Read More"
+        # modal -- 1280px covers that at 2x retina density with room to
+        # spare. Uploads are typically 1500-1800px wide (phone/export
+        # defaults), so this halves pixel count (and roughly file size) on
+        # top of the WEBP/JPEG compression below, for images nobody ever
+        # views larger than a card or that modal anyway.
+        max_w = 1280
         if img.width > max_w:
             new_h = int(img.height * max_w / img.width)
             img = img.resize((max_w, new_h), _PILImage.LANCZOS)

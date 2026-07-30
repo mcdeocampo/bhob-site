@@ -176,7 +176,7 @@
         var safeTitle = (a.title||'').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
         var safeDesc  = (a.shortDescription||'').replace(/</g,'&lt;').replace(/>/g,'&gt;');
         return '<article class="image-card reveal" style="display:flex;flex-direction:column;height:100%">'
-          + '<div class="ann-img-wrap"><img src="' + imgSrc + '" alt="' + safeTitle + '" onerror="this.src=\'assets/images/announcements/announcement-1.jpg\'"></div>'
+          + '<div class="ann-img-wrap"><img src="' + imgSrc + '" alt="' + safeTitle + '" loading="lazy" onerror="this.src=\'assets/images/announcements/announcement-1.jpg\'"></div>'
           + '<div style="display:flex;flex-direction:column;flex:1;padding:18px 20px 20px">'
           + '<span class="date" style="font-size:.78rem;font-weight:600;color:#2563eb;margin-bottom:8px;display:block">' + fmtDate(a.date) + '</span>'
           + '<h3 style="margin-bottom:8px;line-height:1.25">' + safeTitle + '</h3>'
