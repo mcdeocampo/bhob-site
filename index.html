@@ -298,13 +298,30 @@
             var safeT   = (p.title||'').replace(/</g,'&lt;').replace(/>/g,'&gt;');
             var safeD   = (p.shortDescription||'').replace(/</g,'&lt;').replace(/>/g,'&gt;');
             var bannerHtml = p.imageUrl
-              ? '<div class="proj-card-banner proj-card-banner-img bhob-banner" style="display:block"><img src="'+(p.imageUrl.indexOf('http')===0?p.imageUrl:'/'+p.imageUrl)+'" alt="'+safeT+'" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block" onerror="this.parentElement.innerHTML=\'\'"></div>'
+              ? '<div class="proj-card-banner proj-card-banner-img bhob-banner" style="display:block" data-idx="'+i+'"><img src="'+(p.imageUrl.indexOf('http')===0?p.imageUrl:'/'+p.imageUrl)+'" alt="'+safeT+'" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block" data-img-fallback="1"></div>'
               : '<div class="prog-banner '+(bc[p.category]||'prog-banner--blue')+' proj-card-banner bhob-banner" aria-hidden="true"><div class="ict-banner-label"><strong>'+safeCat+'</strong><span>'+safeSub+'</span></div></div>';
             return '<article class="image-card proj-card reveal'+( delay?' '+delay:'')+'">'
               +bannerHtml
               +'<div class="proj-card-body"><span class="status ongoing">'+safeCat+'</span><h3>'+safeT+'</h3><p>'+safeD+'</p></div></article>';
           }).join('');
           document.getElementById('home-proj-viewall').style.display = 'block';
+          // Same broken-photo fallback as the Community Initiatives page: show
+          // the colored banner an entry with no photo gets, rather than a
+          // bare div that collapses to a sliver inside .proj-card-banner's
+          // row flex layout.
+          grid.querySelectorAll('img[data-img-fallback="1"]').forEach(function(img){
+            img.addEventListener('error', function(){
+              var wrap = img.closest('.proj-card-banner-img');
+              var idx = wrap ? +wrap.getAttribute('data-idx') : -1;
+              var item = featured[idx];
+              if (!item || !wrap) return;
+              var cat = (item.category||'').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+              var sub = (item.subtitle||'').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/&/g,'&amp;');
+              wrap.outerHTML = '<div class="prog-banner '+(bc[item.category]||'prog-banner--blue')+' proj-card-banner bhob-banner" aria-hidden="true">'
+                +'<div class="ict-banner-label"><strong>'+cat+'</strong><span>'+sub+'</span></div>'
+                +'</div>';
+            }, { once: true });
+          });
           if (window.revealObserver) {
             document.querySelectorAll('#home-proj-grid .reveal').forEach(function(el){ window.revealObserver.observe(el); });
           }

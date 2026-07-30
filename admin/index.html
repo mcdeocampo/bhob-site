@@ -2059,6 +2059,7 @@ a{text-decoration:none;color:inherit}
             <div class="img-upload-row">
               <label class="btn-upload-file" for="f-img-file">Upload Image</label>
               <input type="file" id="f-img-file" accept=".jpg,.jpeg,.png,.webp" style="display:none">
+              <button type="button" class="btn-act" id="ann-img-remove" style="font-size:.7rem" onclick="clearAnnImage()">Remove</button>
             </div>
             <div class="img-url-note" id="img-url-note"></div>
             <div class="img-hint">JPG, PNG, WebP — max 5 MB</div>
@@ -2185,6 +2186,7 @@ a{text-decoration:none;color:inherit}
             <div class="img-upload-row">
               <label class="btn-upload-file" for="if-img-file">Upload Image</label>
               <input type="file" id="if-img-file" accept=".jpg,.jpeg,.png,.webp" style="display:none">
+              <button type="button" class="btn-act" id="init-img-remove" style="font-size:.7rem" onclick="clearInitImage()">Remove</button>
             </div>
             <div class="img-url-note" id="init-img-url-note"></div>
             <div class="img-hint">JPG, PNG, WebP — max 5 MB. Leave empty to use a colored banner.</div>
@@ -4402,6 +4404,11 @@ function openEdit(id) {
   $('form-overlay').classList.add('open'); $('f-title').focus();
 }
 
+function clearAnnImage() {
+  S.imageUrl=''; $('img-preview').style.display='none'; $('img-preview').src='';
+  document.querySelectorAll('.di-btn').forEach(b=>b.classList.remove('sel'));
+}
+
 function closeForm() { $('form-overlay').classList.remove('open'); }
 $('btn-close-form').onclick=closeForm;
 $('btn-cancel').onclick=closeForm;
@@ -4733,6 +4740,10 @@ function openInitEdit(id) {
   _renderInitAttachments();
   $('init-form-overlay').classList.add('open');
   $('if-title').focus();
+}
+
+function clearInitImage() {
+  SI.imageUrl=''; $('init-img-preview').style.display='none'; $('init-img-preview').src='';
 }
 
 function closeInitForm() { $('init-form-overlay').classList.remove('open'); }
