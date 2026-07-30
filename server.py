@@ -2860,8 +2860,17 @@ def _optimize_image(data, ext):
         out = _io.BytesIO()
 
         if ext == 'png':
-            img.save(out, format='PNG', optimize=True)
-            return out.getvalue(), 'png'
+            # PNG is lossless, so optimize=True barely shrinks a detailed
+            # upload (screenshots, Canva-style graphics) -- a 1774x887 PNG
+            # like this was coming out ~1.9MB versus ~200KB for the same
+            # content saved as WEBP at the same quality. Re-encode to WEBP
+            # (lossy, same quality/method as native .webp uploads below) and
+            # return that extension so the stored file and its Content-Type
+            # match what's actually inside it.
+            if img.mode == 'P':
+                img = img.convert('RGBA')
+            img.save(out, format='WEBP', quality=94, method=6)
+            return out.getvalue(), 'webp'
 
         if ext == 'webp':
             img.save(out, format='WEBP', quality=94, method=6)
