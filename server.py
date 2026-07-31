@@ -71,6 +71,9 @@ app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 # Enable in production (HTTPS): app.config['SESSION_COOKIE_SECURE'] = True
 
+# Google Analytics 4 — blank disables the injection in _inject_page() below
+app.config['GA_MEASUREMENT_ID'] = os.environ.get('GA_MEASUREMENT_ID', '')
+
 # ── Fixed coordinates — Barangay Hulo, Obando, Bulacan ───────────────────────
 TIDE_LAT = 14.7201
 TIDE_LON  = 120.9284
@@ -1812,6 +1815,27 @@ def _inject_page(html, settings, officials):
 
     if officials is not None:
         _inject_officials_page(doc, settings, officials)
+
+    # Google Analytics 4 — every public page goes through this function
+    # (admin uses _render_admin_shell instead, so it's excluded automatically).
+    # Skipped entirely when GA_MEASUREMENT_ID is unset.
+    ga_id = app.config.get('GA_MEASUREMENT_ID')
+    if ga_id:
+        head_el = doc.xpath('//head')
+        if head_el:
+            head_el = head_el[0]
+            ga_loader = LH.Element('script')
+            ga_loader.set('async', '')
+            ga_loader.set('src', 'https://www.googletagmanager.com/gtag/js?id=' + ga_id)
+            head_el.append(ga_loader)
+            ga_init = LH.Element('script')
+            ga_init.text = (
+                "window.dataLayer = window.dataLayer || [];"
+                "function gtag(){dataLayer.push(arguments);}"
+                "gtag('js', new Date());"
+                "gtag('config', '" + ga_id + "');"
+            )
+            head_el.append(ga_init)
 
     return LH.tostring(doc, doctype='<!DOCTYPE html>', encoding='unicode')
 
