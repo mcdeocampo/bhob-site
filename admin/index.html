@@ -424,6 +424,15 @@ a{text-decoration:none;color:inherit}
   background:var(--bg);padding:4px 8px;border-radius:4px;display:none}
 .img-url-note.show-note{display:block}
 
+.ph-override-list{display:flex;flex-direction:column;gap:6px}
+.ph-override-row{display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:var(--bg)}
+.ph-override-info{display:flex;align-items:center;gap:10px;min-width:0}
+.ph-override-thumb{width:36px;height:36px;border-radius:6px;object-fit:cover;flex-shrink:0}
+.ph-override-label{font-size:.85rem;font-weight:600;color:var(--text)}
+.ph-override-actions{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.ph-override-actions .btn-upload-file{padding:5px 12px;font-size:.72rem}
+
 .icon-picker-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(56px,1fr));gap:8px}
 .icon-picker-item{border:2px solid var(--border);border-radius:8px;padding:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;background:var(--card);transition:border-color .15s}
 .icon-picker-item:hover{border-color:#93c5fd}
@@ -1725,6 +1734,19 @@ a{text-decoration:none;color:inherit}
           <div class="form-grid">
             <div class="field field-full"><label>Hero Title</label><input type="text" id="cm-hero-title" maxlength="120"></div>
             <div class="field field-full"><label>Hero Description</label><textarea id="cm-hero-description" rows="4" maxlength="500"></textarea></div>
+            <div class="field field-full">
+              <label>Hero Background Image</label>
+              <div class="img-area" id="cm-hero-bg-drop-area">
+                <img class="img-preview" id="cm-hero-bg-preview" src="" alt="" style="display:none">
+                <div class="img-upload-row">
+                  <label class="btn-upload-file" for="cm-hero-bg-file">Upload Image</label>
+                  <input type="file" id="cm-hero-bg-file" accept=".jpg,.jpeg,.png,.webp" style="display:none">
+                  <button type="button" class="btn-act" id="cm-hero-bg-remove" style="font-size:.7rem" onclick="clearContentHeroBg()">Remove</button>
+                </div>
+                <div class="img-url-note" id="cm-hero-bg-url-note"></div>
+                <div class="img-hint">JPG, PNG, WebP - max 5 MB. Leave empty to use the built-in background (1600x900).</div>
+              </div>
+            </div>
           </div>
 
           <div class="settings-subgroup"><div class="settings-subtitle">Barangay at a Glance</div></div>
@@ -1748,6 +1770,35 @@ a{text-decoration:none;color:inherit}
           </div>
           <div class="settings-acts">
             <button class="btn-publish" onclick="saveContentHero()">Save Hero</button>
+          </div>
+        </div>
+
+        <!-- Page Banner Background -->
+        <div class="settings-card">
+          <h3>Page Banner Background</h3>
+          <p class="settings-desc">The banner behind the title on every inner page (About, Officials, Public Services, Announcements, Contact, Community Initiatives, Directory, Transparency, Downloads, Service Standards). Set one default for all of them, or override just the pages you want to look different below.</p>
+          <div class="form-grid">
+            <div class="field field-full">
+              <label>Default Background (all pages)</label>
+              <div class="img-area" id="cm-pagehero-global-drop-area">
+                <img class="img-preview" id="cm-pagehero-global-preview" src="" alt="" style="display:none">
+                <div class="img-upload-row">
+                  <label class="btn-upload-file" for="cm-pagehero-global-file">Upload Image</label>
+                  <input type="file" id="cm-pagehero-global-file" accept=".jpg,.jpeg,.png,.webp" style="display:none">
+                  <button type="button" class="btn-act" style="font-size:.7rem" onclick="clearPageHeroGlobal()">Remove</button>
+                </div>
+                <div class="img-url-note" id="cm-pagehero-global-url-note"></div>
+                <div class="img-hint">JPG, PNG, WebP - max 5 MB. Leave empty to use the built-in gradient banner.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="settings-subgroup"><div class="settings-subtitle">Per-Page Overrides (optional)</div></div>
+          <p class="settings-desc">Only set an image here for a page that should look different from the default above.</p>
+          <div id="cm-pagehero-override-list" class="ph-override-list"></div>
+
+          <div class="settings-acts">
+            <button class="btn-publish" onclick="savePageHeroBackgrounds()">Save Page Banner Background</button>
           </div>
         </div>
 
@@ -6151,6 +6202,109 @@ function clearContentLogo() {
   toast('Logo cleared — remember to save', 'ok');
 }
 
+const PAGE_HERO_PAGES = [
+  { slug: 'about', label: 'About Us' },
+  { slug: 'officials', label: 'Officials' },
+  { slug: 'services', label: 'Public Services' },
+  { slug: 'announcements', label: 'Announcements' },
+  { slug: 'contact', label: 'Contact' },
+  { slug: 'projects', label: 'Community Initiatives' },
+  { slug: 'directory', label: 'Directory' },
+  { slug: 'transparency', label: 'Transparency' },
+  { slug: 'downloads', label: 'Downloads' },
+  { slug: 'citizens_charter', label: 'Service Standards' }
+];
+
+function ensurePageHeroOverrideRows() {
+  const list = $('cm-pagehero-override-list');
+  if (!list || list.dataset.built) return;
+  list.dataset.built = '1';
+  list.innerHTML = PAGE_HERO_PAGES.map(function (p) {
+    return '<div class="ph-override-row" data-slug="' + p.slug + '">' +
+      '<div class="ph-override-info">' +
+        '<img class="ph-override-thumb" id="ph-thumb-' + p.slug + '" src="" alt="" style="display:none">' +
+        '<span class="ph-override-label">' + p.label + '</span>' +
+      '</div>' +
+      '<div class="ph-override-actions">' +
+        '<label class="btn-upload-file" for="ph-file-' + p.slug + '">Upload</label>' +
+        '<input type="file" id="ph-file-' + p.slug + '" data-slug="' + p.slug + '" class="ph-override-file" accept=".jpg,.jpeg,.png,.webp" style="display:none">' +
+        '<button type="button" class="btn-act" style="font-size:.7rem" onclick="clearPageHeroOverride(\'' + p.slug + '\')">Remove</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+  list.querySelectorAll('.ph-override-file').forEach(function (input) {
+    input.addEventListener('change', async e => {
+      const slug = input.getAttribute('data-slug');
+      const f = e.target.files[0]; if (!f) return;
+      const form = new FormData(); form.append('image', f);
+      try {
+        const r = await adminFetch('/admin/api/upload/page-hero-bg-image', { method: 'POST', body: form });
+        const d = await r.json();
+        if (!r.ok) { toast(d.error || 'Upload failed', 'err'); return; }
+        CM_STATE.pageHeroOverrides[slug] = d.url;
+        renderPageHeroOverride(slug);
+        toast('Image uploaded — remember to save', 'ok');
+      } catch (err) { if (err.message !== 'unauthorized') toast('Upload error', 'err'); }
+      finally { e.target.value = ''; }
+    });
+  });
+}
+
+function renderPageHeroOverride(slug) {
+  const img = $('ph-thumb-' + slug);
+  const url = (CM_STATE.pageHeroOverrides || {})[slug] || '';
+  if (img) {
+    if (url) { img.src = url.indexOf('http') === 0 ? url : '/' + url; img.style.display = ''; }
+    else { img.removeAttribute('src'); img.style.display = 'none'; }
+  }
+}
+
+function clearPageHeroOverride(slug) {
+  CM_STATE.pageHeroOverrides[slug] = '';
+  renderPageHeroOverride(slug);
+  toast('Override cleared for this page — remember to save', 'ok');
+}
+
+function cmRenderPageHeroGlobal() {
+  const img = $('cm-pagehero-global-preview'), note = $('cm-pagehero-global-url-note');
+  const url = CM_STATE.pageHeroGlobalUrl;
+  if (img) {
+    if (url) { img.src = url.indexOf('http') === 0 ? url : '/' + url; img.style.display = ''; }
+    else { img.removeAttribute('src'); img.style.display = 'none'; }
+  }
+  if (note) { note.textContent = url ? url : 'No image set — the built-in gradient banner is in use.'; note.classList.add('show-note'); }
+}
+
+function clearPageHeroGlobal() {
+  CM_STATE.pageHeroGlobalUrl = '';
+  cmRenderPageHeroGlobal();
+  toast('Default page banner cleared — remember to save', 'ok');
+}
+
+function savePageHeroBackgrounds() {
+  const p = { page_hero_bg_image_url: CM_STATE.pageHeroGlobalUrl || '' };
+  PAGE_HERO_PAGES.forEach(function (pg) {
+    p['page_hero_bg_image_url_' + pg.slug] = (CM_STATE.pageHeroOverrides || {})[pg.slug] || '';
+  });
+  return cmSave(p, 'Page Banner Background');
+}
+
+function cmRenderHeroBg() {
+  const img = $('cm-hero-bg-preview'), note = $('cm-hero-bg-url-note');
+  const url = CM_STATE.heroBgUrl;
+  if (img) {
+    if (url) { img.src = url.indexOf('http') === 0 ? url : '/' + url; img.style.display = ''; }
+    else { img.removeAttribute('src'); img.style.display = 'none'; }
+  }
+  if (note) { note.textContent = url ? url : 'No image set — the built-in background is in use.'; note.classList.add('show-note'); }
+}
+
+function clearContentHeroBg() {
+  CM_STATE.heroBgUrl = '';
+  cmRenderHeroBg();
+  toast('Hero background cleared — remember to save', 'ok');
+}
+
 async function loadContentSettings() {
   cmEnsureGalleryState();
   try {
@@ -6162,6 +6316,16 @@ async function loadContentSettings() {
     });
     CM_STATE.logoUrl = s.barangay_logo_url || '';
     cmRenderLogo();
+    CM_STATE.heroBgUrl = s.hero_bg_image_url || '';
+    cmRenderHeroBg();
+    CM_STATE.pageHeroGlobalUrl = s.page_hero_bg_image_url || '';
+    cmRenderPageHeroGlobal();
+    ensurePageHeroOverrideRows();
+    CM_STATE.pageHeroOverrides = {};
+    PAGE_HERO_PAGES.forEach(function (pg) {
+      CM_STATE.pageHeroOverrides[pg.slug] = s['page_hero_bg_image_url_' + pg.slug] || '';
+      renderPageHeroOverride(pg.slug);
+    });
     // Stored as a JSON array; anything unparseable is treated as "not set" so
     // the public page keeps its shipped photos.
     let imgs = [];
@@ -6204,14 +6368,16 @@ function saveContentIdentity() {
 }
 
 function saveContentHero() {
-  return cmSave(cmPayload(['cm-hero-title', 'cm-hero-description',
-                           'cm-home-officials-description',
-                           'cm-home-services-description',
-                           'cm-home-announcements-description',
-                           'cm-home-calendar-description',
-                           'cm-home-initiatives-description',
-                           'cm-glance-title', 'cm-glance-item1', 'cm-glance-item2',
-                           'cm-glance-item3', 'cm-glance-item4']), 'Hero');
+  const p = cmPayload(['cm-hero-title', 'cm-hero-description',
+                       'cm-home-officials-description',
+                       'cm-home-services-description',
+                       'cm-home-announcements-description',
+                       'cm-home-calendar-description',
+                       'cm-home-initiatives-description',
+                       'cm-glance-title', 'cm-glance-item1', 'cm-glance-item2',
+                       'cm-glance-item3', 'cm-glance-item4']);
+  p.hero_bg_image_url = CM_STATE.heroBgUrl || '';
+  return cmSave(p, 'Hero');
 }
 
 function saveContentAbout() {
@@ -6255,6 +6421,36 @@ document.addEventListener('DOMContentLoaded', () => {
       CM_STATE.logoUrl = d.url;
       cmRenderLogo();
       toast('Logo uploaded — remember to save', 'ok');
+    } catch (err) { if (err.message !== 'unauthorized') toast('Upload error', 'err'); }
+    finally { e.target.value = ''; }
+  });
+
+  const heroBgFile = $('cm-hero-bg-file');
+  if (heroBgFile) heroBgFile.addEventListener('change', async e => {
+    const f = e.target.files[0]; if (!f) return;
+    const form = new FormData(); form.append('image', f);
+    try {
+      const r = await adminFetch('/admin/api/upload/hero-bg-image', { method: 'POST', body: form });
+      const d = await r.json();
+      if (!r.ok) { toast(d.error || 'Upload failed', 'err'); return; }
+      CM_STATE.heroBgUrl = d.url;
+      cmRenderHeroBg();
+      toast('Hero background uploaded — remember to save', 'ok');
+    } catch (err) { if (err.message !== 'unauthorized') toast('Upload error', 'err'); }
+    finally { e.target.value = ''; }
+  });
+
+  const pageHeroGlobalFile = $('cm-pagehero-global-file');
+  if (pageHeroGlobalFile) pageHeroGlobalFile.addEventListener('change', async e => {
+    const f = e.target.files[0]; if (!f) return;
+    const form = new FormData(); form.append('image', f);
+    try {
+      const r = await adminFetch('/admin/api/upload/page-hero-bg-image', { method: 'POST', body: form });
+      const d = await r.json();
+      if (!r.ok) { toast(d.error || 'Upload failed', 'err'); return; }
+      CM_STATE.pageHeroGlobalUrl = d.url;
+      cmRenderPageHeroGlobal();
+      toast('Default page banner uploaded — remember to save', 'ok');
     } catch (err) { if (err.message !== 'unauthorized') toast('Upload error', 'err'); }
     finally { e.target.value = ''; }
   });

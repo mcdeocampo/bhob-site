@@ -672,6 +672,37 @@
         if (val) el.src = val.indexOf('http') === 0 ? val : '/' + val.replace(/^\/+/, '');
       });
 
+      // background-image — same fallback rule as src: an unset value leaves
+      // the shipped CSS background (e.g. the homepage hero) in place.
+      document.querySelectorAll('[data-setting-bg]').forEach(function (el) {
+        var key = el.getAttribute('data-setting-bg');
+        var val = s[key];
+        if (val) {
+          var url = val.indexOf('http') === 0 ? val : '/' + val.replace(/^\/+/, '');
+          // Sets the --hero-bg-photo custom property (consumed by the hero's
+          // own !important background rules in style.css) rather than
+          // background-image directly -- the hero composes a darkening
+          // gradient + photo in one background-image value, so replacing it
+          // wholesale would blow away the gradient text-legibility overlay.
+          el.style.setProperty('--hero-bg-photo', "url('" + url + "')");
+        }
+      });
+
+      // Inner-page banners (about/officials/services/etc.). Sets
+      // --page-hero-bg-photo (consumed by .page-hero's own !important
+      // background rule) rather than replacing the whole background --
+      // .page-hero already composes a darkening gradient + photo in one
+      // background-image value, so this swaps only the photo layer. A
+      // page-specific key wins over the global default, same as server-side.
+      document.querySelectorAll('[data-page-hero-bg]').forEach(function (el) {
+        var slug = el.getAttribute('data-page-hero-bg');
+        var val = s['page_hero_bg_image_url_' + slug] || s['page_hero_bg_image_url'];
+        if (val) {
+          var url = val.indexOf('http') === 0 ? val : '/' + val.replace(/^\/+/, '');
+          el.style.setProperty('--page-hero-bg-photo', "url('" + url + "')");
+        }
+      });
+
       // <title data-site-title> — "Name | Locality"
       var parts = [s.barangay_name, s.barangay_locality].filter(Boolean);
       if (parts.length) {

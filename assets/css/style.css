@@ -1354,7 +1354,7 @@ main > section.section-pad:nth-of-type(odd):not(.hero):not(.page-hero):not(.grad
 .hero{
   background:
     linear-gradient(90deg,rgba(5,23,58,.88) 0%,rgba(5,23,58,.74) 24%,rgba(10,61,153,.50) 48%,rgba(10,61,153,.20) 70%,rgba(255,255,255,0) 100%),
-    url('../images/home-community-balanced.jpg') 80% center/cover no-repeat !important;
+    var(--hero-bg-photo, url('../images/home-community-balanced.jpg')) 80% center/cover no-repeat !important;
   min-height:720px;
 }
 .hero-overlay{
@@ -1389,21 +1389,21 @@ main > section.section-pad:nth-of-type(odd):not(.hero):not(.page-hero):not(.grad
   .hero{
     background:
       linear-gradient(90deg,rgba(5,23,58,.88) 0%,rgba(5,23,58,.72) 28%,rgba(10,61,153,.42) 60%,rgba(255,255,255,0) 100%),
-      url('../images/home-community-balanced.jpg') 76% center/cover no-repeat !important;
+      var(--hero-bg-photo, url('../images/home-community-balanced.jpg')) 76% center/cover no-repeat !important;
   }
 }
 @media (max-width:768px){
   .hero{
     background:
       linear-gradient(180deg,rgba(5,23,58,.82) 0%,rgba(5,23,58,.62) 36%,rgba(10,61,153,.30) 66%,rgba(5,23,58,.12) 100%),
-      url('../images/home-community-balanced.jpg') 72% center/cover no-repeat !important;
+      var(--hero-bg-photo, url('../images/home-community-balanced.jpg')) 72% center/cover no-repeat !important;
   }
 }
 @media (max-width:480px){
   .hero{
     background:
       linear-gradient(180deg,rgba(5,23,58,.84) 0%,rgba(5,23,58,.66) 34%,rgba(10,61,153,.32) 66%,rgba(5,23,58,.18) 100%),
-      url('../images/home-community-balanced.jpg') 74% center/cover no-repeat !important;
+      var(--hero-bg-photo, url('../images/home-community-balanced.jpg')) 74% center/cover no-repeat !important;
   }
 }
 
@@ -1648,7 +1648,7 @@ section{
     overflow:hidden;
     background:
       linear-gradient(90deg,rgba(5,23,58,.86) 0%,rgba(5,23,58,.70) 22%,rgba(10,61,153,.48) 45%,rgba(10,61,153,.22) 68%,rgba(10,61,153,.08) 100%),
-      url('../images/home-community-balanced.jpg') 74% center/cover no-repeat !important;
+      var(--hero-bg-photo, url('../images/home-community-balanced.jpg')) 74% center/cover no-repeat !important;
   }
   .hero .container{
     width:min(1440px,calc(100% - 96px)) !important;
@@ -3870,7 +3870,7 @@ main > section:not(.hero):not(.page-hero):not(.gradient-panel):not(.official-str
 .page-hero{
   background:
     linear-gradient(115deg, rgba(8,35,78,.88) 0%, rgba(25,102,196,.72) 48%, rgba(0,173,185,.62) 100%),
-    url('../images/home-community-hero.jpg') center/cover no-repeat !important;
+    var(--page-hero-bg-photo, url('../images/home-community-hero.jpg')) center/cover no-repeat !important;
   overflow: hidden !important;
 }
 

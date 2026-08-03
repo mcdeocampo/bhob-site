@@ -1769,6 +1769,37 @@ def _inject_page(html, settings, officials):
         if url:
             el.set('src', url)
 
+    # CSS background-image (e.g. the homepage hero) rather than an <img src>.
+    # Sets the --hero-bg-photo custom property (consumed by the hero's own
+    # `!important` background rules in style.css) instead of background-image
+    # directly -- the hero composes a darkening gradient + photo in one
+    # background-image value, so replacing background-image wholesale would
+    # blow away the gradient text-legibility overlay at every breakpoint. An
+    # unset value leaves the shipped CSS background (gradient + default
+    # photo) in place, same fallback rule data-setting-src follows for logos.
+    for el in doc.xpath('//*[@data-setting-bg]'):
+        url = _asset_url(settings.get(el.get('data-setting-bg')))
+        if url:
+            existing_style = (el.get('style') or '').rstrip(';')
+            new_style = "--hero-bg-photo:url('" + url + "')"
+            el.set('style', (existing_style + ';' + new_style) if existing_style else new_style)
+
+    # Inner-page banner (about/officials/services/etc.). Sets the
+    # --page-hero-bg-photo custom property (consumed by .page-hero's own
+    # `!important` background rule in style.css), same technique as the
+    # homepage hero's --hero-bg-photo -- .page-hero already composes a
+    # darkening gradient + photo in one background-image value, so this
+    # swaps only the photo layer, leaving the gradient intact. Falls back to
+    # the shipped photo when neither the page-specific nor the global key is
+    # set. A page-specific value wins over the global default when both are set.
+    for el in doc.xpath('//*[@data-page-hero-bg]'):
+        slug = el.get('data-page-hero-bg')
+        url = _asset_url(settings.get('page_hero_bg_image_url_' + slug) or settings.get('page_hero_bg_image_url'))
+        if url:
+            existing_style = (el.get('style') or '').rstrip(';')
+            new_style = "--page-hero-bg-photo:url('" + url + "')"
+            el.set('style', (existing_style + ';' + new_style) if existing_style else new_style)
+
     for el in doc.xpath('//*[@data-setting-href]'):
         url = (settings.get(el.get('data-setting-href')) or '').strip()
         if url:
@@ -3415,7 +3446,7 @@ def admin_site_settings_put():
         # Barangay identity shown in every page's header and footer.
         'barangay_name', 'barangay_locality', 'footer_tagline', 'barangay_logo_url',
         # Homepage hero.
-        'hero_title', 'hero_description',
+        'hero_title', 'hero_description', 'hero_bg_image_url',
         # About Us page. about_history_images holds a JSON array of image URLs.
         'about_hero_title', 'about_hero_description',
         'about_history_title', 'about_history_content', 'about_history_images',
@@ -3438,6 +3469,15 @@ def admin_site_settings_put():
         # on a rename the same way the page descriptions above did.
         'home_services_description', 'home_announcements_description',
         'home_calendar_description', 'home_initiatives_description',
+        # Inner-page banner background. page_hero_bg_image_url is the global
+        # default applied to every page-hero below; each page_hero_bg_image_url_*
+        # key overrides it for just that one page.
+        'page_hero_bg_image_url',
+        'page_hero_bg_image_url_about', 'page_hero_bg_image_url_officials',
+        'page_hero_bg_image_url_services', 'page_hero_bg_image_url_announcements',
+        'page_hero_bg_image_url_contact', 'page_hero_bg_image_url_projects',
+        'page_hero_bg_image_url_directory', 'page_hero_bg_image_url_transparency',
+        'page_hero_bg_image_url_downloads', 'page_hero_bg_image_url_citizens_charter',
     }
     _LONG_KEYS = {
         'officials_punong_description', 'officials_sb_description',
@@ -5478,6 +5518,21 @@ def admin_upload_emergency_gallery():
 @admin_required
 def admin_upload_barangay_logo():
     return _upload_gallery_image('branding')
+
+
+@app.route('/admin/api/upload/hero-bg-image', methods=['POST'])
+@admin_required
+def admin_upload_hero_bg_image():
+    return _upload_gallery_image('hero')
+
+
+@app.route('/admin/api/upload/page-hero-bg-image', methods=['POST'])
+@admin_required
+def admin_upload_page_hero_bg_image():
+    # Shared by the global default and every per-page override on the Page
+    # Banner Background admin section -- the caller decides which settings
+    # key to save the returned URL under, so one upload route covers all of them.
+    return _upload_gallery_image('page-hero')
 
 
 @app.route('/admin/api/upload/about-history-image', methods=['POST'])
