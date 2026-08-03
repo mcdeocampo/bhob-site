@@ -2894,7 +2894,7 @@ except ImportError:
     _HAS_PIL = False
 
 
-def _optimize_image(data, ext):
+def _optimize_image(data, ext, max_w=1280):
     """Preserve good image quality for announcement/initiative uploads.
 
     Resize only very large images and save at high quality so uploaded
@@ -2907,13 +2907,14 @@ def _optimize_image(data, ext):
         img = _PILImage.open(_io.BytesIO(data))
         ext = (ext or '').lower()
 
-        # The largest this ever displays at is the 640px-wide "Read More"
-        # modal -- 1280px covers that at 2x retina density with room to
-        # spare. Uploads are typically 1500-1800px wide (phone/export
+        # Default cap: the largest this ever displays at is the 640px-wide
+        # "Read More" modal -- 1280px covers that at 2x retina density with
+        # room to spare. Uploads are typically 1500-1800px wide (phone/export
         # defaults), so this halves pixel count (and roughly file size) on
         # top of the WEBP/JPEG compression below, for images nobody ever
-        # views larger than a card or that modal anyway.
-        max_w = 1280
+        # views larger than a card or that modal anyway. Callers rendering
+        # full-bleed backgrounds (hero/page-hero) pass a higher max_w since
+        # those can span a full desktop viewport, not just a card or modal.
         if img.width > max_w:
             new_h = int(img.height * max_w / img.width)
             img = img.resize((max_w, new_h), _PILImage.LANCZOS)
@@ -5471,7 +5472,7 @@ def admin_upload_map_location_image():
 
 # ── Directory — gallery image uploads (one file per request, reuses the same
 #    optimize/storage pipeline as the single-logo uploads above) ─────────────
-def _upload_gallery_image(folder):
+def _upload_gallery_image(folder, max_w=1280):
     f = request.files.get('image')
     if not f or not f.filename:
         return jsonify({'error': 'No file selected'}), 400
@@ -5481,7 +5482,7 @@ def _upload_gallery_image(folder):
     data = f.read(MAX_BYTES + 1)
     if len(data) > MAX_BYTES:
         return jsonify({'error': 'File too large (max 5 MB)'}), 400
-    data, ext = _optimize_image(data, ext)
+    data, ext = _optimize_image(data, ext, max_w=max_w)
     try:
         url = _upload_to_storage(data, folder, ext)
     except Exception as exc:
@@ -5523,7 +5524,9 @@ def admin_upload_barangay_logo():
 @app.route('/admin/api/upload/hero-bg-image', methods=['POST'])
 @admin_required
 def admin_upload_hero_bg_image():
-    return _upload_gallery_image('hero')
+    # Full-bleed background, not a card/modal image -- keep more resolution
+    # than the 1280px default so it stays sharp on large desktop viewports.
+    return _upload_gallery_image('hero', max_w=1920)
 
 
 @app.route('/admin/api/upload/page-hero-bg-image', methods=['POST'])
@@ -5532,7 +5535,9 @@ def admin_upload_page_hero_bg_image():
     # Shared by the global default and every per-page override on the Page
     # Banner Background admin section -- the caller decides which settings
     # key to save the returned URL under, so one upload route covers all of them.
-    return _upload_gallery_image('page-hero')
+    # Full-bleed background, not a card/modal image -- keep more resolution
+    # than the 1280px default so it stays sharp on large desktop viewports.
+    return _upload_gallery_image('page-hero', max_w=1920)
 
 
 @app.route('/admin/api/upload/about-history-image', methods=['POST'])
