@@ -11243,7 +11243,7 @@ body[data-page="transparency.html"] .doc-row:nth-child(even){
 
   .page-hero p{
     margin-bottom: 0 !important;
-    max-width: 30ch !important;
+    max-width: 480px !important;
   }
 }
 
@@ -11272,7 +11272,7 @@ body[data-page="transparency.html"] .doc-row:nth-child(even){
   .page-hero p{
     font-size: .84rem !important;
     line-height: 1.42 !important;
-    max-width: 28ch !important;
+    max-width: none !important;
   }
 }
 
@@ -12504,7 +12504,7 @@ body[data-page="index.html"] .gradient-band + .section-pad .section-heading h2{
   .page-hero p{
     font-size: .82rem !important;
     line-height: 1.42 !important;
-    max-width: 30ch !important;
+    max-width: 480px !important;
   }
 
   /* Unified mobile section spacing */
@@ -12792,7 +12792,7 @@ body[data-page="index.html"] .gradient-band + .section-pad .section-heading h2{
   .page-hero p{
     font-size: .78rem !important;
     line-height: 1.38 !important;
-    max-width: 28ch !important;
+    max-width: none !important;
   }
 
   main > section.section-pad{
