@@ -22019,7 +22019,6 @@ body[data-page="transparency.html"] .td-empty {
    constrains its width on the right. */
 body[data-page="transparency.html"] .transparency-subtitle {
   max-width: 480px !important;
-  margin-top: 14px;
 }
 /* Desktop/large screens: wide enough that the subtitle sentence sits on
    one line instead of wrapping — no forced breaks, just room to breathe.
