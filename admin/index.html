@@ -6132,6 +6132,15 @@ async function saveFooterSettings() {
 
 const CM_STATE = { logoUrl: '', gallery: [] };
 
+// Settings keys/ids the user has actually edited since the section last
+// loaded. Every save*() function below only sends keys present here --
+// never whatever a field currently shows -- so a field that's blank for any
+// reason other than a real edit (a load race, a stale reload, a bug) simply
+// never gets included in the PUT instead of silently overwriting a good
+// value with blank. Cleared at the top of loadContentSettings() so tracking
+// always starts fresh relative to the last load/save.
+const CM_DIRTY = new Set();
+
 // Reuse the existing gallery widget (renderGalleryGrid / removeGalleryImage /
 // uploadGalleryImage) by registering under the prefix its markup uses.
 // Registered lazily rather than at top level: DIR_STATE_BY_PREFIX is a `const`
@@ -6198,6 +6207,7 @@ function cmRenderLogo() {
 
 function clearContentLogo() {
   CM_STATE.logoUrl = '';
+  CM_DIRTY.add('barangay_logo_url');
   cmRenderLogo();
   toast('Logo cleared — remember to save', 'ok');
 }
@@ -6242,6 +6252,7 @@ function ensurePageHeroOverrideRows() {
         const d = await r.json();
         if (!r.ok) { toast(d.error || 'Upload failed', 'err'); return; }
         CM_STATE.pageHeroOverrides[slug] = d.url;
+        CM_DIRTY.add('page_hero_bg_image_url_' + slug);
         renderPageHeroOverride(slug);
         toast('Image uploaded — remember to save', 'ok');
       } catch (err) { if (err.message !== 'unauthorized') toast('Upload error', 'err'); }
@@ -6261,6 +6272,7 @@ function renderPageHeroOverride(slug) {
 
 function clearPageHeroOverride(slug) {
   CM_STATE.pageHeroOverrides[slug] = '';
+  CM_DIRTY.add('page_hero_bg_image_url_' + slug);
   renderPageHeroOverride(slug);
   toast('Override cleared for this page — remember to save', 'ok');
 }
@@ -6277,14 +6289,17 @@ function cmRenderPageHeroGlobal() {
 
 function clearPageHeroGlobal() {
   CM_STATE.pageHeroGlobalUrl = '';
+  CM_DIRTY.add('page_hero_bg_image_url');
   cmRenderPageHeroGlobal();
   toast('Default page banner cleared — remember to save', 'ok');
 }
 
 function savePageHeroBackgrounds() {
-  const p = { page_hero_bg_image_url: CM_STATE.pageHeroGlobalUrl || '' };
+  const p = {};
+  if (CM_DIRTY.has('page_hero_bg_image_url')) p.page_hero_bg_image_url = CM_STATE.pageHeroGlobalUrl || '';
   PAGE_HERO_PAGES.forEach(function (pg) {
-    p['page_hero_bg_image_url_' + pg.slug] = (CM_STATE.pageHeroOverrides || {})[pg.slug] || '';
+    const key = 'page_hero_bg_image_url_' + pg.slug;
+    if (CM_DIRTY.has(key)) p[key] = (CM_STATE.pageHeroOverrides || {})[pg.slug] || '';
   });
   return cmSave(p, 'Page Banner Background');
 }
@@ -6301,11 +6316,13 @@ function cmRenderHeroBg() {
 
 function clearContentHeroBg() {
   CM_STATE.heroBgUrl = '';
+  CM_DIRTY.add('hero_bg_image_url');
   cmRenderHeroBg();
   toast('Hero background cleared — remember to save', 'ok');
 }
 
 async function loadContentSettings() {
+  CM_DIRTY.clear();
   cmEnsureGalleryState();
   try {
     const r = await adminFetch('/admin/api/site-settings');
@@ -6340,6 +6357,7 @@ async function loadContentSettings() {
 }
 
 async function cmSave(payload, label) {
+  if (!Object.keys(payload).length) { toast('No changes to save', 'ok'); return; }
   try {
     const r = await adminFetch('/admin/api/site-settings', {
       method: 'PUT',
@@ -6357,13 +6375,13 @@ function cmVal(id) { return (($(id) || {}).value || '').trim(); }
 
 function cmPayload(ids) {
   const out = {};
-  ids.forEach(id => { out[CM_FIELDS[id]] = cmVal(id); });
+  ids.forEach(id => { if (CM_DIRTY.has(id)) out[CM_FIELDS[id]] = cmVal(id); });
   return out;
 }
 
 function saveContentIdentity() {
   const p = cmPayload(['cm-barangay-name', 'cm-barangay-locality', 'cm-footer-tagline']);
-  p.barangay_logo_url = CM_STATE.logoUrl || '';
+  if (CM_DIRTY.has('barangay_logo_url')) p.barangay_logo_url = CM_STATE.logoUrl || '';
   return cmSave(p, 'Barangay Identity');
 }
 
@@ -6376,7 +6394,7 @@ function saveContentHero() {
                        'cm-home-initiatives-description',
                        'cm-glance-title', 'cm-glance-item1', 'cm-glance-item2',
                        'cm-glance-item3', 'cm-glance-item4']);
-  p.hero_bg_image_url = CM_STATE.heroBgUrl || '';
+  if (CM_DIRTY.has('hero_bg_image_url')) p.hero_bg_image_url = CM_STATE.heroBgUrl || '';
   return cmSave(p, 'Hero');
 }
 
@@ -6393,7 +6411,9 @@ function saveContentAbout() {
   ]);
   // An empty gallery saves as "" rather than "[]" so the public page falls back
   // to its shipped photos instead of rendering an empty grid.
-  p.about_history_images = CM_STATE.gallery.length ? JSON.stringify(CM_STATE.gallery) : '';
+  if (CM_DIRTY.has('about_history_images')) {
+    p.about_history_images = CM_STATE.gallery.length ? JSON.stringify(CM_STATE.gallery) : '';
+  }
   return cmSave(p, 'About Us');
 }
 
@@ -6410,6 +6430,14 @@ function saveContentPageDescriptions() {
 
 // Uploads
 document.addEventListener('DOMContentLoaded', () => {
+  // Mark a text field dirty only on a real user edit -- programmatic
+  // `el.value = ...` (how loadContentSettings populates fields) never fires
+  // 'input', so this can't mistake "just loaded" for "user touched it".
+  Object.keys(CM_FIELDS).forEach(id => {
+    const el = $(id);
+    if (el) el.addEventListener('input', () => CM_DIRTY.add(id));
+  });
+
   const logoFile = $('cm-logo-file');
   if (logoFile) logoFile.addEventListener('change', async e => {
     const f = e.target.files[0]; if (!f) return;
@@ -6419,6 +6447,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const d = await r.json();
       if (!r.ok) { toast(d.error || 'Upload failed', 'err'); return; }
       CM_STATE.logoUrl = d.url;
+      CM_DIRTY.add('barangay_logo_url');
       cmRenderLogo();
       toast('Logo uploaded — remember to save', 'ok');
     } catch (err) { if (err.message !== 'unauthorized') toast('Upload error', 'err'); }
@@ -6434,6 +6463,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const d = await r.json();
       if (!r.ok) { toast(d.error || 'Upload failed', 'err'); return; }
       CM_STATE.heroBgUrl = d.url;
+      CM_DIRTY.add('hero_bg_image_url');
       cmRenderHeroBg();
       toast('Hero background uploaded — remember to save', 'ok');
     } catch (err) { if (err.message !== 'unauthorized') toast('Upload error', 'err'); }
@@ -6449,6 +6479,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const d = await r.json();
       if (!r.ok) { toast(d.error || 'Upload failed', 'err'); return; }
       CM_STATE.pageHeroGlobalUrl = d.url;
+      CM_DIRTY.add('page_hero_bg_image_url');
       cmRenderPageHeroGlobal();
       toast('Default page banner uploaded — remember to save', 'ok');
     } catch (err) { if (err.message !== 'unauthorized') toast('Upload error', 'err'); }
@@ -7948,6 +7979,7 @@ function removeGalleryImage(prefix, idx) {
   const st = DIR_STATE_BY_PREFIX[prefix];
   if (!st) return;
   st.gallery.splice(idx,1);
+  if (prefix === 'cm-history') CM_DIRTY.add('about_history_images');
   renderGalleryGrid(prefix, st.gallery);
 }
 
@@ -7961,6 +7993,7 @@ async function uploadGalleryImage(prefix, endpoint, file) {
     if(!r.ok){toast(d.error||'Upload failed','err');return;}
     st.gallery = st.gallery || [];
     st.gallery.push(d.url);
+    if (prefix === 'cm-history') CM_DIRTY.add('about_history_images');
     renderGalleryGrid(prefix, st.gallery);
     toast('Photo added','ok');
   } catch(e){ if(e.message!=='unauthorized') toast('Upload error','err'); }
