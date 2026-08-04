@@ -19252,24 +19252,6 @@ body[data-page="officials.html"] .officials-divider span::before {
 /* ── MacBook Air/Pro 13" · 1200px–1440px → 4 columns ───────────── */
 /* Covers: 1280px (Air 13"), 1366px generic laptop, 1440px (some 13") */
 @media (min-width: 1200px) and (max-width: 1440px) {
-  /* Compact hero to give cards more room */
-  body[data-page="officials.html"] .page-hero {
-    padding-top: 8px !important;
-    padding-bottom: 8px !important;
-    min-height: auto !important;
-  }
-  body[data-page="officials.html"] .page-hero .eyebrow { display: none !important; }
-  body[data-page="officials.html"] .page-hero h1 {
-    font-size: 26px !important;
-    line-height: 1.15 !important;
-    margin-bottom: 4px !important;
-  }
-  body[data-page="officials.html"] .page-hero p {
-    font-size: 13px !important;
-    line-height: 1.3 !important;
-    margin: 0 !important;
-  }
-  /* padding-top handled by .page-hero + .section-pad standard rule */
   body[data-page="officials.html"] .officials-feature-wrap { margin-bottom: 36px !important; }
   body[data-page="officials.html"] .official-featured {
     padding: 12px 20px !important;
@@ -19300,23 +19282,6 @@ body[data-page="officials.html"] .officials-divider span::before {
 /* ── MacBook Pro 14" · 1441px–1599px → 5 columns ───────────────── */
 /* Covers: 1512px (MBP 14") CSS viewport */
 @media (min-width: 1441px) and (max-width: 1599px) {
-  body[data-page="officials.html"] .page-hero {
-    padding-top: 10px !important;
-    padding-bottom: 10px !important;
-    min-height: auto !important;
-  }
-  body[data-page="officials.html"] .page-hero .eyebrow { display: none !important; }
-  body[data-page="officials.html"] .page-hero h1 {
-    font-size: 28px !important;
-    line-height: 1.15 !important;
-    margin-bottom: 4px !important;
-  }
-  body[data-page="officials.html"] .page-hero p {
-    font-size: 14px !important;
-    line-height: 1.35 !important;
-    margin: 0 !important;
-  }
-  /* padding-top handled by .page-hero + .section-pad standard rule */
   body[data-page="officials.html"] .officials-feature-wrap { margin-bottom: 36px !important; }
   body[data-page="officials.html"] .official-featured {
     padding: 14px 22px !important;
