@@ -208,8 +208,8 @@
     <section class="section-pad soft-bg">
       <div class="container split-layout">
         <div class="reveal"><span class="eyebrow">Latest Updates</span><h2>Announcements</h2><p data-setting="home_announcements_description">Stay informed about barangay assemblies, health programs, cleanup drives, and important public advisories.</p><a class="text-link" href="announcements">View All Announcements →</a></div>
-        <div class="mini-list reveal delay-1" id="home-ann-list">
-          <article><span>&nbsp;</span><h3 style="color:#94a3b8;font-weight:400;font-size:.9rem">Loading…</h3><p></p></article>
+        <div class="ann-home-list reveal delay-1" id="home-ann-list">
+          <article class="image-card proj-card"><div class="proj-card-body"><span style="color:#94a3b8;font-weight:400;font-size:.9rem">Loading…</span></div></article>
         </div>
       </div>
     </section>
@@ -409,6 +409,7 @@
       try { return new Date(d+'T00:00:00').toLocaleDateString('en-PH',{year:'numeric',month:'long',day:'numeric'}); }
       catch(e) { return d; }
     }
+    var ANN_HOME_CATS = ['announcement-1', 'announcement-2', 'announcement-3'];
     fetch('/api/announcements')
       .then(function(r) { return r.json(); })
       .then(function(d) {
@@ -416,14 +417,24 @@
         var el = document.getElementById('home-ann-list');
         if (!el) return;
         if (!list.length) {
-          el.innerHTML = '<article><span></span><h3>No announcements yet.</h3><p></p></article>';
+          el.innerHTML = '<article class="image-card proj-card"><div class="proj-card-body"><h3>No announcements yet.</h3></div></article>';
           return;
         }
-        el.innerHTML = list.map(function(a) {
-          return '<article>'
-            + '<span>' + fmtDate(a.date) + '</span>'
-            + '<h3>' + (a.title||'').replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</h3>'
-            + '<p>' + (a.shortDescription||'').replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</p>'
+        // Same image-card/proj-card markup as the Community Initiatives preview
+        // below, so both sections look consistent -- falls back to a rotating
+        // default photo (same as the full Announcements page) when an entry
+        // has no uploaded image, rather than a blank/text-only card.
+        el.innerHTML = list.map(function(a, i) {
+          var safeTitle = (a.title||'').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+          var safeDesc  = (a.shortDescription||'').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+          var imgSrc = a.imageUrl
+            ? (a.imageUrl.indexOf('http') === 0 ? a.imageUrl : '/' + a.imageUrl)
+            : ('assets/images/announcements/' + ANN_HOME_CATS[i % 3] + '.jpg');
+          return '<article class="image-card proj-card reveal">'
+            + '<div class="proj-card-banner proj-card-banner-img bhob-banner" style="display:block">'
+            + '<img src="' + imgSrc + '" alt="' + safeTitle + '" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block" loading="lazy" onerror="this.src=\'assets/images/announcements/announcement-1.jpg\'">'
+            + '</div>'
+            + '<div class="proj-card-body"><span class="status ongoing">' + fmtDate(a.date) + '</span><h3>' + safeTitle + '</h3><p>' + safeDesc + '</p></div>'
             + '</article>';
         }).join('');
       })
