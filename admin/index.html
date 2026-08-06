@@ -8361,6 +8361,19 @@ async function loadCalendarActivities() {
   } catch {}
 }
 
+// Display-only: converts a stored 24-hour "HH:MM" time to 12-hour with
+// AM/PM for the activity list. The cf-start-time/cf-end-time <input
+// type="time"> fields and the saved payload keep the raw 24-hour value --
+// changing those would break the native time picker and the stored data.
+function fmtTime12(t) {
+  if (!t) return '';
+  const parts = t.split(':'); const h = +parts[0], m = parts[1] || '00';
+  if (isNaN(h)) return t;
+  const period = h >= 12 ? 'PM' : 'AM';
+  const h12 = (h % 12) === 0 ? 12 : (h % 12);
+  return h12 + ':' + m + ' ' + period;
+}
+
 function renderCalList() {
   let items = [...SC.activities];
   if (SC.filter !== 'all') items = items.filter(a => a.status === SC.filter);
@@ -8383,7 +8396,7 @@ function renderCalList() {
   }
   const CAL_STATUS_LABEL = { draft:'Draft', scheduled:'Scheduled', ongoing:'Ongoing', completed:'Completed', cancelled:'Cancelled', archived:'Archived' };
   el.innerHTML = items.map(a => {
-    const timeStr = [a.startTime, a.endTime].filter(Boolean).join(' – ');
+    const timeStr = [fmtTime12(a.startTime), fmtTime12(a.endTime)].filter(Boolean).join(' – ');
     const statusLabel = CAL_STATUS_LABEL[a.status] || a.status;
     return `<div class="ann-card" data-id="${a.id}">
       <div class="cal-thumb-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>

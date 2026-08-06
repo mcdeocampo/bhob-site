@@ -786,6 +786,20 @@
 
     function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
     function pad(n){ return n < 10 ? '0'+n : ''+n; }
+    // Display-only: converts a stored 24-hour "HH:MM" time to 12-hour with
+    // AM/PM. Never used where the raw value drives sorting or the
+    // ongoing/completed status calculation (those need the real 24-hour
+    // string, since "9:00 AM" doesn't lexically compare correctly).
+    function fmtTime12(t){
+      if (!t) return '';
+      var p = String(t).split(':');
+      var h = parseInt(p[0], 10);
+      if (isNaN(h)) return t;
+      var m = p[1] || '00';
+      var ampm = h >= 12 ? 'PM' : 'AM';
+      var h12 = h % 12; if (h12 === 0) h12 = 12;
+      return h12 + ':' + m + ' ' + ampm;
+    }
     function fmtDateCal(d){
       try{ return new Date(d+'T00:00:00').toLocaleDateString('en-PH',{year:'numeric',month:'long',day:'numeric'}); }
       catch(e){ return d; }
@@ -918,8 +932,8 @@
         var act = sorted[0];
         var cc = CATS[act.category] || {color:'#0d47a1', bg:'#e8f0fe'};
         var timeMetas = '';
-        if (act.startTime) timeMetas += '<div class="brcal-feat-meta">'+metaIcon('time')+'<span>Start: '+esc(act.startTime)+'</span></div>';
-        if (act.endTime)   timeMetas += '<div class="brcal-feat-meta">'+metaIcon('time')+'<span>End: '+esc(act.endTime)+'</span></div>';
+        if (act.startTime) timeMetas += '<div class="brcal-feat-meta">'+metaIcon('time')+'<span>Start: '+esc(fmtTime12(act.startTime))+'</span></div>';
+        if (act.endTime)   timeMetas += '<div class="brcal-feat-meta">'+metaIcon('time')+'<span>End: '+esc(fmtTime12(act.endTime))+'</span></div>';
         if (!act.startTime && !act.endTime && act.time) timeMetas += '<div class="brcal-feat-meta">'+metaIcon('time')+'<span>'+esc(act.time)+'</span></div>';
         document.getElementById('brcal-featured').innerHTML =
           '<div class="brcal-feat-inner">'+
@@ -937,8 +951,8 @@
       } else {
         var items = sorted.map(function(act){
           var timeStr = '';
-          if (act.startTime) timeStr = act.startTime;
-          if (act.endTime)   timeStr += (timeStr ? ' – ' : '') + act.endTime;
+          if (act.startTime) timeStr = fmtTime12(act.startTime);
+          if (act.endTime)   timeStr += (timeStr ? ' – ' : '') + fmtTime12(act.endTime);
           if (!timeStr && act.time) timeStr = act.time;
           return '<div class="brcal-feat-item">'+
             (act.category ? '<span class="brcal-feat-cat" style="'+catStyle(act.category)+'">'+esc(act.category)+'</span>' : '')+
@@ -1002,8 +1016,8 @@
       grid.innerHTML = todayActs.map(function(a){
         var st = liveStatus(a);
         var timeStr = '';
-        if (a.startTime) timeStr = a.startTime;
-        if (a.endTime)   timeStr += (timeStr ? ' – ' : '') + a.endTime;
+        if (a.startTime) timeStr = fmtTime12(a.startTime);
+        if (a.endTime)   timeStr += (timeStr ? ' – ' : '') + fmtTime12(a.endTime);
         if (!timeStr && a.time) timeStr = a.time;
         return '<article class="brcal-card">'+
           '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;">'+
@@ -1104,7 +1118,11 @@
     });
 
     function mapActivity(a){
-      var timeStr = [a.startTime, a.endTime].filter(Boolean).join(' – ');
+      // Display-only 12-hour string for the modal/fallback text. startTime/
+      // endTime below stay in raw 24-hour form -- liveStatus() and every
+      // sort comparison in this file depend on comparing/parsing those
+      // directly and would break on a "9:00 AM"-style string.
+      var timeStr = [fmtTime12(a.startTime), fmtTime12(a.endTime)].filter(Boolean).join(' – ');
       return {
         id: a.id,
         title: a.title || '',
