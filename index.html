@@ -786,6 +786,20 @@
 
     function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
     function pad(n){ return n < 10 ? '0'+n : ''+n; }
+    // Renders admin-entered text as real paragraphs: blank lines split
+    // separate <p> tags (matching how about.html's history content is
+    // handled), a single line break within a paragraph becomes <br>. Only
+    // used where the description reads as a full narrative (Featured panel,
+    // modal) -- brcal-card-desc is deliberately line-clamped to 2 lines, so
+    // paragraph structure wouldn't be visible there anyway.
+    function renderParagraphs(text){
+      if (!text) return '';
+      return String(text).split(/\n\s*\n/).map(function(para){
+        para = para.trim();
+        if (!para) return '';
+        return '<p>'+esc(para).replace(/\n/g,'<br>')+'</p>';
+      }).filter(Boolean).join('');
+    }
     // Display-only: converts a stored 24-hour "HH:MM" time to 12-hour with
     // AM/PM. Never used where the raw value drives sorting or the
     // ongoing/completed status calculation (those need the real 24-hour
@@ -945,7 +959,7 @@
               timeMetas+
               (act.location ? '<div class="brcal-feat-meta">'+metaIcon('loc')+'<span>'+esc(act.location)+'</span></div>' : '')+
             '</div>'+
-            (act.desc ? '<p class="brcal-feat-desc">'+esc(act.desc)+'</p>' : '')+
+            (act.desc ? '<div class="brcal-feat-desc">'+renderParagraphs(act.desc)+'</div>' : '')+
             '<button class="btn btn-primary brcal-feat-btn" onclick="brcalOpenModal(\''+act.id+'\')">View Details</button>'+
           '</div>';
       } else {
@@ -1054,7 +1068,7 @@
           '<div class="brcal-feat-meta">'+metaIcon('time')+'<span>'+esc(act.time)+'</span></div>'+
           '<div class="brcal-feat-meta">'+metaIcon('loc')+'<span>'+esc(act.location)+'</span></div>'+
         '</div>'+
-        '<p class="brcal-modal-desc">'+esc(act.full)+'</p>'+
+        '<div class="brcal-modal-desc">'+renderParagraphs(act.full)+'</div>'+
         (act.req && act.status !== 'completed' ? (function(){
           var items = act.req.split(/\n|,/).map(function(s){ return s.trim(); }).filter(Boolean);
           if (!items.length) return '';
