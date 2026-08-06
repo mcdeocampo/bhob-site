@@ -20742,6 +20742,7 @@ body[data-page="contact.html"] .contact-card-modern .contact-social-featured {
   font-size: .88rem;
   color: var(--charcoal);
   line-height: 1.7;
+  white-space: pre-wrap;
 }
 
 .brcal-feat-btn {
@@ -21021,6 +21022,7 @@ body[data-page="contact.html"] .contact-card-modern .contact-social-featured {
   font-size: .91rem;
   color: var(--charcoal);
   line-height: 1.75;
+  white-space: pre-wrap;
 }
 
 .brcal-modal-req {
