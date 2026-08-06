@@ -227,9 +227,20 @@
     return 'rgba(255,255,255,0.80)';
   }
 
+  // Every source but wttr.in already returns a hardcoded Title Case label
+  // (e.g. "Slight Rain"); wttr.in passes its own raw description straight
+  // through ("Patchy rain nearby"). Title-casing here, in the one function
+  // all sources funnel through, normalizes every source at once and is a
+  // no-op on labels that are already Title Case.
+  function toTitleCase(s) {
+    return String(s || '').replace(/\S+/g, function (w) {
+      return w.charAt(0).toUpperCase() + w.slice(1).toLowerCase();
+    });
+  }
+
   function showWeather(temp, label, color) {
     if (!weatherEl || !weatherFact) return;
-    weatherEl.textContent = temp + '°C · ' + label;
+    weatherEl.textContent = temp + '°C · ' + toTitleCase(label);
     var wSvg = weatherFact.querySelector('svg');
     if (wSvg && color) { wSvg.style.color = color; wSvg.style.opacity = '1'; }
     weatherFact.style.display = '';
