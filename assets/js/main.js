@@ -254,6 +254,57 @@
     if (weatherDivider) weatherDivider.style.display = '';
   }
 
+  // ── Heat Index — PAGASA methodology (NOAA/NWS Rothfusz regression) ──────
+  // Computed locally from the same temperature + relative humidity already
+  // returned by each weather source above; PAGASA's own published Heat
+  // Index category thresholds (Caution/Extreme Caution/Danger/Extreme
+  // Danger) match the standard NWS Fahrenheit brackets converted to °C, so
+  // no separate Heat Index API is needed.
+  var heatIndexEl       = document.getElementById('hero-heatindex');
+  var heatIndexFact     = document.getElementById('hero-heatindex-fact');
+  var heatIndexDivider  = document.querySelector('.hero-heatindex-divider');
+
+  function computeHeatIndexC(tempC, rh) {
+    if (tempC === null || tempC === undefined || rh === null || rh === undefined ||
+        isNaN(tempC) || isNaN(rh)) return null;
+    var T = tempC * 9 / 5 + 32; // NWS regression is defined in Fahrenheit
+    var simple = 0.5 * (T + 61.0 + ((T - 68.0) * 1.2) + (rh * 0.094));
+    var hiF;
+    if ((simple + T) / 2 < 80) {
+      hiF = simple;
+    } else {
+      hiF = -42.379 + 2.04901523 * T + 10.14333127 * rh - 0.22475541 * T * rh
+          - 0.00683783 * T * T - 0.05481717 * rh * rh + 0.00122874 * T * T * rh
+          + 0.00085282 * T * rh * rh - 0.00000199 * T * T * rh * rh;
+      if (rh < 13 && T >= 80 && T <= 112) {
+        hiF -= ((13 - rh) / 4) * Math.sqrt((17 - Math.abs(T - 95)) / 17);
+      } else if (rh > 85 && T >= 80 && T <= 87) {
+        hiF += ((rh - 85) / 10) * ((87 - T) / 5);
+      }
+    }
+    return (hiF - 32) * 5 / 9; // back to Celsius
+  }
+
+  function heatIndexInfo(hi) {
+    if (hi < 27)  return { label: 'Not Hazardous',  color: '#16a34a' };
+    if (hi <= 32) return { label: 'Caution',         color: '#d97706' };
+    if (hi <= 41) return { label: 'Extreme Caution', color: '#ea580c' };
+    if (hi <= 51) return { label: 'Danger',          color: '#dc2626' };
+    return              { label: 'Extreme Danger',  color: '#991b1b' };
+  }
+
+  function showHeatIndex(tempC, rh) {
+    if (!heatIndexEl || !heatIndexFact) return;
+    var hi = computeHeatIndexC(tempC, rh);
+    if (hi === null) return; // source didn't provide humidity — leave hidden
+    var rounded = Math.round(hi);
+    var info = heatIndexInfo(rounded);
+    heatIndexEl.innerHTML = 'Heat Index ' + rounded + '°C · <span style="color:' +
+      info.color + ';font-weight:700">' + info.label + '</span>';
+    heatIndexFact.style.display = '';
+    if (heatIndexDivider) heatIndexDivider.style.display = '';
+  }
+
   function wttrColor(code) {
     var c = parseInt(code, 10);
     if (c === 113)                    return '#fbbf24'; // sunny
@@ -280,13 +331,14 @@
         var label = cc.weatherDesc[0].value;
         var color = wttrColor(code);
         showWeather(temp, label, color);
+        showHeatIndex(temp, parseFloat(cc.humidity));
       })
       .catch(function() {
         // Source C — historical-forecast subdomain (different CDN from blocked api.open-meteo.com)
         var today = new Date().toISOString().slice(0, 10);
         fetch('https://historical-forecast-api.open-meteo.com/v1/forecast' +
               '?latitude=14.7201&longitude=120.9284' +
-              '&hourly=temperature_2m,weather_code' +
+              '&hourly=temperature_2m,relative_humidity_2m,weather_code' +
               '&start_date=' + today + '&end_date=' + today +
               '&timezone=Asia%2FManila')
           .then(function(r) {
@@ -303,6 +355,7 @@
             var temp  = Math.round(d.hourly.temperature_2m[idx]);
             var code  = d.hourly.weather_code[idx];
             showWeather(temp, WMO_LABELS_JS[code] || 'Fair', wmoColor(code));
+            showHeatIndex(temp, d.hourly.relative_humidity_2m[idx]);
           })
           .catch(function() {
             // Source D — met.no (Norway MET, CORS-enabled, no key)
@@ -321,6 +374,7 @@
                              cloudy:'#94a3b8', fog:'#cbd5e1', lightrain:'#60a5fa',
                              rain:'#3b82f6', heavyrain:'#1d4ed8', thunder:'#a855f7' };
                 showWeather(temp, lbls[base] || 'Fair', clrs[base] || 'rgba(255,255,255,0.80)');
+                showHeatIndex(temp, ts.instant.details.relative_humidity);
               })
               .catch(showWeatherUnavailable);
           });
