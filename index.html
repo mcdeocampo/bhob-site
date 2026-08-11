@@ -23,7 +23,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/favicon.png">
   <link rel="apple-touch-icon" href="assets/images/logo.png">
-  <link rel="stylesheet" href="assets/css/style.css?v=58">
+  <link rel="stylesheet" href="assets/css/style.css?v=59">
 </head>
 <body data-page="index.html">
   <header class="site-header" id="top">
@@ -790,6 +790,28 @@
     }
 
     function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+    // Escapes text like esc(), but also turns bare http(s) URLs into real,
+    // clickable links. Matches on the raw string (before escaping) so URL
+    // boundaries are unambiguous, then escapes each URL and surrounding
+    // text separately before reassembling.
+    function linkify(s){
+      var raw = String(s||'');
+      var re = /(https?:\/\/[^\s<>"']+)/g;
+      var out = '', lastIndex = 0, m;
+      while ((m = re.exec(raw)) !== null) {
+        var url = m[0];
+        var trailMatch = url.match(/[),.;:!?\]}'"]+$/);
+        var trail = '';
+        if (trailMatch) { trail = trailMatch[0]; url = url.slice(0, -trail.length); }
+        if (!url) continue;
+        out += esc(raw.slice(lastIndex, m.index));
+        out += '<a href="'+esc(url)+'" target="_blank" rel="noopener noreferrer">'+esc(url)+'</a>';
+        out += esc(trail);
+        lastIndex = m.index + m[0].length;
+      }
+      out += esc(raw.slice(lastIndex));
+      return out;
+    }
     function pad(n){ return n < 10 ? '0'+n : ''+n; }
     // Display-only: converts a stored 24-hour "HH:MM" time to 12-hour with
     // AM/PM. Never used where the raw value drives sorting or the
@@ -950,7 +972,7 @@
               timeMetas+
               (act.location ? '<div class="brcal-feat-meta">'+metaIcon('loc')+'<span>'+esc(act.location)+'</span></div>' : '')+
             '</div>'+
-            (act.desc ? '<p class="brcal-feat-desc">'+esc(act.desc)+'</p>' : '')+
+            (act.desc ? '<p class="brcal-feat-desc">'+linkify(act.desc)+'</p>' : '')+
             '<button class="btn btn-primary brcal-feat-btn" onclick="brcalOpenModal(\''+act.id+'\')">View Details</button>'+
           '</div>';
       } else {
@@ -1059,7 +1081,7 @@
           '<div class="brcal-feat-meta">'+metaIcon('time')+'<span>'+esc(act.time)+'</span></div>'+
           '<div class="brcal-feat-meta">'+metaIcon('loc')+'<span>'+esc(act.location)+'</span></div>'+
         '</div>'+
-        '<p class="brcal-modal-desc">'+esc(act.full)+'</p>'+
+        '<p class="brcal-modal-desc">'+linkify(act.full)+'</p>'+
         (act.req && act.status !== 'completed' ? (function(){
           var items = act.req.split(/\n|,/).map(function(s){ return s.trim(); }).filter(Boolean);
           if (!items.length) return '';

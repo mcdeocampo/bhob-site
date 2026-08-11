@@ -21025,6 +21025,23 @@ body[data-page="contact.html"] .contact-card-modern .contact-social-featured {
   white-space: pre-wrap;
 }
 
+/* Auto-linked URLs in description text — the global a{color:inherit} reset
+   would otherwise make these indistinguishable from plain text. */
+.brcal-feat-desc a,
+.brcal-modal-desc a,
+#ann-modal-body a,
+#proj-modal-body a {
+  color: #2563eb;
+  text-decoration: underline;
+  word-break: break-all;
+}
+.brcal-feat-desc a:hover,
+.brcal-modal-desc a:hover,
+#ann-modal-body a:hover,
+#proj-modal-body a:hover {
+  color: #1d4ed8;
+}
+
 .brcal-modal-req {
   font-size: .86rem;
   display: flex;

@@ -23,7 +23,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/favicon.png">
   <link rel="apple-touch-icon" href="assets/images/logo.png">
-  <link rel="stylesheet" href="assets/css/style.css?v=58">
+  <link rel="stylesheet" href="assets/css/style.css?v=59">
 </head>
 <body data-page="projects.html">
   <header class="site-header" id="top">
@@ -106,6 +106,30 @@
       'Other':             'prog-banner--blue'
     };
 
+    function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+    // Escapes text like esc(), but also turns bare http(s) URLs into real,
+    // clickable links. Matches on the raw string (before escaping) so URL
+    // boundaries are unambiguous, then escapes each URL and surrounding
+    // text separately before reassembling.
+    function linkify(s){
+      var raw = String(s||'');
+      var re = /(https?:\/\/[^\s<>"']+)/g;
+      var out = '', lastIndex = 0, m;
+      while ((m = re.exec(raw)) !== null) {
+        var url = m[0];
+        var trailMatch = url.match(/[),.;:!?\]}'"]+$/);
+        var trail = '';
+        if (trailMatch) { trail = trailMatch[0]; url = url.slice(0, -trail.length); }
+        if (!url) continue;
+        out += esc(raw.slice(lastIndex, m.index));
+        out += '<a href="'+esc(url)+'" target="_blank" rel="noopener noreferrer">'+esc(url)+'</a>';
+        out += esc(trail);
+        lastIndex = m.index + m[0].length;
+      }
+      out += esc(raw.slice(lastIndex));
+      return out;
+    }
+
     function renderAttachments(list) {
       var wrap = document.getElementById('proj-modal-attachments');
       var listEl = document.getElementById('proj-modal-attachments-list');
@@ -141,7 +165,7 @@
       var meta = document.getElementById('proj-modal-meta');
       meta.innerHTML = (p.category ? '<span style="font-size:.7rem;color:#2563eb;background:rgba(37,99,235,.08);padding:2px 9px;border-radius:10px;font-weight:500">' + p.category + '</span>' : '')
         + (p.subtitle ? '<span style="font-size:.75rem;color:#64748b">' + p.subtitle + '</span>' : '');
-      document.getElementById('proj-modal-body').textContent = p.fullDetails || p.shortDescription || '';
+      document.getElementById('proj-modal-body').innerHTML = linkify(p.fullDetails || p.shortDescription || '');
       renderAttachments(p.attachments);
       var ov = document.getElementById('proj-modal-overlay');
       var nav = document.querySelector('.site-header');

@@ -23,7 +23,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/favicon.png">
   <link rel="apple-touch-icon" href="assets/images/logo.png">
-  <link rel="stylesheet" href="assets/css/style.css?v=58">
+  <link rel="stylesheet" href="assets/css/style.css?v=59">
 </head>
 <body data-page="announcements.html">
   <header class="site-header" id="top">
@@ -95,6 +95,30 @@
     var DEFAULT_IMG = 'assets/images/announcements/announcement-1.jpg';
     var CATS = ['announcement-1','announcement-2','announcement-3'];
 
+    function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+    // Escapes text like esc(), but also turns bare http(s) URLs into real,
+    // clickable links. Matches on the raw string (before escaping) so URL
+    // boundaries are unambiguous, then escapes each URL and surrounding
+    // text separately before reassembling.
+    function linkify(s){
+      var raw = String(s||'');
+      var re = /(https?:\/\/[^\s<>"']+)/g;
+      var out = '', lastIndex = 0, m;
+      while ((m = re.exec(raw)) !== null) {
+        var url = m[0];
+        var trailMatch = url.match(/[),.;:!?\]}'"]+$/);
+        var trail = '';
+        if (trailMatch) { trail = trailMatch[0]; url = url.slice(0, -trail.length); }
+        if (!url) continue;
+        out += esc(raw.slice(lastIndex, m.index));
+        out += '<a href="'+esc(url)+'" target="_blank" rel="noopener noreferrer">'+esc(url)+'</a>';
+        out += esc(trail);
+        lastIndex = m.index + m[0].length;
+      }
+      out += esc(raw.slice(lastIndex));
+      return out;
+    }
+
     function fmtDate(d) {
       if (!d) return '';
       try { return new Date(d+'T00:00:00').toLocaleDateString('en-PH',{year:'numeric',month:'long',day:'numeric'}); }
@@ -136,7 +160,7 @@
       var meta = document.getElementById('ann-modal-meta');
       meta.innerHTML = '<span style="font-size:.75rem;color:#64748b">' + fmtDate(a.date) + '</span>'
         + (a.category ? '<span style="font-size:.7rem;color:#2563eb;background:rgba(37,99,235,.08);padding:2px 9px;border-radius:10px;font-weight:500">' + a.category + '</span>' : '');
-      document.getElementById('ann-modal-body').textContent = a.fullDetails || a.shortDescription || '';
+      document.getElementById('ann-modal-body').innerHTML = linkify(a.fullDetails || a.shortDescription || '');
       renderAttachments(a.attachments);
       var ov = document.getElementById('ann-modal-overlay');
       var nav = document.querySelector('.site-header');
