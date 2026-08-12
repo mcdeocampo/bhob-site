@@ -381,8 +381,15 @@
       });
   }
 
+  // Weather (and Heat Index, computed from it) was previously fetched once
+  // per page load with no refresh — unlike AQI/Tide, which both re-poll on
+  // an interval. Matching that pattern here keeps all three hero chips
+  // equally live for visitors who leave the homepage tab open.
+  var WEATHER_REFRESH_TTL = 15 * 60 * 1000; // 15 minutes, same cadence as AQI
+
   if (weatherEl && weatherFact) {
     fetchWeatherFallback();
+    setInterval(fetchWeatherFallback, WEATHER_REFRESH_TTL);
   }
 
   // ── AQI via Open-Meteo Air Quality API ─────────────────────────────────────
