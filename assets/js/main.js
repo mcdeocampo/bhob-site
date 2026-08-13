@@ -522,7 +522,6 @@
   function renderTide(data) {
     var highFact = document.getElementById('hero-tide-high-fact');
     var highSpan = document.getElementById('hero-tide-high');
-    var highDiv  = document.querySelector('.hero-tide-high-divider');
     var lowFact  = document.getElementById('hero-tide-low-fact');
     var lowSpan  = document.getElementById('hero-tide-low');
     var lowDiv   = document.querySelector('.hero-tide-low-divider');
@@ -558,7 +557,6 @@
       var hSvg = highFact.querySelector('svg');
       if (hSvg) { hSvg.style.color = TIDE_COLOR; hSvg.style.opacity = '1'; }
       highFact.style.display = '';
-      if (highDiv) highDiv.style.display = '';
     }
     if (lowFact && lowSpan) {
       lowSpan.innerHTML = lowBar;
