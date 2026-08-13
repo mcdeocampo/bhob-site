@@ -17439,7 +17439,7 @@ body[data-page="contact.html"] .contact-form-modern .btn-primary:hover {
 }
 
 .hgc-label {
-  font-size: 0.78rem;
+  font-size: 0.65rem;
   font-weight: 600;
   color: rgba(255,255,255,0.80);
   line-height: 1.25;
@@ -17470,8 +17470,18 @@ body[data-page="contact.html"] .contact-form-modern .btn-primary:hover {
 }
 
 /* Tablet: full width, glance card wraps 2×2
-   Dividers sit at nth-child positions 2,4,6 so items are at 1,3,5,7 */
-@media (max-width: 860px) {
+   Dividers sit at nth-child positions 2,4,6 so items are at 1,3,5,7.
+   .hero-content's max-width switches between a fixed px value and a
+   percentage across several overlapping breakpoints between ~860px and
+   ~1439px, and the resulting width is NOT monotonic with viewport width
+   (e.g. 1025px gives less room than 1350px). Rather than chase each
+   narrow point individually, this reuses the codebase's own existing
+   "large screens" threshold (@media min-width:1440px below) as the
+   single cutoff: below it, use the 2-column layout that's already
+   proven safe at every width from mobile up; at 1440px+, .hero-content
+   is wide enough for the single-row layout even with the longest label
+   ("Community Programs"). */
+@media (max-width: 1439px) {
   .hero-glance-card { max-width: 100%; }
   .hgc-body { flex-wrap: wrap; }
   .hgc-divider { display: none; }
