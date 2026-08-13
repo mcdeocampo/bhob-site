@@ -17444,6 +17444,9 @@ body[data-page="contact.html"] .contact-form-modern .btn-primary:hover {
   color: rgba(255,255,255,0.80);
   line-height: 1.25;
   white-space: nowrap;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .hgc-value {
