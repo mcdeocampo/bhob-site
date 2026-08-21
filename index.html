@@ -213,7 +213,7 @@
         </div>
       </div>
     </section>
-    <section class="section-pad soft-bg">
+    <section class="section-pad soft-bg" id="home-announcements-section">
       <div class="container split-layout">
         <div class="reveal"><span class="eyebrow">Latest Updates</span><h2>Announcements</h2><p data-setting="home_announcements_description">Stay informed about barangay assemblies, health programs, cleanup drives, and important public advisories.</p><a class="text-link" href="announcements">View All Announcements →</a></div>
         <div class="mini-list reveal delay-1" id="home-ann-list">
@@ -420,13 +420,15 @@
     fetch('/api/announcements')
       .then(function(r) { return r.json(); })
       .then(function(d) {
-        var list = (d.announcements || []).slice(0, 3);
+        // Same source as the main Announcements page. Home page shows only
+        // Featured items, capped at 3, matching how Community Initiatives'
+        // home preview works (sorted by displayOrder/date, API already
+        // sorted). Hides the whole section if nothing is marked Featured.
+        var list = (d.announcements || []).filter(function(a){ return a.featured; }).slice(0, 3);
         var el = document.getElementById('home-ann-list');
+        var section = document.getElementById('home-announcements-section');
         if (!el) return;
-        if (!list.length) {
-          el.innerHTML = '<article><span></span><h3>No announcements yet.</h3><p></p></article>';
-          return;
-        }
+        if (!list.length) { if (section) section.style.display = 'none'; return; }
         el.innerHTML = list.map(function(a) {
           return '<article>'
             + '<span>' + fmtDate(a.date) + '</span>'
