@@ -8374,9 +8374,29 @@ function fmtTime12(t) {
   return h12 + ':' + m + ' ' + period;
 }
 
+// Live status — date+time aware, works for any day (past, today, or
+// future). Manual states (draft/archived/cancelled) always win; the
+// admin's own status radio buttons still edit the raw stored value
+// (see openCalEdit/saveCalForm) -- only the browsable list and its
+// filter use this computed value, so what an admin sees/filters here
+// matches what the public site shows instead of a stale stored value.
+function liveStatus(a) {
+  if (a.status === 'archived' || a.status === 'cancelled' || a.status === 'draft') return a.status;
+  if (!a.startTime || !a.date) return a.status || 'scheduled';
+  const startDT = new Date(a.date + 'T' + a.startTime + ':00');
+  if (isNaN(startDT.getTime())) return a.status || 'scheduled';
+  const now = new Date();
+  if (now < startDT) return 'scheduled';
+  if (a.endTime) {
+    const endDT = new Date(a.date + 'T' + a.endTime + ':00');
+    if (!isNaN(endDT.getTime()) && now > endDT) return 'completed';
+  }
+  return 'ongoing';
+}
+
 function renderCalList() {
   let items = [...SC.activities];
-  if (SC.filter !== 'all') items = items.filter(a => a.status === SC.filter);
+  if (SC.filter !== 'all') items = items.filter(a => liveStatus(a) === SC.filter);
   if (SC.filterCat) items = items.filter(a => a.category === SC.filterCat);
   if (SC.filterMonth) items = items.filter(a => a.date && a.date.slice(5,7) === SC.filterMonth);
   if (SC.search) {
@@ -8397,12 +8417,13 @@ function renderCalList() {
   const CAL_STATUS_LABEL = { draft:'Draft', scheduled:'Scheduled', ongoing:'Ongoing', completed:'Completed', cancelled:'Cancelled', archived:'Archived' };
   el.innerHTML = items.map(a => {
     const timeStr = [fmtTime12(a.startTime), fmtTime12(a.endTime)].filter(Boolean).join(' – ');
-    const statusLabel = CAL_STATUS_LABEL[a.status] || a.status;
+    const st = liveStatus(a);
+    const statusLabel = CAL_STATUS_LABEL[st] || st;
     return `<div class="ann-card" data-id="${a.id}">
       <div class="cal-thumb-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
       <div class="ann-body">
         <div class="ann-meta">
-          <span class="badge badge-${a.status}">${statusLabel}</span>
+          <span class="badge badge-${st}">${statusLabel}</span>
           <span class="ann-date">${esc(fmtDate(a.date))}${timeStr ? ' &bull; '+esc(timeStr) : ''}</span>
           <span class="cat-tag">${esc(a.category||'')}</span>
         </div>
