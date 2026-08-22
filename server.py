@@ -182,6 +182,18 @@ def _validate_pw_strength(password, username='', email=''):
 
 
 # ── Row mappers — Postgres snake_case → camelCase dicts ──────────────────────
+def _hydrate_photos(row):
+    """Return row['photos'], or a single-item list built from the legacy
+    image_url when photos is empty -- so every existing single-image record
+    is automatically treated as having exactly one photo, with no backfill
+    migration needed."""
+    photos = row.get('photos') or []
+    if photos:
+        return photos
+    url = row.get('image_url')
+    return [{'url': url, 'name': ''}] if url else []
+
+
 def _row_to_ann(row):
     return {
         'id':               row['id'],
@@ -195,6 +207,7 @@ def _row_to_ann(row):
         'featured':         bool(row.get('featured', False)),
         'displayOrder':     row.get('display_order', 0),
         'attachments':      row.get('attachments') or [],
+        'photos':           _hydrate_photos(row),
         'createdAt':        row.get('created_at', ''),
         'updatedAt':        row.get('updated_at', ''),
     }
@@ -215,6 +228,7 @@ def _row_to_proj(row):
         'buttonLabel':      row.get('button_label', ''),
         'buttonLink':       row.get('button_link', ''),
         'attachments':      row.get('attachments') or [],
+        'photos':           _hydrate_photos(row),
         'createdAt':        row.get('created_at', ''),
         'updatedAt':        row.get('updated_at', ''),
     }
@@ -809,6 +823,7 @@ def _ann_create(ann_dict):
         'featured':          bool(ann_dict.get('featured', False)),
         'display_order':     int(ann_dict.get('displayOrder', 0)),
         'attachments':       ann_dict.get('attachments') or [],
+        'photos':            ann_dict.get('photos') or [],
         'created_at':        ann_dict.get('createdAt', ''),
         'updated_at':        ann_dict.get('updatedAt', ''),
     }
@@ -824,7 +839,7 @@ def _ann_update(ann_id, patch_dict):
         'shortDescription': 'short_description', 'fullDetails': 'full_details',
         'imageUrl': 'image_url', 'status': 'status',
         'featured': 'featured', 'displayOrder': 'display_order',
-        'attachments': 'attachments',
+        'attachments': 'attachments', 'photos': 'photos',
     }
     for camel, snake in field_map.items():
         if camel in patch_dict:
@@ -873,6 +888,7 @@ def _proj_create(proj_dict):
         'button_label':      proj_dict.get('buttonLabel', ''),
         'button_link':       proj_dict.get('buttonLink', ''),
         'attachments':       proj_dict.get('attachments') or [],
+        'photos':            proj_dict.get('photos') or [],
         'created_at':        proj_dict.get('createdAt', ''),
         'updated_at':        proj_dict.get('updatedAt', ''),
     }
@@ -889,7 +905,7 @@ def _proj_update(proj_id, patch_dict):
         'imageUrl': 'image_url', 'status': 'status',
         'featured': 'featured', 'displayOrder': 'display_order',
         'buttonLabel': 'button_label', 'buttonLink': 'button_link',
-        'attachments': 'attachments',
+        'attachments': 'attachments', 'photos': 'photos',
     }
     for camel, snake in field_map.items():
         if camel in patch_dict:
@@ -2207,6 +2223,7 @@ def admin_create():
     if status not in ('draft', 'published', 'hidden'):
         status = 'draft'
     min_order = min((a.get('displayOrder', 1) for a in all_ann), default=1)
+    photos = _clean_photos(d.get('photos'))
     ann = {
         'id':               uuid.uuid4().hex,
         'title':            _clean(d.get('title'), 200),
@@ -2214,11 +2231,12 @@ def admin_create():
         'category':         _clean(d.get('category', 'Other'), 50),
         'shortDescription': _clean(d.get('shortDescription'), 500),
         'fullDetails':      _clean(d.get('fullDetails'), 10000),
-        'imageUrl':         _clean(d.get('imageUrl'), 300),
+        'imageUrl':         photos[0]['url'] if photos else _clean(d.get('imageUrl'), 300),
         'status':           status,
         'featured':         bool(d.get('featured', False)),
         'displayOrder':     min_order - 1,
         'attachments':      _clean_attachments(d.get('attachments')),
+        'photos':           photos,
         'createdAt':        now,
         'updatedAt':        now,
     }
@@ -2262,16 +2280,25 @@ def admin_update(ann_id):
         except (ValueError, TypeError):
             pass
     removed_urls = []
-    if 'attachments' in d:
-        new_attachments = _clean_attachments(d.get('attachments'))
-        patch['attachments'] = new_attachments
+    if 'attachments' in d or 'photos' in d:
         try:
-            res = supabase.table('announcements').select('attachments').eq('id', ann_id).limit(1).execute()
-            old_urls = {a.get('url') for a in (res.data[0].get('attachments') or [])} if res.data else set()
-            new_urls = {a.get('url') for a in new_attachments}
-            removed_urls = list(old_urls - new_urls)
+            res = supabase.table('announcements').select('attachments,photos').eq('id', ann_id).limit(1).execute()
+            old_row = res.data[0] if res.data else {}
         except Exception:
-            removed_urls = []
+            old_row = {}
+        if 'attachments' in d:
+            new_attachments = _clean_attachments(d.get('attachments'))
+            patch['attachments'] = new_attachments
+            old_urls = {a.get('url') for a in (old_row.get('attachments') or [])}
+            new_urls = {a.get('url') for a in new_attachments}
+            removed_urls += list(old_urls - new_urls)
+        if 'photos' in d:
+            new_photos = _clean_photos(d.get('photos'))
+            patch['photos'] = new_photos
+            patch['imageUrl'] = new_photos[0]['url'] if new_photos else ''
+            old_urls = {p.get('url') for p in (old_row.get('photos') or [])}
+            new_urls = {p.get('url') for p in new_photos}
+            removed_urls += list(old_urls - new_urls)
     ann = _ann_update(ann_id, patch)
     if ann is None:
         return jsonify({'error': 'Not found'}), 404
@@ -2284,9 +2311,10 @@ def admin_update(ann_id):
 @admin_required
 def admin_delete(ann_id):
     try:
-        res = supabase.table('announcements').select('attachments').eq('id', ann_id).limit(1).execute()
+        res = supabase.table('announcements').select('attachments,photos').eq('id', ann_id).limit(1).execute()
         if res.data:
-            urls = [a.get('url') for a in (res.data[0].get('attachments') or []) if a.get('url')]
+            urls  = [a.get('url') for a in (res.data[0].get('attachments') or []) if a.get('url')]
+            urls += [p.get('url') for p in (res.data[0].get('photos') or []) if p.get('url')]
             _remove_attachments_from_storage(urls)
     except Exception:
         pass
@@ -2315,6 +2343,7 @@ def admin_proj_create():
         status = 'draft'
     all_proj  = _load_proj()
     min_order = min((p.get('displayOrder', 1) for p in all_proj), default=1)
+    photos = _clean_photos(d.get('photos'))
     proj = {
         'id':               uuid.uuid4().hex,
         'title':            _clean(d.get('title'), 200),
@@ -2322,13 +2351,14 @@ def admin_proj_create():
         'subtitle':         _clean(d.get('subtitle'), 300),
         'shortDescription': _clean(d.get('shortDescription'), 500),
         'fullDetails':      _clean(d.get('fullDetails'), 10000),
-        'imageUrl':         _clean(d.get('imageUrl'), 300),
+        'imageUrl':         photos[0]['url'] if photos else _clean(d.get('imageUrl'), 300),
         'status':           status,
         'featured':         bool(d.get('featured', False)),
         'displayOrder':     min_order - 1,
         'buttonLabel':      _clean(d.get('buttonLabel'), 100),
         'buttonLink':       _clean(d.get('buttonLink'), 300),
         'attachments':      _clean_attachments(d.get('attachments')),
+        'photos':           photos,
         'createdAt':        now,
         'updatedAt':        now,
     }
@@ -2373,16 +2403,25 @@ def admin_proj_update(proj_id):
         except (ValueError, TypeError):
             pass
     removed_urls = []
-    if 'attachments' in d:
-        new_attachments = _clean_attachments(d.get('attachments'))
-        patch['attachments'] = new_attachments
+    if 'attachments' in d or 'photos' in d:
         try:
-            res = supabase.table('community_initiatives').select('attachments').eq('id', proj_id).limit(1).execute()
-            old_urls = {a.get('url') for a in (res.data[0].get('attachments') or [])} if res.data else set()
-            new_urls = {a.get('url') for a in new_attachments}
-            removed_urls = list(old_urls - new_urls)
+            res = supabase.table('community_initiatives').select('attachments,photos').eq('id', proj_id).limit(1).execute()
+            old_row = res.data[0] if res.data else {}
         except Exception:
-            removed_urls = []
+            old_row = {}
+        if 'attachments' in d:
+            new_attachments = _clean_attachments(d.get('attachments'))
+            patch['attachments'] = new_attachments
+            old_urls = {a.get('url') for a in (old_row.get('attachments') or [])}
+            new_urls = {a.get('url') for a in new_attachments}
+            removed_urls += list(old_urls - new_urls)
+        if 'photos' in d:
+            new_photos = _clean_photos(d.get('photos'))
+            patch['photos'] = new_photos
+            patch['imageUrl'] = new_photos[0]['url'] if new_photos else ''
+            old_urls = {p.get('url') for p in (old_row.get('photos') or [])}
+            new_urls = {p.get('url') for p in new_photos}
+            removed_urls += list(old_urls - new_urls)
     proj = _proj_update(proj_id, patch)
     if proj is None:
         return jsonify({'error': 'Not found'}), 404
@@ -2395,9 +2434,10 @@ def admin_proj_update(proj_id):
 @admin_required
 def admin_proj_delete(proj_id):
     try:
-        res = supabase.table('community_initiatives').select('attachments').eq('id', proj_id).limit(1).execute()
+        res = supabase.table('community_initiatives').select('attachments,photos').eq('id', proj_id).limit(1).execute()
         if res.data:
-            urls = [a.get('url') for a in (res.data[0].get('attachments') or []) if a.get('url')]
+            urls  = [a.get('url') for a in (res.data[0].get('attachments') or []) if a.get('url')]
+            urls += [p.get('url') for p in (res.data[0].get('photos') or []) if p.get('url')]
             _remove_attachments_from_storage(urls)
     except Exception:
         pass
@@ -3050,6 +3090,48 @@ def admin_upload_attachment():
     except Exception as exc:
         app.logger.error('admin_upload_attachment error: %s', exc)
         return jsonify({'error': 'Upload failed.'}), 500
+
+
+# ── Announcement / Initiative multi-photo support (shared) ───────────────────
+# Separate from and additional to both the existing single Featured Image
+# (image_url, now derived server-side from photos[0] -- see admin_create/
+# admin_update/admin_proj_create/admin_proj_update) and the existing
+# Attachments (attachments) field, both unchanged. Stored as a JSON array of
+# {url, name}, same shape as attachments and calendar_activities.photos.
+# Unlike attachments, uploads here DO go through _optimize_image (via
+# _upload_gallery_image below), matching how the original single Featured
+# Image was always optimized -- these are meant for public display, not
+# preserved originals.
+PHOTO_MAX_COUNT = 20
+PHOTO_FOLDERS   = {
+    'announcements': 'announcement-photos',
+    'initiatives':   'initiative-photos',
+}
+
+
+def _clean_photos(raw):
+    """Sanitize a client-submitted photos list into [{url, name}, ...].
+    Mirrors _clean_attachments() with its own cap."""
+    if not isinstance(raw, list):
+        return []
+    out = []
+    for item in raw[:PHOTO_MAX_COUNT]:
+        if not isinstance(item, dict):
+            continue
+        url = _clean(item.get('url'), 500)
+        name = _clean(item.get('name'), 200)
+        if url:
+            out.append({'url': url, 'name': name})
+    return out
+
+
+@app.route('/admin/api/upload/photo', methods=['POST'])
+@admin_required
+def admin_upload_photo():
+    folder = PHOTO_FOLDERS.get(request.form.get('module', ''))
+    if not folder:
+        return jsonify({'error': 'Invalid module.'}), 400
+    return _upload_gallery_image(folder)
 
 
 @app.route('/admin/api/upload', methods=['POST'])

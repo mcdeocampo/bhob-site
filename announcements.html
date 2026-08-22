@@ -153,10 +153,8 @@
 
     function openModal(a) {
       document.getElementById('ann-modal-title').textContent = a.title || '';
-      var img = document.getElementById('ann-modal-img');
       var imgWrap = document.getElementById('ann-modal-img-wrap');
-      if (a.imageUrl) { img.src = (a.imageUrl.indexOf('http') === 0 ? a.imageUrl : '/' + a.imageUrl); imgWrap.style.display = 'block'; }
-      else imgWrap.style.display = 'none';
+      initPhotoCarousel(imgWrap, a.photos || []);
       var meta = document.getElementById('ann-modal-meta');
       meta.innerHTML = '<span style="font-size:.75rem;color:#64748b">' + fmtDate(a.date) + '</span>'
         + (a.category ? '<span style="font-size:.7rem;color:#2563eb;background:rgba(37,99,235,.08);padding:2px 9px;border-radius:10px;font-weight:500">' + a.category + '</span>' : '');
@@ -260,6 +258,7 @@
   <button class="back-to-top" aria-label="Back to top">↑</button>
   <script src="assets/js/main.js?v=7"></script>
   <script src="assets/js/emergency-alert.js?v=1"></script>
+  <script src="assets/js/photo-carousel.js?v=1"></script>
   <script>
   fetch('/api/site-settings').then(function(r){return r.json();}).then(function(d){
     // /api/site-settings answers {} when the database read fails, which is

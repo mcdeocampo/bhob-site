@@ -158,10 +158,8 @@
 
     function openModal(p) {
       document.getElementById('proj-modal-title').textContent = p.title || '';
-      var img = document.getElementById('proj-modal-img');
       var imgWrap = document.getElementById('proj-modal-img-wrap');
-      if (p.imageUrl) { img.src = p.imageUrl.indexOf('http') === 0 ? p.imageUrl : '/' + p.imageUrl; imgWrap.style.display = 'block'; }
-      else imgWrap.style.display = 'none';
+      initPhotoCarousel(imgWrap, p.photos || []);
       var meta = document.getElementById('proj-modal-meta');
       meta.innerHTML = (p.category ? '<span style="font-size:.7rem;color:#2563eb;background:rgba(37,99,235,.08);padding:2px 9px;border-radius:10px;font-weight:500">' + p.category + '</span>' : '')
         + (p.subtitle ? '<span style="font-size:.75rem;color:#64748b">' + p.subtitle + '</span>' : '');
@@ -297,6 +295,7 @@
   <button class="back-to-top" aria-label="Back to top">↑</button>
   <script src="assets/js/main.js?v=7"></script>
   <script src="assets/js/emergency-alert.js?v=1"></script>
+  <script src="assets/js/photo-carousel.js?v=1"></script>
   <script>
   fetch('/api/site-settings').then(function(r){return r.json();}).then(function(d){
     // /api/site-settings answers {} when the database read fails, which is

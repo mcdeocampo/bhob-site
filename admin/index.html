@@ -2102,18 +2102,17 @@ a{text-decoration:none;color:inherit}
           <label>Full Details <span style="color:#94a3b8;font-size:.7rem">(shown when Read More is clicked)</span></label>
           <textarea id="f-details" rows="5"></textarea>
         </div>
-        <div class="form-section-label">Media</div>
+        <div class="form-section-label">Photos</div>
         <div class="field field-full">
-          <label>Image</label>
-          <div class="img-area" id="img-drop-area">
-            <img class="img-preview" id="img-preview" src="" alt="">
+          <label>Photos <span style="color:#94a3b8;font-size:.7rem;font-weight:400">(first photo is the cover shown on cards; add none, one, or several)</span></label>
+          <div class="gallery-area">
+            <div class="gallery-grid" id="f-photos-grid"></div>
             <div class="img-upload-row">
-              <label class="btn-upload-file" for="f-img-file">Upload Image</label>
-              <input type="file" id="f-img-file" accept=".jpg,.jpeg,.png,.webp" style="display:none">
-              <button type="button" class="btn-act" id="ann-img-remove" style="font-size:.7rem" onclick="clearAnnImage()">Remove</button>
+              <label class="btn-upload-file" for="f-photo-file">+ Add Photo</label>
+              <input type="file" id="f-photo-file" accept=".jpg,.jpeg,.png,.webp" style="display:none" multiple>
+              <span id="f-photo-uploading" style="display:none;font-size:.82rem;color:var(--gray);margin-left:10px">Uploading…</span>
             </div>
-            <div class="img-url-note" id="img-url-note"></div>
-            <div class="img-hint">JPG, PNG, WebP — max 5 MB</div>
+            <div class="img-hint">JPG, PNG, WebP · Max 5 MB each</div>
             <div class="default-imgs">
               <label>Default Images</label>
               <div class="default-imgs-row">
@@ -2229,18 +2228,17 @@ a{text-decoration:none;color:inherit}
           <label>Full Details <span style="color:#94a3b8;font-size:.68rem">(shown when Read More is clicked)</span></label>
           <textarea id="if-details" rows="5"></textarea>
         </div>
-        <div class="form-section-label">Media</div>
+        <div class="form-section-label">Photos</div>
         <div class="field field-full">
-          <label>Image</label>
-          <div class="img-area" id="init-drop-area">
-            <img class="img-preview" id="init-img-preview" src="" alt="">
+          <label>Photos <span style="color:#94a3b8;font-size:.7rem;font-weight:400">(first photo is the cover shown on cards; leave empty to use a colored banner)</span></label>
+          <div class="gallery-area">
+            <div class="gallery-grid" id="if-photos-grid"></div>
             <div class="img-upload-row">
-              <label class="btn-upload-file" for="if-img-file">Upload Image</label>
-              <input type="file" id="if-img-file" accept=".jpg,.jpeg,.png,.webp" style="display:none">
-              <button type="button" class="btn-act" id="init-img-remove" style="font-size:.7rem" onclick="clearInitImage()">Remove</button>
+              <label class="btn-upload-file" for="if-photo-file">+ Add Photo</label>
+              <input type="file" id="if-photo-file" accept=".jpg,.jpeg,.png,.webp" style="display:none" multiple>
+              <span id="if-photo-uploading" style="display:none;font-size:.82rem;color:var(--gray);margin-left:10px">Uploading…</span>
             </div>
-            <div class="img-url-note" id="init-img-url-note"></div>
-            <div class="img-hint">JPG, PNG, WebP — max 5 MB. Leave empty to use a colored banner.</div>
+            <div class="img-hint">JPG, PNG, WebP · Max 5 MB each</div>
           </div>
         </div>
         <div class="form-section-label">Attachments <span style="color:#94a3b8;font-size:.7rem;font-weight:400">(optional)</span></div>
@@ -3214,7 +3212,7 @@ a{text-decoration:none;color:inherit}
 'use strict';
 
 // ── State ──────────────────────────────────────────────────────────────────
-const S = { announcements:[], filter:'all', search:'', editingId:null, imageUrl:'', attachments:[] };
+const S = { announcements:[], filter:'all', search:'', editingId:null, attachments:[], photos:[] };
 let CURRENT_ROLE = 'admin';
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -4419,16 +4417,49 @@ function _renderAnnAttachments() { _renderAttachments('f-attach-wrap', S.attachm
 function removeAnnAttachment(i) { S.attachments.splice(i,1); _renderAnnAttachments(); }
 $('f-attach-file').onchange = () => _uploadAttachments($('f-attach-file'), S.attachments, _renderAnnAttachments, 'f-attach-uploading', 'announcements');
 
+// ── Photos (shared by Announcements and Initiatives) ───────────────────────
+// Plain image thumbnails (no filename caption, unlike attachments which may
+// be non-image files) using the existing .gallery-grid/.gallery-thumb CSS
+// already used by the directory modules' galleries.
+function _renderPhotos(wrapId, list, removeFnName) {
+  const wrap = $(wrapId); if (!wrap) return;
+  wrap.innerHTML = list.map((p, i) => `
+    <div class="gallery-thumb">
+      <img src="${esc(p.url)}" alt="">
+      <button type="button" onclick="${removeFnName}(${i})" title="Remove photo">×</button>
+    </div>`).join('');
+}
+async function _uploadPhotos(fileInput, targetArray, renderFn, uploadingId, module) {
+  if (!fileInput || !fileInput.files.length) return;
+  const uploading = $(uploadingId);
+  if (uploading) uploading.style.display = '';
+  for (const file of Array.from(fileInput.files)) {
+    if (targetArray.length >= 20) { toast('Maximum 20 photos.', 'err'); break; }
+    if (file.size > 5 * 1024 * 1024) { toast(`"${file.name}" exceeds 5 MB.`, 'err'); continue; }
+    const fd = new FormData(); fd.append('image', file); fd.append('module', module);
+    try {
+      const r = await adminFetch('/admin/api/upload/photo', { method:'POST', body: fd });
+      const d = await r.json();
+      if (r.ok && d.url) { targetArray.push({ url: d.url, name: '' }); renderFn(); }
+      else toast(d.error || 'Upload failed.', 'err');
+    } catch { toast('Upload error.', 'err'); }
+  }
+  if (uploading) uploading.style.display = 'none';
+  fileInput.value = '';
+}
+function _renderAnnPhotos() { _renderPhotos('f-photos-grid', S.photos, 'removeAnnPhoto'); }
+function removeAnnPhoto(i) { S.photos.splice(i,1); _renderAnnPhotos(); }
+$('f-photo-file').onchange = () => _uploadPhotos($('f-photo-file'), S.photos, _renderAnnPhotos, 'f-photo-uploading', 'announcements');
+
 // ── Announcement form ──────────────────────────────────────────────────────
 function resetForm() {
-  S.editingId=null; S.imageUrl=''; S.attachments=[];
+  S.editingId=null; S.attachments=[]; S.photos=[];
   $('f-title').value=''; $('f-date').value=new Date().toISOString().slice(0,10);
   $('f-cat').value='Barangay Assembly'; $('f-short').value=''; $('f-details').value='';
   $('s-draft').checked=true; $('feat-no').checked=true;
-  $('img-preview').style.display='none'; $('img-preview').src='';
-  $('img-url-note').classList.remove('show-note'); $('img-url-note').textContent='';
   document.querySelectorAll('.di-btn').forEach(b=>b.classList.remove('sel'));
   _renderAnnAttachments();
+  _renderAnnPhotos();
 }
 
 function openNew() { resetForm(); $('modal-title').textContent='New Announcement'; $('form-overlay').classList.add('open'); $('f-title').focus(); }
@@ -4436,9 +4467,7 @@ function openNew() { resetForm(); $('modal-title').textContent='New Announcement
 function openEdit(id) {
   const a = S.announcements.find(x=>x.id===id); if(!a) return;
   resetForm();
-  $('img-url-note').innerHTML = '';
-  $('img-url-note').textContent = '';
-  S.editingId=id; S.imageUrl=a.imageUrl||'';
+  S.editingId=id;
   $('modal-title').textContent='Edit Announcement';
   $('f-title').value=a.title||''; $('f-date').value=a.date||'';
   $('f-cat').value=a.category||'Other';
@@ -4446,18 +4475,12 @@ function openEdit(id) {
   const sEl = document.getElementById('s-'+a.status);
   if(sEl) sEl.checked=true; else $('s-draft').checked=true;
   if(a.featured) $('feat-yes').checked=true; else $('feat-no').checked=true;
-  if(a.imageUrl) {
-    $('img-preview').src=(a.imageUrl.indexOf('http')===0?a.imageUrl:'/'+a.imageUrl); $('img-preview').style.display='block';
-    document.querySelectorAll('.di-btn').forEach(b=>b.classList.toggle('sel',b.dataset.url===a.imageUrl));
-  }
   S.attachments = Array.isArray(a.attachments) ? [...a.attachments] : [];
   _renderAnnAttachments();
+  S.photos = Array.isArray(a.photos) ? [...a.photos] : [];
+  _renderAnnPhotos();
+  document.querySelectorAll('.di-btn').forEach(b=>b.classList.toggle('sel', S.photos.length===1 && b.dataset.url===S.photos[0].url));
   $('form-overlay').classList.add('open'); $('f-title').focus();
-}
-
-function clearAnnImage() {
-  S.imageUrl=''; $('img-preview').style.display='none'; $('img-preview').src='';
-  document.querySelectorAll('.di-btn').forEach(b=>b.classList.remove('sel'));
 }
 
 function closeForm() { $('form-overlay').classList.remove('open'); }
@@ -4465,28 +4488,10 @@ $('btn-close-form').onclick=closeForm;
 $('btn-cancel').onclick=closeForm;
 $('form-overlay').onclick=e=>{ if(e.target===$('form-overlay')) closeForm(); };
 
-$('f-img-file').onchange=async e=>{ const f=e.target.files[0]; if(!f) return; await doUpload(f); e.target.value=''; };
-const dropArea=$('img-drop-area');
-dropArea.addEventListener('dragover',e=>{e.preventDefault();dropArea.classList.add('drag-over');});
-dropArea.addEventListener('dragleave',()=>dropArea.classList.remove('drag-over'));
-dropArea.addEventListener('drop',async e=>{e.preventDefault();dropArea.classList.remove('drag-over');const f=e.dataTransfer.files[0];if(f) await doUpload(f);});
-
-async function doUpload(file) {
-  const form=new FormData(); form.append('image',file);
-  try {
-    const r=await adminFetch('/admin/api/upload',{method:'POST',body:form});
-    const d=await r.json();
-    if(!r.ok){toast(d.error||'Upload failed','err');return;}
-    S.imageUrl=d.url; $('img-preview').src=(d.url.indexOf('http')===0?d.url:'/'+d.url); $('img-preview').style.display='block';
-    document.querySelectorAll('.di-btn').forEach(b=>b.classList.remove('sel'));
-    toast('Image uploaded','ok');
-  } catch(e){ if(e.message!=='unauthorized') toast('Upload error','err'); }
-}
-
 document.querySelectorAll('.di-btn').forEach(btn=>{
   btn.onclick=()=>{
-    S.imageUrl=btn.dataset.url;
-    $('img-preview').src='/'+btn.dataset.url; $('img-preview').style.display='block';
+    S.photos = [{ url: btn.dataset.url, name: '' }];
+    _renderAnnPhotos();
     document.querySelectorAll('.di-btn').forEach(b=>b.classList.remove('sel'));
     btn.classList.add('sel');
   };
@@ -4496,7 +4501,7 @@ async function saveForm(forceStatus) {
   const title=$('f-title').value.trim();
   if(!title){toast('Title is required','err');$('f-title').focus();return;}
   const status=forceStatus||document.querySelector('input[name="status"]:checked')?.value||'draft';
-  const body={title,date:$('f-date').value,category:$('f-cat').value,shortDescription:$('f-short').value.trim(),fullDetails:$('f-details').value.trim(),imageUrl:S.imageUrl,status,featured:$('feat-yes').checked,attachments:S.attachments};
+  const body={title,date:$('f-date').value,category:$('f-cat').value,shortDescription:$('f-short').value.trim(),fullDetails:$('f-details').value.trim(),status,featured:$('feat-yes').checked,attachments:S.attachments,photos:S.photos};
   const url=S.editingId?`/admin/api/announcements/${S.editingId}`:'/admin/api/announcements';
   const method=S.editingId?'PUT':'POST';
   try {
@@ -4603,7 +4608,7 @@ document.addEventListener('keydown', e => {
 
 // ══════════════════ COMMUNITY INITIATIVES ══════════════════
 
-const SI = { initiatives:[], filter:'all', search:'', editingId:null, imageUrl:'', attachments:[] };
+const SI = { initiatives:[], filter:'all', search:'', editingId:null, attachments:[], photos:[] };
 
 async function loadInitiatives() {
   try {
@@ -4752,14 +4757,17 @@ function _renderInitAttachments() { _renderAttachments('if-attach-wrap', SI.atta
 function removeInitAttachment(i) { SI.attachments.splice(i,1); _renderInitAttachments(); }
 $('if-attach-file').onchange = () => _uploadAttachments($('if-attach-file'), SI.attachments, _renderInitAttachments, 'if-attach-uploading', 'initiatives');
 
+function _renderInitPhotos() { _renderPhotos('if-photos-grid', SI.photos, 'removeInitPhoto'); }
+function removeInitPhoto(i) { SI.photos.splice(i,1); _renderInitPhotos(); }
+$('if-photo-file').onchange = () => _uploadPhotos($('if-photo-file'), SI.photos, _renderInitPhotos, 'if-photo-uploading', 'initiatives');
+
 function resetInitForm() {
-  SI.editingId=null; SI.imageUrl=''; SI.attachments=[];
+  SI.editingId=null; SI.attachments=[]; SI.photos=[];
   $('if-title').value=''; $('if-cat').value='Technology';
   $('if-subtitle').value=''; $('if-short').value=''; $('if-details').value='';
   $('is-draft').checked=true; $('if-feat-no').checked=true;
-  $('init-img-preview').style.display='none'; $('init-img-preview').src='';
-  $('init-img-url-note').classList.remove('show-note'); $('init-img-url-note').textContent='';
   _renderInitAttachments();
+  _renderInitPhotos();
 }
 
 function openInitNew() {
@@ -4772,9 +4780,7 @@ function openInitNew() {
 function openInitEdit(id) {
   const p = SI.initiatives.find(x=>x.id===id); if(!p) return;
   resetInitForm();
-  $('init-img-url-note').innerHTML = '';
-  $('init-img-url-note').textContent = '';
-  SI.editingId=id; SI.imageUrl=p.imageUrl||'';
+  SI.editingId=id;
   $('init-modal-title').textContent='Edit Initiative';
   $('if-title').value=p.title||'';
   $('if-cat').value=p.category||'Other';
@@ -4784,54 +4790,18 @@ function openInitEdit(id) {
   const sEl = document.getElementById('is-'+p.status);
   if(sEl) sEl.checked=true; else $('is-draft').checked=true;
   if(p.featured) $('if-feat-yes').checked=true; else $('if-feat-no').checked=true;
-  if(p.imageUrl) {
-    $('init-img-preview').src=(p.imageUrl.indexOf('http')===0?p.imageUrl:'/'+p.imageUrl); $('init-img-preview').style.display='block';
-  }
   SI.attachments = Array.isArray(p.attachments) ? [...p.attachments] : [];
   _renderInitAttachments();
+  SI.photos = Array.isArray(p.photos) ? [...p.photos] : [];
+  _renderInitPhotos();
   $('init-form-overlay').classList.add('open');
   $('if-title').focus();
-}
-
-function clearInitImage() {
-  SI.imageUrl=''; $('init-img-preview').style.display='none'; $('init-img-preview').src='';
 }
 
 function closeInitForm() { $('init-form-overlay').classList.remove('open'); }
 $('btn-close-init-form').onclick=closeInitForm;
 $('btn-cancel-init').onclick=closeInitForm;
 $('init-form-overlay').onclick=e=>{ if(e.target===$('init-form-overlay')) closeInitForm(); };
-
-$('if-img-file').onchange=async e=>{
-  const f=e.target.files[0]; if(!f) return;
-  const form=new FormData(); form.append('image',f);
-  try {
-    const r=await adminFetch('/admin/api/upload-initiative',{method:'POST',body:form});
-    const d=await r.json();
-    if(!r.ok){toast(d.error||'Upload failed','err');return;}
-    SI.imageUrl=d.url;
-    $('init-img-preview').src=(d.url.indexOf('http')===0?d.url:'/'+d.url); $('init-img-preview').style.display='block';
-    toast('Image uploaded','ok');
-  } catch(e){ if(e.message!=='unauthorized') toast('Upload error','err'); }
-  e.target.value='';
-};
-
-const initDropArea=$('init-drop-area');
-initDropArea.addEventListener('dragover',e=>{e.preventDefault();initDropArea.classList.add('drag-over');});
-initDropArea.addEventListener('dragleave',()=>initDropArea.classList.remove('drag-over'));
-initDropArea.addEventListener('drop',async e=>{
-  e.preventDefault();initDropArea.classList.remove('drag-over');
-  const f=e.dataTransfer.files[0]; if(!f) return;
-  const form=new FormData(); form.append('image',f);
-  try {
-    const r=await adminFetch('/admin/api/upload-initiative',{method:'POST',body:form});
-    const d=await r.json();
-    if(!r.ok){toast(d.error||'Upload failed','err');return;}
-    SI.imageUrl=d.url;
-    $('init-img-preview').src=(d.url.indexOf('http')===0?d.url:'/'+d.url); $('init-img-preview').style.display='block';
-    toast('Image uploaded','ok');
-  } catch(e){ if(e.message!=='unauthorized') toast('Upload error','err'); }
-});
 
 async function saveInitForm(forceStatus) {
   const title=$('if-title').value.trim();
@@ -4843,10 +4813,10 @@ async function saveInitForm(forceStatus) {
     subtitle:$('if-subtitle').value.trim(),
     shortDescription:$('if-short').value.trim(),
     fullDetails:$('if-details').value.trim(),
-    imageUrl:SI.imageUrl,
     status,
     featured:$('if-feat-yes').checked,
-    attachments:SI.attachments
+    attachments:SI.attachments,
+    photos:SI.photos
   };
   const url=SI.editingId?`/admin/api/community-initiatives/${SI.editingId}`:'/admin/api/community-initiatives';
   const method=SI.editingId?'PUT':'POST';
