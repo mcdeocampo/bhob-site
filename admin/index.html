@@ -2011,6 +2011,7 @@ a{text-decoration:none;color:inherit}
             <div class="field"><label>Phone</label><input type="text" id="ss-barangay-phone"></div>
             <div class="field"><label>Email</label><input type="text" id="ss-barangay-email"></div>
             <div class="field field-full"><label>Address</label><input type="text" id="ss-barangay-address"></div>
+            <div class="field field-full"><label>Office Hours</label><input type="text" id="ss-barangay-hours" maxlength="150" placeholder="e.g. Monday - Friday, 8:00 AM - 5:00 PM"></div>
           </div>
           <div class="settings-acts">
             <button class="btn-publish" onclick="saveBarangaySettings()">Save Barangay Hall Info</button>
@@ -6058,6 +6059,7 @@ async function loadSiteSettings() {
       ['ss-barangay-email',    d.barangay_email],
 
       ['ss-barangay-address',  d.barangay_address],
+      ['ss-barangay-hours',    d.barangay_office_hours],
       ['ss-hp-hotline-label',   d.homepage_hotline_label],
       ['ss-hp-hotline-number',  d.homepage_hotline_number],
       ['ss-hp-hotline-desc',    d.homepage_hotline_description],
@@ -6468,10 +6470,12 @@ async function saveBarangaySettings() {
   const phone   = (($('ss-barangay-phone')   || {}).value || '').trim();
   const email   = (($('ss-barangay-email')   || {}).value || '').trim();
   const address = (($('ss-barangay-address') || {}).value || '').trim();
+  const hours   = (($('ss-barangay-hours')   || {}).value || '').trim();
   const payload = {
     barangay_phone:   phone,
     barangay_email:   email,
     barangay_address: address,
+    barangay_office_hours: hours,
   };
   try {
     const r = await adminFetch('/admin/api/site-settings', { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });

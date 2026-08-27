@@ -3519,7 +3519,7 @@ def admin_site_settings_put():
         'footer_phone', 'footer_email',
         'copyright_year', 'copyright_owner', 'copyright_suffix',
         'barangay_phone', 'barangay_email',
-        'barangay_facebook', 'barangay_social', 'barangay_address',
+        'barangay_facebook', 'barangay_social', 'barangay_address', 'barangay_office_hours',
         'homepage_hotline_label', 'homepage_hotline_number', 'homepage_hotline_description',
         'emergency_card_label', 'emergency_card_number',
         'social_facebook_url', 'social_linkedin_url', 'social_instagram_url',

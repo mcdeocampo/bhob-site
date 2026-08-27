@@ -101,7 +101,7 @@
           <div class="info-stack-icon" aria-hidden="true"><svg viewBox="0 0 24 24" role="presentation" focusable="false"><path d="M12 2.75a9.25 9.25 0 1 0 9.25 9.25A9.26 9.26 0 0 0 12 2.75Zm.75 2.53a6.74 6.74 0 0 1 5.97 5.97H12.75V5.28ZM12 19.75A7.75 7.75 0 0 1 11.25 4.3v8.2c0 .41.34.75.75.75h8.2A7.76 7.76 0 0 1 12 19.75Z" fill="currentColor"/></svg></div>
           <div class="info-stack-content">
             <span class="info-stack-title">Office Hours</span>
-            <p>Monday - Friday, 8:00 AM - 5:00 PM</p>
+            <p id="contact-info-hours">Monday - Friday, 8:00 AM - 5:00 PM</p>
           </div>
         </div>
 
@@ -255,6 +255,10 @@
     var cp=document.getElementById('contact-info-phone');if(cp){if(d.barangay_phone){cp.textContent=d.barangay_phone;cp.href='tel:'+d.barangay_phone.replace(/[\s\-().]/g,'');}else{cp.textContent='';cp.removeAttribute('href');}}
     var ce=document.getElementById('contact-info-email');if(ce){if(d.barangay_email){ce.textContent=d.barangay_email;ce.href='mailto:'+d.barangay_email;}else{ce.textContent='';ce.removeAttribute('href');}}
     var ca=document.getElementById('contact-info-address');if(ca)ca.textContent=d.barangay_address||'';
+    // Office Hours has no admin field yet on older deployments, so only
+    // override the static fallback text when a value is actually configured
+    // rather than blanking it out.
+    var oh=document.getElementById('contact-info-hours');if(oh&&d.barangay_office_hours)oh.textContent=d.barangay_office_hours;
     // Icons always render as placeholders; a link is attached only when its URL
     // is configured. Without a URL the icon stays inert (no href) rather than
     // falling back to a stale hardcoded link.
